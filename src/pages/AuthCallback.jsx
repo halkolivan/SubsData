@@ -1,0 +1,47 @@
+// src/pages/AuthCallback.jsx
+import { useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+
+export default function AuthCallback() {
+  const { search } = useLocation();
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
+  useEffect(() => {
+    const code = new URLSearchParams(search).get("code");
+    if (!code) {
+      navigate("/");
+      return;
+    }
+
+    // адрес твоего auth-сервера
+    const AUTH_SERVER =
+      import.meta.env.VITE_AUTH_SERVER || "http://localhost:4000";
+
+    fetch(`${AUTH_SERVER}/auth/github`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.user && data.token) {
+          // login из AuthContext (у тебя уже есть login)
+          login(
+            {
+              name: data.user.name || data.user.login,
+              email: data.user.email || data.user.html_url,
+            },
+            data.token
+          );
+          navigate("/");
+        } else {
+          navigate("/");
+        }
+      })
+      .catch(() => navigate("/"));
+  }, [search, login, navigate]);
+
+  return <p>Авторизация через GitHub...</p>;
+}
