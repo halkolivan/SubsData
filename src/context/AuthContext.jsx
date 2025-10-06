@@ -37,17 +37,11 @@ export const AuthProvider = ({ children }) => {
 
   // при загрузке страницы пробуем декодировать токен и установить user
   useEffect(() => {
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        setUser({ name: decoded.name, email: decoded.email });
-      } catch (err) {
-        console.error("Ошибка при декодировании токена:", err);
-        localStorage.removeItem("authToken");
-        setToken(null);
-      }
-    }
-  }, [token]);
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) setUser(JSON.parse(storedUser));
+  }, []);
+
+
 
   const login = (userData, jwt) => {
     setUser(userData);

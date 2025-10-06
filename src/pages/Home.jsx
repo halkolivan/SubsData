@@ -126,7 +126,7 @@ export default function Home() {
     <div className="flex h-full w-full bg-gray-200">
       <div className="flex flex-col items-start w-full mt-4 pr-4 pl-4">
         {/* Информационный блок */}
-        <div className="flex items-center w-full justify-center sticky top-15 gap-2 bg-blue-100 text-blue-800 p-3 rounded-lg shadow mb-4 z-50">
+        <div className="flex items-center w-full justify-center sticky top-15 gap-2 bg-blue-100 text-blue-800 p-3 rounded-lg shadow mb-4">
           <Info className="w-5 h-5" />
           <span>{t("DemoNotice")}</span>
         </div>

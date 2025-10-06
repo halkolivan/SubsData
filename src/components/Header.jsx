@@ -35,7 +35,6 @@ export default function Header() {
   const loginWithGoogle = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
-        // получаем данные профиля напрямую от Google
         const userInfo = await fetch(
           "https://www.googleapis.com/oauth2/v2/userinfo",
           {
@@ -44,10 +43,13 @@ export default function Header() {
         ).then((res) => res.json());
 
         login(
-          { name: userInfo.name, email: userInfo.email },
+          {
+            name: userInfo.name,
+            email: userInfo.email,
+            picture: userInfo.picture,
+          },
           tokenResponse.access_token
         );
-
         setIsModalOpen(false);
       } catch (err) {
         console.error("Ошибка при получении данных Google:", err);
@@ -55,6 +57,7 @@ export default function Header() {
     },
     onError: () => console.log("Login Failed"),
   });
+
 
 
   return (
@@ -262,8 +265,8 @@ export default function Header() {
 
         {/* Модалка приватности */}
         {showPrivacy && (
-          <div className="fixed flex items-center justify-center bg-black/50 inset-0 z-50">
-            <div className="bg-white rounded-xl shadow-lg p-6 max-w-md w-full text-gray-700">
+          <div className="fixed flex items-center justify-center bg-black/50 inset-0 !z-50">
+            <div className="bg-white rounded-xl shadow-lg p-6 max-w-md w-full text-gray-700 !z-50">
               <h2 className="text-lg font-semibold mb-3">{t("Privacy")}</h2>
               <ul className="list-disc list-inside space-y-2 text-sm">
                 <li>{t("PrivacyLocal")}</li>
