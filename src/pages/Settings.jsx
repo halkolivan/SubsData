@@ -192,18 +192,18 @@ export default function Settings() {
       <div className="flex w-full justify-center mb-4">
         <p className="text-[20px]">{t("Settings")}</p>
       </div>
-      <div className="flex flex-row w-full gap-3">
+      <div className="flex flex-col sm:flex-row w-full gap-3">
         {/* Левое меню */}
-        <div className="flex flex-col w-1/3 space-y-2 ml-4">
+        <div className="flex flex-col w-auto sm:w-1/3 space-y-2 sm:ml-4 border-b-1 pb-2 sm:border-b-0">
           {menuItems.map((item) => (
             <button
               key={item.key}
               onClick={() => setActive(item.key)}
-              className={`pl-4 text-left py-2 rounded-md transition-colors duration-200 !bg-gray-200 hover:!border-gray-200
+              className={`pl-4 text-center rounded-md w-full transition-colors duration-200 !border-gray-200 !bg-gray-200 hover:!border-gray-200
                 ${
                   active === item.key
-                    ? "bg-blue-500 text-black"
-                    : "hover:bg-blue-200 text-gray-400"
+                    ? "text-black"
+                    : "text-gray-400"
                 }`}
             >
               {item.label}
@@ -211,7 +211,7 @@ export default function Settings() {
           ))}
         </div>
         {/* Правая панель */}
-        <div className="flex w-2/3 bg-gray-200  mr-4 items-center justify-center rounded-md p-4">          
+        <div className="flex w-auto sm:w-2/3 bg-gray-200 items-center justify-center rounded-md p-4">          
 
           {/* Время уведомл */}
           {active === "notification" && (
@@ -284,7 +284,7 @@ export default function Settings() {
                 <div className="text-sm text-green-700">{notifMsg}</div>
               )}
 
-              <div className="flex gap-2">
+              <div className="flex w-full justify-center gap-2">
                 <button
                   type="submit"
                   className="!bg-blue-500 hover:!bg-blue-600 !text-white py-2 px-4 rounded-md hover:bg-blue-600 transition"
@@ -386,7 +386,7 @@ export default function Settings() {
                 <div className="text-sm text-green-700">{currencyMsg}</div>
               )}
 
-              <div className="flex gap-2">
+              <div className="flex w-full justify-center gap-2">
                 <button
                   type="submit"
                   className="!bg-blue-500 hover:!bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition"

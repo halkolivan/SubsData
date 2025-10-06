@@ -58,8 +58,6 @@ export default function Header() {
     onError: () => console.log("Login Failed"),
   });
 
-
-
   return (
     <header className="flex justify-center mb-4 w-auto sticky top-0 z-50 ">
       <nav className="flex flex-col sm:flex-row justify-between w-full min-h-[50px] items-center gap-3 pl-2 pr-2 pb-2 bg-gray-300 rounded-t-lg">
