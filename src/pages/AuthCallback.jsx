@@ -2,8 +2,10 @@
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { useTranslation } from "react-i18next";
 
 export default function AuthCallback() {
+  const { t } = useTranslation();
   const { search } = useLocation();
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -43,5 +45,5 @@ export default function AuthCallback() {
       .catch(() => navigate("/"));
   }, [search, login, navigate]);
 
-  return <p>Авторизация через GitHub...</p>;
+  return <p>{t("SignInWithGitHub")}...</p>;
 }

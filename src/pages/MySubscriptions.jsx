@@ -96,7 +96,7 @@ export default function MySubscriptions() {
   return (
     <div className="flex flex-col gap-3 w-full bg-gray-200 p-4">
       <span className="text-[20px]">{t("Mysubscriptions")}</span>
-      <div className="flex gap-6 text-sm text-green-600 w-full justify-center">
+      <div className="flex gap-6 text-sm text-green-600 w-full justify-center ">
         <span>
           {t("CountSubs")}: {totalCount}
         </span>
@@ -107,6 +107,108 @@ export default function MySubscriptions() {
           {t("Canceled")}: {canceledCount}
         </span>
       </div>
+
+      {subscriptions.length === 0 ? (
+        // Заглушка если нет подписок
+        <div className="flex flex-col items-center justify-center py-10 text-gray-600 gap-4">
+          <p className="mb-4">{t("NoSubscriptions")}</p>
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="px-4 py-2 !bg-blue-500 text-white rounded hover:!bg-blue-600"
+          >
+            {t("AddFirstSubscription")}
+          </button>
+          {/* кнопка загрузки демо-данных */}
+          <button
+            onClick={loadMockSubscriptions}
+            className="px-4 py-2 !bg-blue-500 text-white rounded hover:!bg-blue-600 "
+          >
+            {t("LoadDemoData")}
+          </button>
+        </div>
+      ) : (
+        // Таблица если подписки есть
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="border-b-2">
+              <tr>
+                <th>
+                  <button
+                    onClick={sortByName}
+                    className="!bg-gray-200 !border-gray-200 hover:text-blue-500"
+                  >
+                    {t("Subscriptions")} {sortAscName ? "↑" : "↓"}
+                  </button>
+                </th>
+                <th>
+                  <button
+                    onClick={sortByPrice}
+                    className="!bg-gray-200 !border-gray-200 hover:text-blue-500"
+                  >
+                    {t("Price")} {sortRevers ? "↑" : "↓"}
+                  </button>
+                </th>
+                <th>
+                  <button
+                    onClick={sortByCategory}
+                    className="!bg-gray-200 !border-gray-200 hover:text-blue-500"
+                  >
+                    {t("Category")} {sortAscCategory ? "↑" : "↓"}
+                  </button>
+                </th>
+                <th>
+                  <button
+                    onClick={sortByDate}
+                    className="!bg-gray-200 !border-gray-200 hover:text-blue-500"
+                  >
+                    {t("NextPayment")} {sortAscDate ? "↑" : "↓"}
+                  </button>
+                </th>
+                <th>
+                  <button
+                    onClick={sortByStatus}
+                    className="!bg-gray-200 !border-gray-200 hover:text-blue-500"
+                  >
+                    {t("Status")} {sortActiveStatus ? "↑" : "↓"}
+                  </button>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {subscriptions.map((sub) => (
+                <tr key={sub.id}>
+                  <td className="border-r-2 border-b-1">{sub.name}</td>
+                  <td className="border-r-2 border-b-1">
+                    {sub.price} {sub.currency}
+                  </td>
+                  <td className="border-r-2 border-b-1">{t(sub.category)}</td>
+                  <td className="border-r-2 border-b-1">{sub.nextPayment}</td>
+                  <td
+                    className={`border-b-1 !border-gray-800 ${
+                      sub.status === "active"
+                        ? "text-green-500"
+                        : "text-yellow-500"
+                    }`}
+                  >
+                    {sub.status}
+                  </td>
+                  <td className="border-b-1 text-center">
+                    <button
+                      onClick={() => {
+                        setToDeleteId(sub.id);
+                        setIsConfirmOpen(true);
+                      }}
+                      className="px-3 py-1 !bg-gray-200 text-red-600 rounded hover:!border-gray-200"
+                    >
+                      {t("Delete")}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Модалка подтверждения */}
       {isConfirmOpen && (
@@ -129,106 +231,6 @@ export default function MySubscriptions() {
             </div>
           </div>
         </div>
-      )}
-
-      {subscriptions.length === 0 ? (
-        // Заглушка если нет подписок
-        <div className="flex flex-col items-center justify-center py-10 text-gray-600 gap-4">
-          <p className="mb-4">{t("NoSubscriptions")}</p>
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="px-4 py-2 !bg-blue-500 text-white rounded hover:!bg-blue-600"
-          >
-            {t("AddFirstSubscription")}
-          </button>
-          {/* кнопка загрузки демо-данных */}
-          <button
-            onClick={loadMockSubscriptions}
-            className="px-4 py-2 !bg-blue-500 text-white rounded hover:!bg-blue-600 "
-          >
-            {t("LoadDemoData")}
-          </button>
-        </div>
-      ) : (
-        // Таблица если подписки есть
-        <table className="w-full">
-          <thead className="border-b-2">
-            <tr>
-              <th>
-                <button
-                  onClick={sortByName}
-                  className="!bg-gray-200 !border-gray-200 hover:text-blue-500"
-                >
-                  {t("Subscriptions")} {sortAscName ? "↑" : "↓"}
-                </button>
-              </th>
-              <th>
-                <button
-                  onClick={sortByPrice}
-                  className="!bg-gray-200 !border-gray-200 hover:text-blue-500"
-                >
-                  {t("Price")} {sortRevers ? "↑" : "↓"}
-                </button>
-              </th>
-              <th>
-                <button
-                  onClick={sortByCategory}
-                  className="!bg-gray-200 !border-gray-200 hover:text-blue-500"
-                >
-                  {t("Category")} {sortAscCategory ? "↑" : "↓"}
-                </button>
-              </th>
-              <th>
-                <button
-                  onClick={sortByDate}
-                  className="!bg-gray-200 !border-gray-200 hover:text-blue-500"
-                >
-                  {t("NextPayment")} {sortAscDate ? "↑" : "↓"}
-                </button>
-              </th>
-              <th>
-                <button
-                  onClick={sortByStatus}
-                  className="!bg-gray-200 !border-gray-200 hover:text-blue-500"
-                >
-                  {t("Status")} {sortActiveStatus ? "↑" : "↓"}
-                </button>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {subscriptions.map((sub) => (
-              <tr key={sub.id}>
-                <td className="border-r-2 border-b-1">{sub.name}</td>
-                <td className="border-r-2 border-b-1">
-                  {sub.price} {sub.currency}
-                </td>
-                <td className="border-r-2 border-b-1">{t(sub.category)}</td>
-                <td className="border-r-2 border-b-1">{sub.nextPayment}</td>
-                <td
-                  className={`border-b-1 !border-gray-800 ${
-                    sub.status === "active"
-                      ? "text-green-500"
-                      : "text-yellow-500"
-                  }`}
-                >
-                  {sub.status}
-                </td>
-                <td className="border-b-1 text-center">
-                  <button
-                    onClick={() => {
-                      setToDeleteId(sub.id);
-                      setIsConfirmOpen(true);
-                    }}
-                    className="px-3 py-1 !bg-gray-200 text-red-600 rounded hover:!border-gray-200"
-                  >
-                    {t("Delete")}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
       )}
     </div>
   );
