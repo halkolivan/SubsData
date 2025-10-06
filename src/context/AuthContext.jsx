@@ -1,13 +1,17 @@
-// src/context/AuthContext.jsx
 import { jwtDecode } from "jwt-decode";
-import { createContext, useContext, useState, useEffect } from "react";
 import { subscriptions as mockSubscriptions } from "@mock/mockData";
+import { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem("authToken") || null);
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem("user");
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [token, setToken] = useState(
+    () => localStorage.getItem("authToken") || null
+  );
 
   // Подписки — инициализируем из localStorage
   const [subscriptions, setSubscriptions] = useState(() => {
@@ -22,7 +26,7 @@ export const AuthProvider = ({ children }) => {
 
   // модалка входа (SignIn)
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  
+
   // модалка добавления подписки (AddSubscription)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
@@ -48,6 +52,7 @@ export const AuthProvider = ({ children }) => {
   const login = (userData, jwt) => {
     setUser(userData);
     setToken(jwt);
+    localStorage.setItem("user", JSON.stringify(userData));
     localStorage.setItem("authToken", jwt);
     setIsAuthModalOpen(false); // закрыть модалку входа
     setIsAddModalOpen(false); // закрыть модалку добавления
@@ -56,6 +61,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     setToken(null);
+    localStorage.removeItem("user");
     localStorage.removeItem("authToken");
   };
 

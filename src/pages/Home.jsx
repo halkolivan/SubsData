@@ -32,11 +32,12 @@ export default function Home() {
       formatter: ({ name, value, percent }) =>
         `${name}: ${Number(value).toFixed(2)} $ (${percent}%)`,
     },
-    legend: { orient: "vertical", left: "left" },
+    legend: { orient: "horizontal", left: "left", top: 20 },
     series: [
       {
         type: "pie",
-        radius: "50%",
+        radius: "45%",
+        top: 40,
         data: Object.entries(categoryTotals).map(([cat, val]) => ({
           name: t(cat),
           value: Math.round((val + Number.EPSILON) * 100) / 100,
@@ -123,7 +124,7 @@ export default function Home() {
 
   return (
     <div className="flex h-full w-full bg-gray-200">
-      <div className="flex flex-col items-start w-full m-4">
+      <div className="flex flex-col items-start w-full mt-4 pr-4 pl-4">
         {/* Информационный блок */}
         <div className="flex items-center w-full justify-center sticky top-15 gap-2 bg-blue-100 text-blue-800 p-3 rounded-lg shadow mb-4 z-50">
           <Info className="w-5 h-5" />
@@ -143,23 +144,27 @@ export default function Home() {
           </h2>
         </div>
         <div className="flex w-full mb-4">
-          <div className="flex flex-col w-full">
+          <div className="flex flex-col w-full overflow-x-auto">
             <p className="mb-3">{t("UpcomingPayments")}</p>
             <table className="w-full">
               <thead>
                 <tr>
-                  <th className="border-b-2">{t("Subscriptions")}</th>
-                  <th className="border-b-2">{t("Price")}</th>
-                  <th className="border-b-2">{t("Category")}</th>
-                  <th className="border-b-2">{t("NextPayment")}</th>
-                  <th className="border-b-2">{t("Status")}</th>
+                  <th className="border-b-2 p-1 text-sm">
+                    {t("Subscriptions")}
+                  </th>
+                  <th className="border-b-2 p-1 text-sm">{t("Price")}</th>
+                  <th className="border-b-2 p-1 text-sm">{t("Category")}</th>
+                  <th className="border-b-2 p-1 text-sm">{t("NextPayment")}</th>
+                  <th className="border-b-2 p-1 text-sm">{t("Status")}</th>
                 </tr>
               </thead>
               {subActive.map((sub) => (
                 <tbody className="w-full mb-5" key={sub.id}>
                   <tr>
                     <td className="border-b-1">{sub.name}</td>
-                    <td className="border-b-1">{sub.price} $</td>
+                    <td className="border-b-1 whitespace-nowrap text-right">
+                      {sub.price} $
+                    </td>
                     <td className="border-b-1">{t(sub.category)}</td>
                     <td className="border-b-1">{sub.nextPayment}</td>
                     <td
