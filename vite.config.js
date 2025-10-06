@@ -2,17 +2,95 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
+import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    VitePWA({
+      registerType: "autoUpdate",
+      devOptions: {
+        enabled: true, // позволяет тестировать PWA в dev-режиме
+      },
+      includeAssets: ["favicon.ico", "robots.txt", "apple-touch-icon.png"],
+      manifest: {
+        name: "SubsData",
+        short_name: "SubsData",
+        description: "Управляй своими подписками удобно и просто.",
+        theme_color: "#ffffff",
+        background_color: "#ffffff",
+        display: "standalone",
+        orientation: "portrait",
+        start_url: "/",
+        scope: "/",
+        lang: "ru",
+        icons: [
+          {
+            src: "/icons/PWA192.png",
+            sizes: "192x192",
+            type: "image/png",
+          },
+          {
+            src: "/icons/PWA512.png",
+            sizes: "512x512",
+            type: "image/png",
+          },
+          {
+            src: "/icons/PWA512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
+          },
+        ],
+      },
+      workbox: {
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true,
+        runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.destination === "document",
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "html-cache",
+            },
+          },
+          {
+            urlPattern: ({ request }) =>
+              request.destination === "script" ||
+              request.destination === "style",
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "static-resources",
+            },
+          },
+          {
+            urlPattern: ({ request }) => request.destination === "image",
+            handler: "CacheFirst",
+            options: {
+              cacheName: "image-cache",
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 дней
+              },
+            },
+          },
+        ],
+      },
+    }),
+  ],
+
   server: {
+    port: 5173,
     headers: {
-      // ВАЖНО: allow popups, чтобы Google popup мог корректно закрываться
+      // Важно: чтобы Google popup корректно закрывался
       "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
-      // COEP убираем/делаем нестрогим
+      // Отключаем строгий COEP (нужно для iframe и popups)
       "Cross-Origin-Embedder-Policy": "unsafe-none",
     },
   },
+
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),
