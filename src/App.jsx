@@ -1,11 +1,12 @@
 import "./i18n";
+import React from "react";
 import Router from "./Router";
 import "@assets/styles/App.css";
-import { AuthProvider } from "@/context/AuthContext";
-import { GoogleOAuthProvider } from "@react-oauth/google";
-import { registerSW } from "virtual:pwa-register";
-import React from "react";
 import ReactDOM from "react-dom/client";
+import { registerSW } from "virtual:pwa-register";
+import { subscriptions } from "@mock/mockData.js";
+import useNotifyDataSub from "@/hooks/useNotifyDataSub";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 const clientId =
   "512029137409-hkpm1n3t97o4r7gqf90d28unns7i2par.apps.googleusercontent.com";
@@ -19,12 +20,12 @@ function App() {
       onOfflineReady() {},
     });
   }, []);
+  // вызываем хук с мок-данными
+  useNotifyDataSub(subscriptions);
 
   return (
     <GoogleOAuthProvider clientId={clientId}>
-      <AuthProvider>
-        <Router />
-      </AuthProvider>
+      <Router />
     </GoogleOAuthProvider>
   );
 }

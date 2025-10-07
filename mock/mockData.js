@@ -15,7 +15,7 @@ export const subscriptions = [
     price: 15.49,
     currency: "USD",
     category: "Видео",
-    nextPayment: "2025-10-12",
+    nextPayment: "2025-10-10",
     cycle: "ежемесячно",
     status: "active",
   },
