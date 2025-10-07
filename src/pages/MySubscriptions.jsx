@@ -3,6 +3,11 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "@/context/AuthContext";
 
 export default function MySubscriptions() {
+  const auth = useAuth();
+
+  // если контекст ещё не готов — выходим
+  if (!auth) return null;
+  
   const { t } = useTranslation();
   const {
     subscriptions,

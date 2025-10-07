@@ -2,6 +2,7 @@ import { Info } from "lucide-react";
 import ReactECharts from "echarts-for-react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/context/AuthContext";
+import { subscriptions as mockSubs } from "@mock/mockData";
 
 export default function Home() {
   const { t } = useTranslation();
@@ -13,7 +14,7 @@ export default function Home() {
   ).length;
 
   // 1. Фильтруем, сортируем и выводим только ближайшие подписки с окончанием времени
-  const subActive = subscriptions
+  const subActive = mockSubs
     .filter((sub) => sub.status === "active")
     .sort((a, b) => new Date(a.nextPayment) - new Date(b.nextPayment))
     .slice(0, 3);
@@ -126,7 +127,7 @@ export default function Home() {
     <div className="flex h-full w-full bg-gray-200">
       <div className="flex flex-col items-start w-full mt-4 pr-4 pl-4">
         {/* Информационный блок */}
-        <div className="flex items-center w-full justify-center sticky top-15 gap-2 bg-blue-100 text-blue-800 p-3 rounded-lg shadow mb-4">
+        <div className="flex items-center w-full justify-center gap-2 bg-blue-100 text-blue-800 p-3 rounded-lg shadow mb-4">
           <Info className="w-5 h-5" />
           <span>{t("DemoNotice")}</span>
         </div>
