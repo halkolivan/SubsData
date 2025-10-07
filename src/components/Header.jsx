@@ -24,7 +24,7 @@ export default function Header() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showLangMenu, setShowLangMenu] = useState(false);
-  const { isAddModalOpen, setIsAddModalOpen } = useAuth();
+  const { isAddModalOpen, setIsAddModalOpen, addSubscription } = useAuth();
   const { user, login, logout, setIsAuthModalOpen } = useAuth();
   const iconColor = user ? "text-gray-700" : "text-gray-400 opacity-70";
   const changeLanguage = (lng) => {
@@ -297,7 +297,25 @@ export default function Header() {
               </button>
               <h2 className="text-xl font-bold mb-4">{t("AddSubscription")}</h2>
 
-              <form className="flex flex-col gap-3">
+              <form
+                className="flex flex-col gap-3"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const form = e.target;
+
+                  const newSub = {
+                    name: form[0].value,
+                    price: form[1].value,
+                    category: form[2].value,
+                    nextPayment: form[3].value,
+                    status: form[4].value,
+                    currency: "USD",
+                  };
+
+                  addSubscription(newSub);
+                  setIsAddModalOpen(false);
+                }}
+              >
                 <input
                   type="text"
                   placeholder={t("SubscriptionName")}
