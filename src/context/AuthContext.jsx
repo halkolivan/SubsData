@@ -1,5 +1,5 @@
-import { jwtDecode } from "jwt-decode";
-import { subscriptions as mockSubscriptions } from "@mock/mockData";
+import { subscriptions as mockSubs } from "@mock/mockData";
+import { notifySubscriptions } from "@/hooks/useNotifyDataSub";
 import { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext();
@@ -30,9 +30,11 @@ export const AuthProvider = ({ children }) => {
   // модалка добавления подписки (AddSubscription)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
+  const [justLoggedIn, setJustLoggedIn] = useState(false);
+
   // функция загрузки моков
   const loadMockSubscriptions = () => {
-    setSubscriptions(mockSubscriptions);
+    setSubscriptions(mockSubs);
   };
 
   // при загрузке страницы пробуем декодировать токен и установить user
@@ -41,8 +43,6 @@ export const AuthProvider = ({ children }) => {
     if (storedUser) setUser(JSON.parse(storedUser));
   }, []);
 
-
-
   const login = (userData, jwt) => {
     setUser(userData);
     setToken(jwt);
@@ -50,6 +50,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("authToken", jwt);
     setIsAuthModalOpen(false); // закрыть модалку входа
     setIsAddModalOpen(false); // закрыть модалку добавления
+    setJustLoggedIn(true);
+    notifySubscriptions(mockSubs);
   };
 
   const logout = () => {
@@ -58,6 +60,14 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("user");
     localStorage.removeItem("authToken");
   };
+
+  // вызывать уведомление только один раз при входе
+  useEffect(() => {
+    if (justLoggedIn) {
+      notifySubscriptions(mockSubs); 
+      setJustLoggedIn(false);
+    }
+  }, [justLoggedIn]);
 
   return (
     <AuthContext.Provider
