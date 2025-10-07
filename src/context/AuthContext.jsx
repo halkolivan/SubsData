@@ -37,6 +37,22 @@ export const AuthProvider = ({ children }) => {
     setSubscriptions(mockSubs);
   };
 
+  // Добавление новой подписки
+  const addSubscription = (newSub) => {
+    const subToAdd = {
+      id: Date.now(),
+      name: newSub.name,
+      price: parseFloat(newSub.price),
+      currency: newSub.currency || "USD",
+      category: newSub.category,
+      nextPayment: newSub.nextPayment,
+      cycle: "ежемесячно",
+      status: newSub.status || "active",
+    };
+
+    setSubscriptions((prev) => [...prev, subToAdd]);
+  };
+
   // при загрузке страницы пробуем декодировать токен и установить user
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -50,8 +66,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("authToken", jwt);
     setIsAuthModalOpen(false); // закрыть модалку входа
     setIsAddModalOpen(false); // закрыть модалку добавления
-    setJustLoggedIn(true);
-    notifySubscriptions(mockSubs);
+    setJustLoggedIn(true);    
   };
 
   const logout = () => {
@@ -64,7 +79,7 @@ export const AuthProvider = ({ children }) => {
   // вызывать уведомление только один раз при входе
   useEffect(() => {
     if (justLoggedIn) {
-      notifySubscriptions(mockSubs); 
+      notifySubscriptions(mockSubs);
       setJustLoggedIn(false);
     }
   }, [justLoggedIn]);
@@ -83,6 +98,7 @@ export const AuthProvider = ({ children }) => {
         subscriptions,
         setSubscriptions,
         loadMockSubscriptions,
+        addSubscription,
       }}
     >
       {children}
