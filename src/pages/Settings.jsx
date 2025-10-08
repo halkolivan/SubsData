@@ -1,14 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Settings() {
   const { t } = useTranslation();
   const [active, setActive] = useState("notification");
   const [dateFormat, setDateFormat] = useState("DD.MM.YYYY"); // значение по умолчанию
   const [dateMsg, setDateMsg] = useState("");
+  const { settings, updateSettings } = useAuth();
 
   // список пунктов меню
-  const menuItems = [    
+  const menuItems = [
     { key: "notification", label: t("NotificationTime") },
     { key: "currency", label: t("Currency") },
     { key: "dateformat", label: t("DateFormat") },
@@ -49,36 +51,6 @@ export default function Settings() {
   const [currencyMsg, setCurrencyMsg] = useState("");
   const [customCurrency, setCustomCurrency] = useState("");
 
-  // --- state для Логин/пароль (frontend only) ---
-  function handleLpSubmit(e) {
-    e.preventDefault();
-    setLpError("");
-    setLpSuccess("");
-
-    // простая frontend-валидация
-    if (!currentPassword) {
-      setLpError("Введите текущий пароль для подтверждения");
-      return;
-    }
-    if (newPassword && newPassword.length < 8) {
-      setLpError("Новый пароль должен быть минимум 8 символов");
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setLpError("Новый пароль и подтверждение не совпадают");
-      return;
-    }
-
-    // Здесь должен быть вызов API: отправить currentPassword, newLogin, newPassword
-    // Пока фронтенд-симуляция:
-    setLpSuccess(
-      "Данные изменены (симуляция). Подключите реальный API на бэкенде."
-    );
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
-  }
-
   // переключение дней недели для еженедельных уведомлений
   function toggleWeeklyDay(day) {
     setWeeklyDays((prev) => ({ ...prev, [day]: !prev[day] }));
@@ -87,7 +59,15 @@ export default function Settings() {
   // обработка сохранения настроек уведомлений
   function handleNotifSave(e) {
     e?.preventDefault();
-    setNotifMsg("");
+    updateSettings({
+      notif: {
+        enabled: notifEnabled,
+        time: notifTime,
+        frequency: notifFrequency,
+        weeklyDays,
+      },
+    });
+    setNotifMsg("Настройки уведомлений сохранены");
 
     if (!notifEnabled) {
       setNotifMsg("Уведомления выключены");
@@ -128,7 +108,14 @@ export default function Settings() {
   // обработка сохранения настроек валюты
   function handleCurrencySave(e) {
     e?.preventDefault();
-    setCurrencyMsg("");
+    updateSettings({
+      currency: {
+        defaultCurrency,
+        showOriginalCurrency,
+        rates,
+      },
+    });
+    setCurrencyMsg("Настройки валюты сохранены");
 
     if (!defaultCurrency) {
       setCurrencyMsg("Выберите валюту по умолчанию");
@@ -187,6 +174,21 @@ export default function Settings() {
     }
   }
 
+  // при монтировании / при изменении settings синхронизируем локальные поля
+  useEffect(() => {
+    if (!settings) return;
+    setNotifEnabled(settings.notif.enabled);
+    setNotifTime(settings.notif.time);
+    setNotifFrequency(settings.notif.frequency);
+    setWeeklyDays(settings.notif.weeklyDays || weeklyDays);
+
+    setDefaultCurrency(settings.currency.defaultCurrency);
+    setShowOriginalCurrency(settings.currency.showOriginalCurrency);
+    setRates(settings.currency.rates || rates);
+
+    setDateFormat(settings.dateFormat || dateFormat);
+  }, [settings]);
+
   return (
     <div className="flex flex-col w-full bg-gray-100 bg-gray-200 pt-4 pb-4">
       <div className="flex w-full justify-center mb-4">
@@ -200,19 +202,14 @@ export default function Settings() {
               key={item.key}
               onClick={() => setActive(item.key)}
               className={`pl-4 text-center rounded-md w-full transition-colors duration-200 !border-gray-200 !bg-gray-200 hover:!border-gray-200
-                ${
-                  active === item.key
-                    ? "text-black"
-                    : "text-gray-400"
-                }`}
+                ${active === item.key ? "text-black" : "text-gray-400"}`}
             >
               {item.label}
             </button>
           ))}
         </div>
         {/* Правая панель */}
-        <div className="flex w-auto sm:w-2/3 bg-gray-200 items-center justify-center rounded-md p-4">          
-
+        <div className="flex w-auto sm:w-2/3 bg-gray-200 items-center justify-center rounded-md p-4">
           {/* Время уведомл */}
           {active === "notification" && (
             <form
@@ -445,7 +442,10 @@ export default function Settings() {
 
               <button
                 type="button"
-                onClick={() => setDateMsg(t("ToolTipCurrency7"))}
+                onClick={() => {
+                  updateSettings({ dateFormat });
+                  setDateMsg(t("ToolTipCurrency7"));
+                }}
                 className="!bg-blue-500 hover:!bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition"
               >
                 {t("Save")}

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/context/AuthContext";
+import { formatDate, formatPrice } from "@/utils/formatUtils";
 
 export default function MySubscriptions() {
   const auth = useAuth();
@@ -14,6 +15,7 @@ export default function MySubscriptions() {
     setIsAddModalOpen,
     loadMockSubscriptions,
     setSubscriptions,
+    settings
   } = useAuth();
   const [sortRevers, setSortRevers] = useState(true);
   const [sortAscName, setSortAscName] = useState(true);
@@ -184,10 +186,12 @@ export default function MySubscriptions() {
                 <tr key={sub.id}>
                   <td className="border-r-2 border-b-1">{sub.name}</td>
                   <td className="border-r-2 border-b-1">
-                    {sub.price} {sub.currency}
+                    {formatPrice(sub, settings)}
                   </td>
                   <td className="border-r-2 border-b-1">{t(sub.category)}</td>
-                  <td className="border-r-2 border-b-1">{sub.nextPayment}</td>
+                  <td className="border-r-2 border-b-1">
+                    {formatDate(sub.nextPayment, settings)}
+                  </td>
                   <td
                     className={`border-b-1 !border-gray-800 ${
                       sub.status === "active"
