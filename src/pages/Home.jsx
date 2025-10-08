@@ -1,14 +1,17 @@
 import { Info } from "lucide-react";
+import { useEffect } from "react";
 import ReactECharts from "echarts-for-react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/context/AuthContext";
 import { subscriptions as mockSubs } from "@mock/mockData";
+import { formatDate, formatPrice } from "@/utils/formatUtils";
+
 
 export default function Home() {
   const { t } = useTranslation();
-  const { subscriptions } = useAuth();
-  const subSum = subscriptions.reduce((acc, sub) => acc + sub.price, 0);
+  const { subscriptions, settings } = useAuth();
   const totalSubs = subscriptions.length;
+  const subSum = subscriptions.reduce((acc, sub) => acc + sub.price, 0);
   const activeSubsCount = subscriptions.filter(
     (sub) => sub.status === "active"
   ).length;
@@ -164,10 +167,10 @@ export default function Home() {
                   <tr>
                     <td className="border-b-1">{sub.name}</td>
                     <td className="border-b-1 whitespace-nowrap text-right">
-                      {sub.price} $
+                      {formatPrice(sub, settings)}
                     </td>
                     <td className="border-b-1">{t(sub.category)}</td>
-                    <td className="border-b-1">{sub.nextPayment}</td>
+                    <td className="border-b-1">{formatDate(sub.nextPayment, settings)}</td>
                     <td
                       className={`border-b-1 border-gray-800 ${
                         sub.status === "active"

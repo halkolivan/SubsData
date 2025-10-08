@@ -59,6 +59,53 @@ export const AuthProvider = ({ children }) => {
     if (storedUser) setUser(JSON.parse(storedUser));
   }, []);
 
+  //Setting user
+  // в начале файла, рядом с mockSubs
+  const defaultSettings = {
+    notif: {
+      enabled: true,
+      time: "09:00",
+      frequency: "daily", // daily | weekdays | weekly
+      weeklyDays: {
+        mon: true,
+        tue: true,
+        wed: true,
+        thu: true,
+        fri: true,
+        sat: false,
+        sun: false,
+      },
+    },
+    currency: {
+      defaultCurrency: "USD",
+      showOriginalCurrency: true,
+      rates: { USD: 1, EUR: 0.92, RUB: 80, MDL: 18.0, GBP: 0.79 },
+    },
+    dateFormat: "DD.MM.YYYY",
+  };
+
+  // state (инициализируем из localStorage если есть)
+  const [settings, setSettings] = useState(() => {
+    const saved = localStorage.getItem("settings");
+    return saved ? JSON.parse(saved) : defaultSettings;
+  });
+
+  // сохраняем при изменении
+  useEffect(() => {
+    localStorage.setItem("settings", JSON.stringify(settings));
+  }, [settings]);
+
+  // удобный апдейтер: принимает "патч" (можно обновлять вложенные разделы)
+  const updateSettings = (patch) => {
+    setSettings((prev) => ({
+      ...prev,
+      ...patch,
+      // аккуратно мёрджим вложенные объекты, если они переданы в патче
+      notif: { ...(prev.notif || {}), ...(patch.notif || {}) },
+      currency: { ...(prev.currency || {}), ...(patch.currency || {}) },
+    }));
+  };
+
   const login = (userData, jwt) => {
     setUser(userData);
     setToken(jwt);
@@ -66,7 +113,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("authToken", jwt);
     setIsAuthModalOpen(false); // закрыть модалку входа
     setIsAddModalOpen(false); // закрыть модалку добавления
-    setJustLoggedIn(true);    
+    setJustLoggedIn(true);
   };
 
   const logout = () => {
@@ -99,6 +146,8 @@ export const AuthProvider = ({ children }) => {
         setSubscriptions,
         loadMockSubscriptions,
         addSubscription,
+        settings,
+        updateSettings,
       }}
     >
       {children}
