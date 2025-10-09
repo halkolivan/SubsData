@@ -1,18 +1,34 @@
 import { useTranslation } from "react-i18next";
+
+//import images
+import pp from "@assets/images/pp.png";
 export default function Footer() {
   const { t } = useTranslation();
   return (
-    <div className="flex sticky bottom-0 z-10 bg-gray-300 gap-4 p-3 mt-4 justify-between rounded-b-lg">
-      <span>Copyright © | Томайлы Роман 2025</span>
-      <span>«Privacy Policy / Terms of Service»</span>
-      <a
-        href="https://t.me/tomayli80"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="!text-blue-500 hover:underline hover:!text-blue-600"
-      >
-        Telegram : @tomayli80
-      </a>
+    <div className="flex sticky bottom-0 z-10 bg-gray-300 gap-4 p-3 mt-4 justify-between items-center rounded-b-lg">
+      <div className="flex flex-1 w-full justify-start items-center">
+        <span>Copyright © | SubsData 2025</span>
+      </div>
+      <div className="flex flex-col flex-1 sm:flex-row justify-between items-center w-1/2 sm:w-auto gap-2 sm:gap-4">
+        <a href="https://paypal.me/RTomayli" target="_blank">
+          <img src={pp} alt="paypal" className="min-h-[40px] w-auto" />
+        </a>
+        <a
+          href="https://github.com/halkolivan?tab=repositories"
+          target="_blank"
+          className="!text-black hover:!text-blue-600 sm:border-r-2 pr-2"
+        >
+          GitHub
+        </a>
+        <a
+          href="mailto:gemdtera@gmail.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="!text-black  hover:!text-blue-600"
+        >
+          gemdtera@gmail.com
+        </a>
+      </div>
     </div>
   );
 }

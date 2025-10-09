@@ -4,19 +4,14 @@ import { useAuth } from "@/context/AuthContext";
 import { formatDate, formatPrice } from "@/utils/formatUtils";
 
 export default function MySubscriptions() {
-  const auth = useAuth();
-
-  // если контекст ещё не готов — выходим
-  if (!auth) return null;
-  
-  const { t } = useTranslation();
   const {
     subscriptions,
     setIsAddModalOpen,
     loadMockSubscriptions,
     setSubscriptions,
-    settings
+    settings,
   } = useAuth();
+  const { t } = useTranslation();
   const [sortRevers, setSortRevers] = useState(true);
   const [sortAscName, setSortAscName] = useState(true);
   const [sortAscDate, setSortAscDate] = useState(true);
