@@ -1,12 +1,14 @@
 import { useAuth } from "@/context/AuthContext";
+import { useEffect } from "react";
 
 export default function ProtectedRoute({ children }) {
   const { user, setIsAuthModalOpen } = useAuth();
 
-  if (!user) {
-    setIsAuthModalOpen(true); // открываем модалку
-    return null; // пока ничего не рендерим
-  }
+  useEffect(() => {
+    if (!user) setIsAuthModalOpen(true);
+  }, [user, setIsAuthModalOpen]);
+
+  if (!user) return null;
 
   return children;
 }
