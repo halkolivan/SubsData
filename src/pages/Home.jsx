@@ -8,25 +8,25 @@ import { formatDate, formatPrice } from "@/utils/formatUtils";
 
 export default function Home() {
   const { t } = useTranslation();
-  const { subscriptions, settings, user } = useAuth();
-  const totalSubs = subscriptions.length;
-  const subSum = subscriptions.reduce((acc, sub) => acc + sub.price, 0);
+  const { subscriptions, settings } = useAuth();
+  const sourceSubs = subscriptions.length ? subscriptions : mockSubs;
+  const totalSubs = sourceSubs.length;
+  const subSum = sourceSubs.reduce((acc, sub) => acc + sub.price, 0);
   const [showDemoNotice, setShowDemoNotice] = useState(
     subscriptions.length === 0
   );
-  const activeSubsCount = subscriptions.filter(
+  const activeSubsCount = sourceSubs.filter(
     (sub) => sub.status === "active"
   ).length;
 
   // 1. Фильтруем, сортируем и выводим только ближайшие подписки с окончанием времени
-  const sourceSubs = subscriptions.length ? subscriptions : mockSubs;
   const subActive = sourceSubs
     .filter((sub) => sub.status === "active")
     .sort((a, b) => new Date(a.nextPayment) - new Date(b.nextPayment))
     .slice(0, 3);
 
   // --- 1. Сумма по категориям (pie) ---
-  const categoryTotals = subscriptions.reduce((acc, sub) => {
+  const categoryTotals = sourceSubs.reduce((acc, sub) => {
     if (sub.status !== "active") return acc;
     acc[sub.category] = (acc[sub.category] || 0) + sub.price;
     return acc;
@@ -57,7 +57,7 @@ export default function Home() {
   };
 
   // --- 2. По сервисам (bar) ---
-  const activeSubs = subscriptions.filter((s) => s.status === "active");
+  const activeSubs = sourceSubs.filter((s) => s.status === "active");
 
   const serviceOption = {
     title: { text: t("TopSubsByPrice"), left: "center" },
@@ -82,7 +82,7 @@ export default function Home() {
 
   // --- 3. По месяцам (line) ---
   const monthlyTotals = {};
-  subscriptions.forEach((sub) => {
+  sourceSubs.forEach((sub) => {
     if (sub.status !== "active") return;
     const date = new Date(sub.nextPayment);
     const monthIndex = date.getMonth(); // 0–11

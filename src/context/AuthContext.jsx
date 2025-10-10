@@ -19,6 +19,11 @@ export const AuthProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : [];
   });
 
+  const [userSubscriptions, setUserSubscriptions] = useState(() => {
+    const saved = localStorage.getItem("userSubscriptions");
+    return saved ? JSON.parse(saved) : [];
+  });
+
   // Сохраняем подписки при изменении
   useEffect(() => {
     localStorage.setItem("subscriptions", JSON.stringify(subscriptions));
@@ -51,6 +56,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     setSubscriptions((prev) => [...prev, subToAdd]);
+    setUserSubscriptions((prev) => [...prev, subToAdd]);
   };
 
   // при загрузке страницы пробуем декодировать токен и установить user
@@ -95,6 +101,14 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("settings", JSON.stringify(settings));
   }, [settings]);
 
+  useEffect(() => {
+    localStorage.setItem(
+      "userSubscriptions",
+      JSON.stringify(userSubscriptions)
+    );
+  }, [userSubscriptions]);
+
+
   // удобный апдейтер: принимает "патч" (можно обновлять вложенные разделы)
   const updateSettings = (patch) => {
     setSettings((prev) => ({
@@ -114,6 +128,12 @@ export const AuthProvider = ({ children }) => {
     setIsAuthModalOpen(false); // закрыть модалку входа
     setIsAddModalOpen(false); // закрыть модалку добавления
     setJustLoggedIn(true);
+    
+    // восстановление данных пользователя
+    const savedUserSubs = localStorage.getItem("userSubscriptions");
+    if (savedUserSubs) {
+      setSubscriptions(JSON.parse(savedUserSubs));
+    }
   };
 
   const logout = () => {
@@ -121,6 +141,7 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
     localStorage.removeItem("user");
     localStorage.removeItem("authToken");
+    setSubscriptions([]);
   };
 
   // вызывать уведомление только один раз при входе
