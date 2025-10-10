@@ -196,7 +196,7 @@ export default function Header() {
           ) : (
             <>
               <h5
-                className="cursor-pointer hover:text-ywllow-500 font-semibold text-yellow-700 hidden lg:flex"
+                className="cursor-pointer hover:text-yellow-500 font-semibold text-yellow-700 hidden lg:flex"
                 onClick={() => setIsModalOpen(true)}
               >
                 {t("SignIn")}
