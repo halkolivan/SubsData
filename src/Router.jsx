@@ -4,8 +4,6 @@ import AuthCallback from "@/pages/AuthCallback";
 import ProtectedRoute from "@/context/ProtectedRoute";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 
-
-
 //import pages
 const Home = lazy(() => import("./pages/Home"));
 const Settings = lazy(() => import("./pages/Settings"));
@@ -16,10 +14,7 @@ export default function Router() {
       path: "/",
       element: <Template />,
       children: [
-        {
-          path: "/",
-          element: <Home />,
-        },
+        { path: "/", element: <Home /> },
         {
           path: "/settings",
           element: (
@@ -38,10 +33,7 @@ export default function Router() {
         },
       ],
     },
-    {
-      path: "/auth/callback",
-      element: <AuthCallback />,
-    },
+    { path: "/auth/callback", element: <AuthCallback /> },
   ]);
   return <RouterProvider router={router} />;
 }

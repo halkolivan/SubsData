@@ -10,9 +10,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
-      devOptions: {
-        enabled: true, // позволяет тестировать PWA в dev-режиме
-      },
+      devOptions: { enabled: true },
       includeAssets: ["favicon.ico", "robots.txt", "apple-touch-icon.png"],
       manifest: {
         name: "SubsData",
@@ -26,16 +24,8 @@ export default defineConfig({
         scope: "/",
         lang: "ru",
         icons: [
-          {
-            src: "/icons/PWA192.png",
-            sizes: "192x192",
-            type: "image/png",
-          },
-          {
-            src: "/icons/PWA512.png",
-            sizes: "512x512",
-            type: "image/png",
-          },
+          { src: "/icons/PWA192.png", sizes: "192x192", type: "image/png" },
+          { src: "/icons/PWA512.png", sizes: "512x512", type: "image/png" },
           {
             src: "/icons/PWA512.png",
             sizes: "512x512",
@@ -52,41 +42,38 @@ export default defineConfig({
           {
             urlPattern: ({ request }) => request.destination === "document",
             handler: "NetworkFirst",
-            options: {
-              cacheName: "html-cache",
-            },
+            options: { cacheName: "html-cache" },
           },
           {
             urlPattern: ({ request }) =>
               request.destination === "script" ||
               request.destination === "style",
             handler: "StaleWhileRevalidate",
-            options: {
-              cacheName: "static-resources",
-            },
+            options: { cacheName: "static-resources" },
           },
           {
             urlPattern: ({ request }) => request.destination === "image",
             handler: "CacheFirst",
             options: {
               cacheName: "image-cache",
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 дней
-              },
+              expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 * 30 },
             },
           },
         ],
       },
     }),
   ],
-
+  
   server: {
+    host: true,
     port: 5173,
+    strictPort: true,
+    hmr: {
+      protocol: "ws",
+      host: "localhost",
+    },
     headers: {
-      // Важно: чтобы Google popup корректно закрывался
       "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
-      // Отключаем строгий COEP (нужно для iframe и popups)
       "Cross-Origin-Embedder-Policy": "unsafe-none",
     },
   },

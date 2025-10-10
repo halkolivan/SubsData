@@ -1,6 +1,7 @@
 import { Info } from "lucide-react";
 import { useEffect, useState } from "react";
 import ReactECharts from "echarts-for-react";
+import * as echarts from "echarts";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/context/AuthContext";
 import { subscriptions as mockSubs } from "@mock/mockData";
