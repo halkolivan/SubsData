@@ -1,23 +1,26 @@
 import { Info } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import ReactECharts from "echarts-for-react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/context/AuthContext";
 import { subscriptions as mockSubs } from "@mock/mockData";
 import { formatDate, formatPrice } from "@/utils/formatUtils";
 
-
 export default function Home() {
   const { t } = useTranslation();
-  const { subscriptions, settings } = useAuth();
+  const { subscriptions, settings, user } = useAuth();
   const totalSubs = subscriptions.length;
   const subSum = subscriptions.reduce((acc, sub) => acc + sub.price, 0);
+  const [showDemoNotice, setShowDemoNotice] = useState(
+    subscriptions.length === 0
+  );
   const activeSubsCount = subscriptions.filter(
     (sub) => sub.status === "active"
   ).length;
 
   // 1. Фильтруем, сортируем и выводим только ближайшие подписки с окончанием времени
-  const subActive = mockSubs
+  const sourceSubs = subscriptions.length ? subscriptions : mockSubs;
+  const subActive = sourceSubs
     .filter((sub) => sub.status === "active")
     .sort((a, b) => new Date(a.nextPayment) - new Date(b.nextPayment))
     .slice(0, 3);
@@ -126,14 +129,25 @@ export default function Home() {
     ],
   };
 
+  //Убрать/показать сообщение
+  useEffect(() => {
+    // если подписки появились — убираем уведомление
+    if (subscriptions.length > 0) {
+      setShowDemoNotice(false);
+    } else {
+      setShowDemoNotice(true);
+    }
+  }, [subscriptions]);
+
   return (
     <div className="flex h-full w-full bg-gray-200">
       <div className="flex flex-col items-start w-full mt-4 pr-4 pl-4">
-        {/* Информационный блок */}
-        <div className="flex items-center w-full justify-center gap-2 bg-blue-100 text-blue-800 p-3 rounded-lg shadow mb-4">
-          <Info className="w-5 h-5" />
-          <span>{t("DemoNotice")}</span>
-        </div>
+        {showDemoNotice && (
+          <div className="flex items-center w-full justify-center gap-2 bg-blue-100 text-blue-800 p-3 rounded-lg shadow mb-4">
+            <Info className="w-5 h-5" />
+            <span>{t("DemoNotice")}</span>
+          </div>
+        )}
 
         <div className="flex flex-col w-full mb-4 border-b-2 pb-3">
           <div className="flex flex-col w-full mb-4">
@@ -170,7 +184,9 @@ export default function Home() {
                       {formatPrice(sub, settings)}
                     </td>
                     <td className="border-b-1">{t(sub.category)}</td>
-                    <td className="border-b-1">{formatDate(sub.nextPayment, settings)}</td>
+                    <td className="border-b-1">
+                      {formatDate(sub.nextPayment, settings)}
+                    </td>
                     <td
                       className={`border-b-1 border-gray-800 ${
                         sub.status === "active"

@@ -11,7 +11,7 @@ export default function Footer() {
       </div>
       <div className="flex flex-col flex-1 sm:flex-row justify-between items-center w-1/2 sm:w-auto gap-2 sm:gap-4">
         <a href="https://paypal.me/RTomayli" target="_blank">
-          <img src={pp} alt="paypal" className="min-h-[40px] w-auto" />
+          <img src={pp} alt="paypal" className="max-h-[40px] w-auto" />
         </a>
         <a
           href="https://github.com/halkolivan?tab=repositories"

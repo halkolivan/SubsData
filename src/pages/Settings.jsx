@@ -4,14 +4,14 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function Settings() {
   const { t } = useTranslation();
-  const [active, setActive] = useState("notification");
+  const [active, setActive] = useState("currency");
   const [dateFormat, setDateFormat] = useState("DD.MM.YYYY"); // значение по умолчанию
   const [dateMsg, setDateMsg] = useState("");
   const { settings, updateSettings } = useAuth();
 
   // список пунктов меню
   const menuItems = [
-    { key: "notification", label: t("NotificationTime") },
+    // { key: "notification", label: t("NotificationTime") },
     { key: "currency", label: t("Currency") },
     { key: "dateformat", label: t("DateFormat") },
   ];
@@ -52,48 +52,48 @@ export default function Settings() {
   const [customCurrency, setCustomCurrency] = useState("");
 
   // переключение дней недели для еженедельных уведомлений
-  function toggleWeeklyDay(day) {
-    setWeeklyDays((prev) => ({ ...prev, [day]: !prev[day] }));
-  }
+  // function toggleWeeklyDay(day) {
+  //   setWeeklyDays((prev) => ({ ...prev, [day]: !prev[day] }));
+  // }
 
   // обработка сохранения настроек уведомлений
-  function handleNotifSave(e) {
-    e?.preventDefault();
-    updateSettings({
-      notif: {
-        enabled: notifEnabled,
-        time: notifTime,
-        frequency: notifFrequency,
-        weeklyDays,
-      },
-    });
-    setNotifMsg("Настройки уведомлений сохранены");
+  // function handleNotifSave(e) {
+  //   e?.preventDefault();
+  //   updateSettings({
+  //     notif: {
+  //       enabled: notifEnabled,
+  //       time: notifTime,
+  //       frequency: notifFrequency,
+  //       weeklyDays,
+  //     },
+  //   });
+  //   setNotifMsg("Настройки уведомлений сохранены");
 
-    if (!notifEnabled) {
-      setNotifMsg("Уведомления выключены");
-      return;
-    }
+  //   if (!notifEnabled) {
+  //     setNotifMsg("Уведомления выключены");
+  //     return;
+  //   }
 
-    if (!notifTime) {
-      setNotifMsg("Выберите время уведомления");
-      return;
-    }
+  //   if (!notifTime) {
+  //     setNotifMsg("Выберите время уведомления");
+  //     return;
+  //   }
 
-    if (notifFrequency === "weekly") {
-      const atLeastOne = Object.values(weeklyDays).some(Boolean);
-      if (!atLeastOne) {
-        setNotifMsg(
-          "Выберите хотя бы один день недели для еженедельных уведомлений"
-        );
-        return;
-      }
-    }
+  //   if (notifFrequency === "weekly") {
+  //     const atLeastOne = Object.values(weeklyDays).some(Boolean);
+  //     if (!atLeastOne) {
+  //       setNotifMsg(
+  //         "Выберите хотя бы один день недели для еженедельных уведомлений"
+  //       );
+  //       return;
+  //     }
+  //   }
 
-    // Тут -- отправка настроек на бэкенд. Сейчас симуляция.
-    setNotifMsg(
-      "Настройки уведомлений сохранены (симуляция). Подключите бэкенд для реального сохранения."
-    );
-  }
+  //   // Тут -- отправка настроек на бэкенд. Сейчас симуляция.
+  //   setNotifMsg(
+  //     "Настройки уведомлений сохранены (симуляция). Подключите бэкенд для реального сохранения."
+  //   );
+  // }
 
   // --- Валюты: простая конвертация (frontend simulation) ---
   function convert(amount, from, to) {
@@ -210,7 +210,7 @@ export default function Settings() {
         </div>
         {/* Правая панель */}
         <div className="flex w-auto sm:w-2/3 bg-gray-200 items-center justify-center rounded-md p-4">
-          {/* Время уведомл */}
+          {/* Время уведомл
           {active === "notification" && (
             <form
               className="flex flex-col w-full max-w-md space-y-4"
@@ -312,7 +312,7 @@ export default function Settings() {
                 </button>
               </div>
             </form>
-          )}
+          )} */}
 
           {/* ВАЛЮТА */}
           {active === "currency" && (
