@@ -9,6 +9,7 @@
   "Category": "Catégorie",
   "NextPayment": "Proch.paiement",
   "Status": "Statut",
+  "StatusTable": "Actif",
   "Currency": "Devise",
   "DefaultCurrency": "Devise par défaut",
   "AccountingCurrency": "Devise comptable",
@@ -94,5 +95,7 @@
   "ConfirmDeleteMessage": "Êtes-vous sûr de vouloir supprimer l’abonnement ?",
   "Cancel": "Annuler",
   "Active": "Actives",
-  "Canceled": "Annulées"
+  "Canceled": "Annulées",
+  "Actions": "Actions",
+  "Edit": "Modifier"
 }

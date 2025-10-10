@@ -9,6 +9,7 @@
   "Category": "Categorie",
   "NextPayment": "Următ.plată",
   "Status": "Statut",
+  "StatusTable": "Activ",
   "Currency": "Monedă",
   "DefaultCurrency": "Moneda implicită",
   "AccountingCurrency": "Monedă de evidență",
@@ -94,5 +95,7 @@
   "ConfirmDeleteMessage": "Sunteți sigur că doriți să ștergeți abonamentul?",
   "Cancel": "Anulare",
   "Active": "Active",
-  "Canceled": "Anulate"
+  "Canceled": "Anulate",
+  "Actions": "Acțiuni",
+  "Edit": "Editează"
 }

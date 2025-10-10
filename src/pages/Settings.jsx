@@ -150,6 +150,7 @@ export default function Settings() {
         </div>
         {/* Правая панель */}
         <div className="flex w-auto sm:w-2/3 bg-gray-200 items-center justify-center rounded-md p-4">
+        
           {/* ВАЛЮТА */}
           {active === "currency" && (
             <form

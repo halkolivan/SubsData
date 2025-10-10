@@ -9,6 +9,7 @@
   "Category": "Kategorie",
   "NextPayment": "Näch.Zahlung",
   "Status": "Status",
+  "StatusTable": "Aktiv",
   "Currency": "Währung",
   "DefaultCurrency": "Standardwährung",
   "AccountingCurrency": "Buchungswährung",
@@ -94,5 +95,7 @@
   "ConfirmDeleteMessage": "Sind Sie sicher, dass Sie das Abonnement löschen möchten?",
   "Cancel": "Abbrechen",
   "Active": "Aktiv",
-  "Canceled": "Storniert"
+  "Canceled": "Storniert",
+  "Actions": "Aktionen",
+  "Edit": "Bearbeiten"
 }

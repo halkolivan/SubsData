@@ -10,6 +10,7 @@
   "NextPayment": "Volg.betaling",
   "Status": "Status",
   "Currency": "Valuta",
+  "StatusTable": "Actief",
   "DefaultCurrency": "Standaardvaluta",
   "AccountingCurrency": "Boekhoudvaluta",
   "AddCurrenc": "Aangepaste valuta toevoegen (optioneel)",
@@ -94,5 +95,7 @@
   "ConfirmDeleteMessage": "Weet u zeker dat u het abonnement wilt verwijderen?",
   "Cancel": "Annuleren",
   "Active": "Actief",
-  "Canceled": "Geannuleerd"
+  "Canceled": "Geannuleerd",
+  "Actions": "Acties",
+  "Edit": "Bewerken"
 }

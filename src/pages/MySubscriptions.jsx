@@ -12,17 +12,22 @@ export default function MySubscriptions() {
     settings,
   } = useAuth();
   const { t } = useTranslation();
+
   const [sortRevers, setSortRevers] = useState(true);
   const [sortAscName, setSortAscName] = useState(true);
   const [sortAscDate, setSortAscDate] = useState(true);
   const [sortAscCategory, setSortAscCategory] = useState(true);
   const [sortActiveStatus, setSortActiveStatus] = useState(true);
 
-  // новое состояние для модалки
+  // --- состояния для удаления ---
   const [toDeleteId, setToDeleteId] = useState(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
-  // функция для открытия модалки удаления
+  // --- состояния для редактирования ---
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editData, setEditData] = useState(null);
+
+  // --- функции удаления ---
   const deleteSubscription = (id) => {
     setSubscriptions((prev) => prev.filter((sub) => sub.id !== id));
   };
@@ -40,7 +45,25 @@ export default function MySubscriptions() {
     setIsConfirmOpen(false);
   };
 
-  // Сортировка ---------------------------------------------------------------------
+  // --- функции редактирования ---
+  const openEditModal = (sub) => {
+    setEditData({ ...sub });
+    setIsEditOpen(true);
+  };
+
+  const handleEditChange = (field, value) => {
+    setEditData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const saveEdit = () => {
+    setSubscriptions((prev) =>
+      prev.map((sub) => (sub.id === editData.id ? editData : sub))
+    );
+    setIsEditOpen(false);
+    setEditData(null);
+  };
+
+  // --- сортировка ---
   const sortByPrice = () => {
     const sorted = [...subscriptions].sort((a, b) =>
       sortRevers ? a.price - b.price : b.price - a.price
@@ -86,9 +109,8 @@ export default function MySubscriptions() {
     setSubscriptions(sorted);
     setSortAscCategory(!sortAscCategory);
   };
-  // -------------------------------------------------------------------------------
 
-  // Статистика подписок
+  // --- статистика ---
   const totalCount = subscriptions.length;
   const activeCount = subscriptions.filter((s) => s.status === "active").length;
   const canceledCount = subscriptions.filter(
@@ -111,7 +133,6 @@ export default function MySubscriptions() {
       </div>
 
       {subscriptions.length === 0 ? (
-        // Заглушка если нет подписок
         <div className="flex flex-col items-center justify-center py-10 text-gray-600 gap-4">
           <p className="mb-4">{t("NoSubscriptions")}</p>
           <button
@@ -120,7 +141,6 @@ export default function MySubscriptions() {
           >
             {t("AddFirstSubscription")}
           </button>
-          {/* кнопка загрузки демо-данных */}
           <button
             onClick={loadMockSubscriptions}
             className="px-4 py-2 !bg-blue-500 text-white rounded hover:!bg-blue-600 "
@@ -129,7 +149,6 @@ export default function MySubscriptions() {
           </button>
         </div>
       ) : (
-        // Таблица если подписки есть
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="border-b-2">
@@ -174,6 +193,7 @@ export default function MySubscriptions() {
                     {t("Status")} {sortActiveStatus ? "↑" : "↓"}
                   </button>
                 </th>
+                <th>{t("Actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -196,7 +216,13 @@ export default function MySubscriptions() {
                   >
                     {sub.status}
                   </td>
-                  <td className="border-b-1 text-center">
+                  <td className="border-b-1 text-center flex gap-2 justify-center">
+                    <button
+                      onClick={() => openEditModal(sub)}
+                      className="px-3 py-1 !bg-gray-200 text-blue-600 rounded hover:!border-gray-200"
+                    >
+                      {t("Edit")}
+                    </button>
                     <button
                       onClick={() => {
                         setToDeleteId(sub.id);
@@ -214,7 +240,7 @@ export default function MySubscriptions() {
         </div>
       )}
 
-      {/* Модалка подтверждения */}
+      {/* Модалка подтверждения удаления */}
       {isConfirmOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
           <div className="bg-white p-6 rounded-xl shadow-xl max-w-sm w-full">
@@ -231,6 +257,63 @@ export default function MySubscriptions() {
                 className="px-4 py-2 !bg-red-500 text-white rounded hover:!bg-red-600"
               >
                 {t("Delete")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Модалка редактирования */}
+      {isEditOpen && editData && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+          <div className="bg-white p-6 rounded-xl shadow-xl max-w-sm w-full flex flex-col gap-4">
+            <h3 className="text-lg font-semibold">{t("EditSubscription")}</h3>
+            <input
+              className="border p-2 rounded"
+              value={editData.name}
+              onChange={(e) => handleEditChange("name", e.target.value)}
+              placeholder={t("Name")}
+            />
+            <input
+              type="number"
+              className="border p-2 rounded"
+              value={editData.price}
+              onChange={(e) => handleEditChange("price", +e.target.value)}
+              placeholder={t("Price")}
+            />
+            <input
+              className="border p-2 rounded"
+              value={editData.category}
+              onChange={(e) => handleEditChange("category", e.target.value)}
+              placeholder={t("Category")}
+            />
+            <input
+              type="date"
+              className="border p-2 rounded"
+              value={editData.nextPayment}
+              onChange={(e) => handleEditChange("nextPayment", e.target.value)}
+            />
+            <select
+              className="border p-2 rounded"
+              value={editData.status}
+              onChange={(e) => handleEditChange("status", e.target.value)}
+            >
+              <option value="active">{t("Active")}</option>
+              <option value="canceled">{t("Canceled")}</option>
+            </select>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setIsEditOpen(false)}
+                className="px-4 py-2 !bg-gray-300 rounded hover:!bg-gray-400"
+              >
+                {t("Cancel")}
+              </button>
+              <button
+                onClick={saveEdit}
+                className="px-4 py-2 !bg-blue-500 text-white rounded hover:!bg-blue-600"
+              >
+                {t("Save")}
               </button>
             </div>
           </div>
