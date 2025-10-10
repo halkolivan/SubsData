@@ -7,9 +7,10 @@ import {
   LogIn,
   Globe,
 } from "lucide-react";
-import { NavLink } from "react-router-dom";
 import { User } from "lucide-react";
+import { NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useGoogleLogin } from "@react-oauth/google";
 
@@ -23,8 +24,17 @@ export default function Header() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showLangMenu, setShowLangMenu] = useState(false);
-  const { isAddModalOpen, setIsAddModalOpen, addSubscription } = useAuth();
-  const { user, login, logout, setIsAuthModalOpen } = useAuth();
+  // const { isAddModalOpen, setIsAddModalOpen, addSubscription } = useAuth();
+  const {
+    user,
+    login,
+    logout,
+    setIsAuthModalOpen,
+    isAddModalOpen,
+    setIsAddModalOpen,
+    addSubscription,
+  } = useAuth();
+  const navigate = useNavigate();
   const iconColor = user ? "text-gray-700" : "text-gray-400 opacity-70";
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
@@ -183,14 +193,20 @@ export default function Header() {
             <>
               <h5
                 className="cursor-pointer text-yellow-700 hover:text-yellow-600 hidden lg:flex"
-                onClick={logout}
+                onClick={() => {
+                  logout();
+                  navigate("/"); // возвращаем на главную
+                }}
               >
                 {t("SignOut")} ({user.name})
               </h5>
               <User
                 size={33}
                 className="text-yellow-700 cursor-pointer hover:text-yellow-600 transition-transform duration-150 hover:scale-110"
-                onClick={logout}
+                onClick={() => {
+                  logout();
+                  navigate("/"); // возвращаем на главную
+                }}
               />
             </>
           ) : (
