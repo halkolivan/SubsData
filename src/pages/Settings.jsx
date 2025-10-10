@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "@/context/AuthContext";
 
 export default function Settings() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [active, setActive] = useState("currency");
   const [dateFormat, setDateFormat] = useState("DD.MM.YYYY"); // значение по умолчанию
   const [dateMsg, setDateMsg] = useState("");
@@ -15,21 +15,7 @@ export default function Settings() {
     { key: "currency", label: t("Currency") },
     { key: "dateformat", label: t("DateFormat") },
   ];
-
-  // // --- state для Времени уведомлений (frontend only) ---
-  // const [notifEnabled, setNotifEnabled] = useState(true);
-  // const [notifTime, setNotifTime] = useState("09:00");
-  // const [notifFrequency, setNotifFrequency] = useState("daily"); // daily | weekdays | weekly
-  // const [weeklyDays, setWeeklyDays] = useState({
-  //   mon: true,
-  //   tue: true,
-  //   wed: true,
-  //   thu: true,
-  //   fri: true,
-  //   sat: false,
-  //   sun: false,
-  // });
-  // const [notifMsg, setNotifMsg] = useState("");
+  
 
   // --- state для Валют (frontend only) ---
   const currencyList = [
@@ -49,51 +35,7 @@ export default function Settings() {
     GBP: 0.79,
   });
   const [currencyMsg, setCurrencyMsg] = useState("");
-  const [customCurrency, setCustomCurrency] = useState("");
-
-  // переключение дней недели для еженедельных уведомлений
-  // function toggleWeeklyDay(day) {
-  //   setWeeklyDays((prev) => ({ ...prev, [day]: !prev[day] }));
-  // }
-
-  // обработка сохранения настроек уведомлений
-  // function handleNotifSave(e) {
-  //   e?.preventDefault();
-  //   updateSettings({
-  //     notif: {
-  //       enabled: notifEnabled,
-  //       time: notifTime,
-  //       frequency: notifFrequency,
-  //       weeklyDays,
-  //     },
-  //   });
-  //   setNotifMsg("Настройки уведомлений сохранены");
-
-  //   if (!notifEnabled) {
-  //     setNotifMsg("Уведомления выключены");
-  //     return;
-  //   }
-
-  //   if (!notifTime) {
-  //     setNotifMsg("Выберите время уведомления");
-  //     return;
-  //   }
-
-  //   if (notifFrequency === "weekly") {
-  //     const atLeastOne = Object.values(weeklyDays).some(Boolean);
-  //     if (!atLeastOne) {
-  //       setNotifMsg(
-  //         "Выберите хотя бы один день недели для еженедельных уведомлений"
-  //       );
-  //       return;
-  //     }
-  //   }
-
-  //   // Тут -- отправка настроек на бэкенд. Сейчас симуляция.
-  //   setNotifMsg(
-  //     "Настройки уведомлений сохранены (симуляция). Подключите бэкенд для реального сохранения."
-  //   );
-  // }
+  const [customCurrency, setCustomCurrency] = useState(""); 
 
   // --- Валюты: простая конвертация (frontend simulation) ---
   function convert(amount, from, to) {
@@ -176,12 +118,7 @@ export default function Settings() {
 
   // при монтировании / при изменении settings синхронизируем локальные поля
   useEffect(() => {
-    if (!settings) return;
-    // setNotifEnabled(settings.notif.enabled);
-    // setNotifTime(settings.notif.time);
-    // setNotifFrequency(settings.notif.frequency);
-    // setWeeklyDays(settings.notif.weeklyDays || weeklyDays);
-
+    if (!settings) return;   
     setDefaultCurrency(settings.currency.defaultCurrency);
     setShowOriginalCurrency(settings.currency.showOriginalCurrency);
     setRates(settings.currency.rates || rates);
@@ -190,7 +127,10 @@ export default function Settings() {
   }, [settings]);
 
   return (
-    <div className="flex flex-col w-full bg-gray-100 bg-gray-200 pt-4 pb-4">
+    <div
+      className="flex flex-col w-full bg-gray-100 bg-gray-200 pt-4 pb-4"
+      key={i18n.language}
+    >
       <div className="flex w-full justify-center mb-4">
         <p className="text-[20px]">{t("Settings")}</p>
       </div>
@@ -210,110 +150,6 @@ export default function Settings() {
         </div>
         {/* Правая панель */}
         <div className="flex w-auto sm:w-2/3 bg-gray-200 items-center justify-center rounded-md p-4">
-          {/* Время уведомл
-          {active === "notification" && (
-            <form
-              className="flex flex-col w-full max-w-md space-y-4"
-              onSubmit={handleNotifSave}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">{t("Notifications")}</p>
-                  <p className="text-sm text-green-700">
-                    {t("Enable/disableAndPush/email")}
-                  </p>
-                </div>
-                <label className="inline-flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={notifEnabled}
-                    onChange={(e) => setNotifEnabled(e.target.checked)}
-                    className="form-checkbox h-5 w-5"
-                  />
-                </label>
-              </div>
-              <div>
-                <label className="block text-sm mb-1">
-                  {t("NotificationTime")}
-                </label>
-                <input
-                  type="time"
-                  value={notifTime}
-                  onChange={(e) => setNotifTime(e.target.value)}
-                  className="w-40 p-2 rounded-md border border-gray-300 dark:border-gray-600"
-                />
-              </div>
-              <div>
-                <label className="block text-sm mb-1">{t("Frequency")}</label>
-                <select
-                  value={notifFrequency}
-                  onChange={(e) => setNotifFrequency(e.target.value)}
-                  className="w-48 p-2 rounded-md border border-gray-300 dark:border-gray-600"
-                >
-                  <option value="daily">{t("Daily")}</option>
-                  <option value="weekdays">{t("WorkingDays")}</option>
-                  <option value="weekly">{t("Weekly")}</option>
-                </select>
-              </div>
-              {notifFrequency === "weekly" && (
-                <div>
-                  <label className="block text-sm mb-1">{t("Weekday")}</label>
-                  <div className="flex flex-wrap gap-2">
-                    {Object.entries(weeklyDays).map(([key, val]) => (
-                      <label
-                        key={key}
-                        className="inline-flex items-center gap-2"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={val}
-                          onChange={() => toggleWeeklyDay(key)}
-                          className="form-checkbox h-4 w-4"
-                        />
-                        <span className="text-sm">{key.toUpperCase()}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {notifMsg && (
-                <div className="text-sm text-green-700">{notifMsg}</div>
-              )}
-
-              <div className="flex w-full justify-center gap-2">
-                <button
-                  type="submit"
-                  className="!bg-blue-500 hover:!bg-blue-600 !text-white py-2 px-4 rounded-md hover:bg-blue-600 transition"
-                >
-                  {t("Save")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    // сброс к дефолтным фронтэнд-значениям
-                    setNotifEnabled(true);
-                    setNotifTime("09:00");
-                    setNotifFrequency("daily");
-                    setWeeklyDays({
-                      mon: true,
-                      tue: true,
-                      wed: true,
-                      thu: true,
-                      fri: true,
-                      sat: false,
-                      sun: false,
-                    });
-                    setNotifMsg("");
-                  }}
-                  className="hover:!text-gray-200 text-white hover:text-gray-300 py-2 px-4 rounded-md hover:bg-gray-300"
-                >
-                  {t("Reset")}
-                </button>
-              </div>
-            </form>
-          )} */}
-
           {/* ВАЛЮТА */}
           {active === "currency" && (
             <form
