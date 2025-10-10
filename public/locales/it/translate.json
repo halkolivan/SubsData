@@ -9,6 +9,7 @@
   "Category": "Categoria",
   "NextPayment": "Pros.pagamento",
   "Status": "Stato",
+  "StatusTable": "Attivo",
   "Currency": "Valuta",
   "DefaultCurrency": "Valuta predefinita",
   "AccountingCurrency": "Valuta contabile",
@@ -94,5 +95,7 @@
   "ConfirmDeleteMessage": "Sei sicuro di voler eliminare l'abbonamento?",
   "Cancel": "Annulla",
   "Active": "Attive",
-  "Canceled": "Annullate"
+  "Canceled": "Annullate",
+  "Actions": "Azioni",
+  "Edit": "Modifica"
 }

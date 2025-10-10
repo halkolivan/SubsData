@@ -9,6 +9,7 @@
   "Category": "Категория",
   "NextPayment": "След.платеж",
   "Status": "Статус",
+  "StatusTable": "Активный",
   "Currency": "Валюта",
   "DefaultCurrency": "Валюта по умолчанию",
   "AccountingCurrency": "Валюта учёта",
@@ -94,5 +95,7 @@
   "ConfirmDeleteMessage": "Вы уверены, что хотите удалить подписку?",
   "Cancel": "Отмена",
   "Active": "Активные",
-  "Canceled": "Отменённые"
+  "Canceled": "Отменённые",
+  "Actions": "Действия",
+  "Edit": "Ред."
 }

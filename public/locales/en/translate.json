@@ -9,6 +9,7 @@
   "Category": "Category",
   "NextPayment": "Next payment",
   "Status": "Status",
+  "StatusTable": "Active",
   "Currency": "Currency",
   "DefaultCurrency": "Default currency",
   "AccountingCurrency": "Accounting currency",
@@ -94,5 +95,7 @@
   "ConfirmDeleteMessage": "Are you sure you want to delete the subscription?",
   "Cancel": "Cancel",
   "Active": "Active",
-  "Canceled": "Canceled"
+  "Canceled": "Canceled",
+  "Actions": "Actions",
+  "Edit": "Edit"
 }

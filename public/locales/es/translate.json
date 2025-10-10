@@ -9,6 +9,7 @@
   "Category": "Categoría",
   "NextPayment": "Próx.pago",
   "Status": "Estado",
+  "StatusTable": "Activo",
   "Currency": "Moneda",
   "DefaultCurrency": "Moneda predeterminada",
   "AccountingCurrency": "Moneda contable",
@@ -94,5 +95,7 @@
   "ConfirmDeleteMessage": "¿Está seguro de que desea eliminar la suscripción?",
   "Cancel": "Cancelar",
   "Active": "Activas",
-  "Canceled": "Canceladas"
+  "Canceled": "Canceladas",
+  "Actions": "Acciones",
+  "Edit": "Editar"
 }

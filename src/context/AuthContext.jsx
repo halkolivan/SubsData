@@ -9,6 +9,7 @@ export const AuthProvider = ({ children }) => {
     const saved = localStorage.getItem("user");
     return saved ? JSON.parse(saved) : null;
   });
+
   const [token, setToken] = useState(
     () => localStorage.getItem("authToken") || null
   );
@@ -90,6 +91,19 @@ export const AuthProvider = ({ children }) => {
     dateFormat: "DD.MM.YYYY",
   };
 
+  useEffect(() => {
+    const saved = localStorage.getItem("settings");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        // объединяем старые настройки с актуальной структурой
+        setSettings({ ...defaultSettings, ...parsed });
+      } catch {
+        setSettings(defaultSettings);
+      }
+    }
+  }, []);
+
   // state (инициализируем из localStorage если есть)
   const [settings, setSettings] = useState(() => {
     const saved = localStorage.getItem("settings");
@@ -107,7 +121,6 @@ export const AuthProvider = ({ children }) => {
       JSON.stringify(userSubscriptions)
     );
   }, [userSubscriptions]);
-
 
   // удобный апдейтер: принимает "патч" (можно обновлять вложенные разделы)
   const updateSettings = (patch) => {
@@ -128,7 +141,7 @@ export const AuthProvider = ({ children }) => {
     setIsAuthModalOpen(false); // закрыть модалку входа
     setIsAddModalOpen(false); // закрыть модалку добавления
     setJustLoggedIn(true);
-    
+
     // восстановление данных пользователя
     const savedUserSubs = localStorage.getItem("userSubscriptions");
     if (savedUserSubs) {
