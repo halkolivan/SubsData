@@ -7,7 +7,6 @@ import {
   LogIn,
   Globe,
 } from "lucide-react";
-// import { jwtDecode } from "jwt-decode";
 import { NavLink } from "react-router-dom";
 import { User } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -139,7 +138,7 @@ export default function Header() {
           <h5
             className={
               user
-                ? "cursor-pointer hover:text-blue-500 font-semibold text-gray-700 hidden lg:flex"
+                ? "cursor-pointer hover:text-green-600 font-semibold text-green-700 hidden lg:flex"
                 : "text-gray-400 cursor-not-allowed font-semibold hidden lg:flex"
             }
             onClick={() => {
@@ -183,21 +182,21 @@ export default function Header() {
           {user ? (
             <>
               <h5
-                className="cursor-pointer text-green-700 hover:text-green-600 hidden lg:flex"
+                className="cursor-pointer text-yellow-700 hover:text-yellow-600 hidden lg:flex"
                 onClick={logout}
               >
                 {t("SignOut")} ({user.name})
               </h5>
               <User
                 size={33}
-                className="text-green-700 cursor-pointer hover:text-green-600 transition-transform duration-150 hover:scale-110"
+                className="text-yellow-700 cursor-pointer hover:text-yellow-600 transition-transform duration-150 hover:scale-110"
                 onClick={logout}
               />
             </>
           ) : (
             <>
               <h5
-                className="cursor-pointer hover:text-blue-500 font-semibold text-gray-700 hidden lg:flex"
+                className="cursor-pointer hover:text-ywllow-500 font-semibold text-yellow-700 hidden lg:flex"
                 onClick={() => setIsModalOpen(true)}
               >
                 {t("SignIn")}

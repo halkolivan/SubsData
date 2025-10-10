@@ -16,20 +16,20 @@ export default function Settings() {
     { key: "dateformat", label: t("DateFormat") },
   ];
 
-  // --- state для Времени уведомлений (frontend only) ---
-  const [notifEnabled, setNotifEnabled] = useState(true);
-  const [notifTime, setNotifTime] = useState("09:00");
-  const [notifFrequency, setNotifFrequency] = useState("daily"); // daily | weekdays | weekly
-  const [weeklyDays, setWeeklyDays] = useState({
-    mon: true,
-    tue: true,
-    wed: true,
-    thu: true,
-    fri: true,
-    sat: false,
-    sun: false,
-  });
-  const [notifMsg, setNotifMsg] = useState("");
+  // // --- state для Времени уведомлений (frontend only) ---
+  // const [notifEnabled, setNotifEnabled] = useState(true);
+  // const [notifTime, setNotifTime] = useState("09:00");
+  // const [notifFrequency, setNotifFrequency] = useState("daily"); // daily | weekdays | weekly
+  // const [weeklyDays, setWeeklyDays] = useState({
+  //   mon: true,
+  //   tue: true,
+  //   wed: true,
+  //   thu: true,
+  //   fri: true,
+  //   sat: false,
+  //   sun: false,
+  // });
+  // const [notifMsg, setNotifMsg] = useState("");
 
   // --- state для Валют (frontend only) ---
   const currencyList = [
@@ -177,10 +177,10 @@ export default function Settings() {
   // при монтировании / при изменении settings синхронизируем локальные поля
   useEffect(() => {
     if (!settings) return;
-    setNotifEnabled(settings.notif.enabled);
-    setNotifTime(settings.notif.time);
-    setNotifFrequency(settings.notif.frequency);
-    setWeeklyDays(settings.notif.weeklyDays || weeklyDays);
+    // setNotifEnabled(settings.notif.enabled);
+    // setNotifTime(settings.notif.time);
+    // setNotifFrequency(settings.notif.frequency);
+    // setWeeklyDays(settings.notif.weeklyDays || weeklyDays);
 
     setDefaultCurrency(settings.currency.defaultCurrency);
     setShowOriginalCurrency(settings.currency.showOriginalCurrency);
