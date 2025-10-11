@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useGoogleLogin } from "@react-oauth/google";
+import SaveButton from "@/components/SaveButton";
 
 const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
 
@@ -39,7 +40,7 @@ export default function Header() {
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
   };
-  
+
   // Google Login
   const loginWithGoogle = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -362,12 +363,13 @@ export default function Header() {
                   >
                     {t("Cancel")}
                   </button>
-                  <button
+                  {/* <button
                     type="submit"
                     className="px-4 py-2 !bg-blue-500 text-white rounded hover:!bg-blue-600"
                   >
                     {t("Save")}
-                  </button>
+                  </button> */}
+                <SaveButton className="px-4 py-2 !bg-blue-500 text-white rounded hover:!bg-blue-600" />
                 </div>
               </form>
             </div>

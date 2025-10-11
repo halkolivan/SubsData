@@ -2,8 +2,10 @@ import { subscriptions as mockSubs } from "@mock/mockData";
 import { notifySubscriptions } from "@/hooks/useNotifyDataSub";
 import { createContext, useContext, useState, useEffect } from "react";
 
-const AuthContext = createContext();
+// 1️⃣ Создаём контекст
+export const AuthContext = createContext();
 
+// 2️⃣ Провайдер
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem("user");
@@ -14,7 +16,6 @@ export const AuthProvider = ({ children }) => {
     () => localStorage.getItem("authToken") || null
   );
 
-  // Подписки — инициализируем из localStorage
   const [subscriptions, setSubscriptions] = useState(() => {
     const saved = localStorage.getItem("subscriptions");
     return saved ? JSON.parse(saved) : [];
@@ -25,54 +26,15 @@ export const AuthProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : [];
   });
 
-  // Сохраняем подписки при изменении
-  useEffect(() => {
-    localStorage.setItem("subscriptions", JSON.stringify(subscriptions));
-  }, [subscriptions]);
-
-  // модалка входа (SignIn)
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-
-  // модалка добавления подписки (AddSubscription)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-
   const [justLoggedIn, setJustLoggedIn] = useState(false);
 
-  // функция загрузки моков
-  const loadMockSubscriptions = () => {
-    setSubscriptions(mockSubs);
-  };
-
-  // Добавление новой подписки
-  const addSubscription = (newSub) => {
-    const subToAdd = {
-      id: Date.now(),
-      name: newSub.name,
-      price: parseFloat(newSub.price),
-      currency: newSub.currency || "USD",
-      category: newSub.category,
-      nextPayment: newSub.nextPayment,
-      cycle: "ежемесячно",
-      status: newSub.status || "active",
-    };
-
-    setSubscriptions((prev) => [...prev, subToAdd]);
-    setUserSubscriptions((prev) => [...prev, subToAdd]);
-  };
-
-  // при загрузке страницы пробуем декодировать токен и установить user
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) setUser(JSON.parse(storedUser));
-  }, []);
-
-  //Setting user
-  // в начале файла, рядом с mockSubs
   const defaultSettings = {
     notif: {
       enabled: true,
       time: "09:00",
-      frequency: "daily", // daily | weekdays | weekly
+      frequency: "daily",
       weeklyDays: {
         mon: true,
         tue: true,
@@ -91,29 +53,15 @@ export const AuthProvider = ({ children }) => {
     dateFormat: "DD.MM.YYYY",
   };
 
-  useEffect(() => {
-    const saved = localStorage.getItem("settings");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        // объединяем старые настройки с актуальной структурой
-        setSettings({ ...defaultSettings, ...parsed });
-      } catch {
-        setSettings(defaultSettings);
-      }
-    }
-  }, []);
-
-  // state (инициализируем из localStorage если есть)
   const [settings, setSettings] = useState(() => {
     const saved = localStorage.getItem("settings");
     return saved ? JSON.parse(saved) : defaultSettings;
   });
 
-  // сохраняем при изменении
+  // Сохраняем подписки и настройки в localStorage
   useEffect(() => {
-    localStorage.setItem("settings", JSON.stringify(settings));
-  }, [settings]);
+    localStorage.setItem("subscriptions", JSON.stringify(subscriptions));
+  }, [subscriptions]);
 
   useEffect(() => {
     localStorage.setItem(
@@ -122,31 +70,22 @@ export const AuthProvider = ({ children }) => {
     );
   }, [userSubscriptions]);
 
-  // удобный апдейтер: принимает "патч" (можно обновлять вложенные разделы)
-  const updateSettings = (patch) => {
-    setSettings((prev) => ({
-      ...prev,
-      ...patch,
-      // аккуратно мёрджим вложенные объекты, если они переданы в патче
-      notif: { ...(prev.notif || {}), ...(patch.notif || {}) },
-      currency: { ...(prev.currency || {}), ...(patch.currency || {}) },
-    }));
-  };
+  useEffect(() => {
+    localStorage.setItem("settings", JSON.stringify(settings));
+  }, [settings]);
 
+  // Функции
   const login = (userData, jwt) => {
     setUser(userData);
     setToken(jwt);
     localStorage.setItem("user", JSON.stringify(userData));
     localStorage.setItem("authToken", jwt);
-    setIsAuthModalOpen(false); // закрыть модалку входа
-    setIsAddModalOpen(false); // закрыть модалку добавления
+    setIsAuthModalOpen(false);
+    setIsAddModalOpen(false);
     setJustLoggedIn(true);
 
-    // восстановление данных пользователя
     const savedUserSubs = localStorage.getItem("userSubscriptions");
-    if (savedUserSubs) {
-      setSubscriptions(JSON.parse(savedUserSubs));
-    }
+    if (savedUserSubs) setSubscriptions(JSON.parse(savedUserSubs));
   };
 
   const logout = () => {
@@ -157,7 +96,44 @@ export const AuthProvider = ({ children }) => {
     setSubscriptions([]);
   };
 
-  // вызывать уведомление только один раз при входе
+  const loadMockSubscriptions = () => setSubscriptions(mockSubs);
+
+  const addSubscription = async (newSub) => {
+    const subToAdd = {
+      id: Date.now(),
+      name: newSub.name,
+      price: parseFloat(newSub.price),
+      currency: newSub.currency || "USD",
+      category: newSub.category,
+      nextPayment: newSub.nextPayment,
+      cycle: "ежемесячно",
+      status: newSub.status || "active",
+    };
+
+    setSubscriptions((prev) => {
+      const updated = [...prev, subToAdd];
+      localStorage.setItem("subscriptions", JSON.stringify(updated));
+      // Сохраняем на Google Drive
+      if (token) {
+        import("@/utils/drive").then(({ saveSubscriptions }) => {
+          saveSubscriptions(token, updated)
+            .then(() => console.log("✅ Сохранено на Google Drive"))
+            .catch((err) => console.error("❌ Ошибка при сохранении:", err));
+        });
+      }
+      return updated;
+    });
+  };
+
+  const updateSettings = (patch) => {
+    setSettings((prev) => ({
+      ...prev,
+      ...patch,
+      notif: { ...(prev.notif || {}), ...(patch.notif || {}) },
+      currency: { ...(prev.currency || {}), ...(patch.currency || {}) },
+    }));
+  };
+
   useEffect(() => {
     if (justLoggedIn) {
       notifySubscriptions(mockSubs);
@@ -189,4 +165,5 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
+// 3️⃣ Удобный хук
 export const useAuth = () => useContext(AuthContext);

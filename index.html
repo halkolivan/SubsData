@@ -2,18 +2,74 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>SubsData — менеджер подписок и расходов</title>
+    <meta
+      name="description"
+      content="SubsData — удобный веб-сервис для управления вашими подписками, расходами и напоминаниями о платежах."
+    />
+    <meta
+      name="keywords"
+      content="подписки, учет подписок, subsdata, subscription manager, финансы, расходы, PWA"
+    />
+
+    <meta property="og:title" content="SubsData — менеджер подписок" />
+    <meta
+      property="og:description"
+      content="Управляйте своими подписками и следите за расходами просто и удобно."
+    />
+    <meta
+      property="og:image"
+      content="/images/SubsDataImage512.png"
+    />
+    <meta property="og:type" content="website" />
+
+    <!-- Добавить реальный домен. -->
+    <meta property="og:url" content="/" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="SubsData — менеджер подписок" />
+    <meta
+      name="twitter:description"
+      content="Простой способ следить за подписками и расходами."
+    />
+    <meta
+      name="twitter:image"
+      content="/images/SubsDataImage512.png"
+    />
+
+    <meta name="theme-color" content="#2563eb" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <!-- Добавить реальный домен. -->
+    <link rel="canonical" href="/" />
+    <link rel="alternate" href="/" hreflang="x-default" />
     <link
       rel="icon"
-      type="image/svg+xml"
-      href="/src/assets/images/SubsDataImage32.png"
+      type="image/png"
+      href="/images/SubsDataImage32.png"
     />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="./src/assets/styles/index.css" />
-    <title>SubsData</title>
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "SubsData",
+
+        "url": "/",
+
+        "description": "Менеджер подписок и расходов",
+        "applicationCategory": "FinanceApplication",
+        "operatingSystem": "All"
+      }
+    </script>
   </head>
-  <body>    
+
+  <body>
     <div id="root"></div>
-    <script type="module" src="/src/App.jsx"></script>    
+    <script type="module" src="/src/Main.jsx"></script>
     <script
       async
       id="toolbar-script"

@@ -1,103 +1,149 @@
+
 import express from "express";
 import cors from "cors";
-import fetch from "node-fetch";
+import bodyParser from "body-parser";
 import dotenv from "dotenv";
+import { google } from "googleapis";
+import { Readable } from "stream";
 
 dotenv.config();
 
 const app = express();
 app.use(cors());
-app.use(express.json());
-app.use((req, res, next) => {
-  res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
-  res.setHeader("Cross-Origin-Embedder-Policy", "unsafe-none");
-  next();
+app.use(bodyParser.json());
+
+const PORT = process.env.PORT || 4000;
+
+// Read Google credentials from env
+const {
+  GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET,
+  GOOGLE_REDIRECT_URI,
+  GOOGLE_REFRESH_TOKEN
+} = process.env;
+
+function createOAuthClient() {
+  const oAuth2Client = new google.auth.OAuth2(
+    GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET,
+    GOOGLE_REDIRECT_URI || "urn:ietf:wg:oauth:2.0:oob"
+  );
+  if (GOOGLE_REFRESH_TOKEN) {
+    oAuth2Client.setCredentials({ refresh_token: GOOGLE_REFRESH_TOKEN });
+  }
+  return oAuth2Client;
+}
+
+app.get("/auth-url", (req, res) => {
+  // Return a one-time auth URL so the developer can obtain a code and exchange it for a refresh token.
+  const oAuth2Client = createOAuthClient();
+  const authUrl = oAuth2Client.generateAuthUrl({
+    access_type: "offline",
+    scope: ["https://www.googleapis.com/auth/drive.file"],
+    prompt: "consent"
+  });
+  res.json({ authUrl });
 });
 
-const CLIENT_ID = process.env.GITHUB_CLIENT_ID;
-const CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
-const GOOGLE_REDIRECT_URI = "http://localhost:5173/auth/callback";
-
-app.post("/auth/google", async (req, res) => {
+app.post("/exchange-code", async (req, res) => {
+  // Exchange an OAuth2 code for tokens (one-time). Save refresh_token to use later.
+  // Body: { code: "CODE_FROM_GOOGLE" }
   const { code } = req.body;
-  if (!code) return res.status(400).json({ error: "Missing code" });
-
+  if (!code) return res.status(400).json({ error: "code required" });
   try {
-    const params = new URLSearchParams({
-      client_id: GOOGLE_CLIENT_ID,
-      client_secret: GOOGLE_CLIENT_SECRET,
-      code,
-      redirect_uri: GOOGLE_REDIRECT_URI,
-      grant_type: "authorization_code",
-    });
-
-    const tokenResp = await fetch("https://oauth2.googleapis.com/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: params,
-    });
-
-    const tokenData = await tokenResp.json();
-    if (tokenData.error) return res.status(400).json(tokenData);
-
-    // Получаем данные пользователя
-    const userResp = await fetch(
-      "https://www.googleapis.com/oauth2/v2/userinfo",
-      { headers: { Authorization: `Bearer ${tokenData.access_token}` } }
-    );
-    const userData = await userResp.json();
-
-    res.json({ token: tokenData.access_token, user: userData });
+    const oAuth2Client = createOAuthClient();
+    const { tokens } = await oAuth2Client.getToken(code);
+    // tokens.refresh_token is what you want to persist in your .env (or secret store)
+    res.json({ tokens });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Error exchanging code:", err);
+    res.status(500).json({ error: err.message || String(err) });
   }
 });
 
-app.post("/auth/github", async (req, res) => {
-  console.log("⚡ Запрос на /auth/github, body:", req.body);
-  const { code } = req.body;
+async function uploadJsonToDrive(auth, filename, jsonString) {
+  const drive = google.drive({ version: "v3", auth });
 
-  if (!code) {
-    console.log("❌ Нет кода в body");
-    return res.status(400).json({ error: "Missing code" });
-  }
+  // Try to find existing file with same name (not trashed)
+  const q = `name='${filename.replace(/'/g, "\\'")}' and trashed=false`;
+  const listRes = await drive.files.list({ q, fields: "files(id,name)" });
 
-  try {
-    const params = new URLSearchParams({
-      client_id: CLIENT_ID,
-      client_secret: CLIENT_SECRET,
-      code,
-      redirect_uri: "http://localhost:5173/auth/callback",
-    });
+  const bufferStream = Readable.from([jsonString]);
 
-    const tokenResp = await fetch(
-      "https://github.com/login/oauth/access_token",
-      {
-        method: "POST",
-        headers: { Accept: "application/json" },
-        body: params,
+  if (listRes.data.files && listRes.data.files.length > 0) {
+    const fileId = listRes.data.files[0].id;
+    // update
+    const updateRes = await drive.files.update({
+      fileId,
+      media: {
+        mimeType: "application/json",
+        body: bufferStream
       }
-    );
-
-    const tokenData = await tokenResp.json();
-    if (tokenData.error) return res.status(400).json(tokenData);
-    console.log("⚡ Ответ от GitHub:", tokenData);
-
-    if (tokenData.error) {
-      return res.status(400).json(tokenData);
-    }
-
-    const userResp = await fetch("https://api.github.com/user", {
-      headers: { Authorization: `Bearer ${tokenData.access_token}` },
     });
-    const userData = await userResp.json();
+    return { updated: true, id: fileId, res: updateRes.data };
+  } else {
+    // create
+    const createRes = await drive.files.create({
+      requestBody: {
+        name: filename,
+        mimeType: "application/json"
+      },
+      media: {
+        mimeType: "application/json",
+        body: bufferStream
+      },
+      fields: "id,name"
+    });
+    return { created: true, id: createRes.data.id, res: createRes.data };
+  }
+}
 
-    res.json({ token: tokenData.access_token, user: userData });
+app.post("/save-subs", async (req, res) => {
+  const { subscriptions } = req.body;
+  if (!subscriptions) return res.status(400).json({ error: "subscriptions required in body" });
+
+  console.log("Received subscriptions (count):", Array.isArray(subscriptions) ? subscriptions.length : "unknown");
+
+  if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
+    return res.status(500).json({
+      success: false,
+      error:
+        "Google credentials not set. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in your .env.",
+    });
+  }
+
+  if (!GOOGLE_REFRESH_TOKEN) {
+    // If no refresh token set yet, instruct the developer how to obtain one
+    const oAuth2Client = createOAuthClient();
+    const authUrl = oAuth2Client.generateAuthUrl({
+      access_type: "offline",
+      scope: ["https://www.googleapis.com/auth/drive.file"],
+      prompt: "consent"
+    });
+    return res.status(400).json({
+      success: false,
+      error:
+        "No GOOGLE_REFRESH_TOKEN found. Obtain one by visiting the auth URL and exchanging the code.",
+      authUrl,
+    });
+  }
+
+  try {
+    const oAuth2Client = createOAuthClient();
+    // ensure we have fresh access token via refresh_token
+    await oAuth2Client.getAccessToken();
+
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const filename = `subsdata-backup-${timestamp}.json`;
+    const jsonString = JSON.stringify({ savedAt: new Date().toISOString(), subscriptions }, null, 2);
+
+    const result = await uploadJsonToDrive(oAuth2Client, filename, jsonString);
+
+    res.json({ success: true, drive: result });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Error saving to Drive:", err);
+    res.status(500).json({ success: false, error: err.message || String(err) });
   }
 });
 
-app.listen(4000, () =>
-  console.log("Auth server running on http://localhost:4000")
-);
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
