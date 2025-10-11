@@ -1,18 +1,14 @@
 export async function saveSubscriptions(token, subscriptions) {
-  const res = await fetch("http://localhost:4000/drive/save", {
+  const res = await fetch("https://subsdata-server.onrender.com/save-subs", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ access_token: token, data: subscriptions }),
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ subscriptions }),
   });
-  return res.json();
-}
 
-export async function loadSubscriptions(token) {
-  const res = await fetch("http://localhost:4000/drive/load", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ access_token: token }),
-  });
-  const { data } = await res.json();
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error?.message || "Ошибка сервера");
   return data;
 }

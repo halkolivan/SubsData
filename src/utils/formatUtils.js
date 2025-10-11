@@ -1,4 +1,3 @@
-// src/utils/formatUtils.js
 export function formatDate(dateStr, settings) {
   if (!dateStr) return "";
   const d = new Date(dateStr);
