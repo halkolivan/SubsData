@@ -1,4 +1,3 @@
-
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
@@ -11,7 +10,6 @@ import { fileURLToPath } from "url";
 // Чтобы работал __dirname в ES-модулях
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 
 dotenv.config();
 
@@ -26,7 +24,7 @@ const {
   GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET,
   GOOGLE_REDIRECT_URI,
-  GOOGLE_REFRESH_TOKEN
+  GOOGLE_REFRESH_TOKEN,
 } = process.env;
 
 function createOAuthClient() {
@@ -47,7 +45,7 @@ app.get("/auth-url", (req, res) => {
   const authUrl = oAuth2Client.generateAuthUrl({
     access_type: "offline",
     scope: ["https://www.googleapis.com/auth/drive.file"],
-    prompt: "consent"
+    prompt: "consent",
   });
   res.json({ authUrl });
 });
@@ -84,8 +82,8 @@ async function uploadJsonToDrive(auth, filename, jsonString) {
       fileId,
       media: {
         mimeType: "application/json",
-        body: bufferStream
-      }
+        body: bufferStream,
+      },
     });
     return { updated: true, id: fileId, res: updateRes.data };
   } else {
@@ -93,13 +91,13 @@ async function uploadJsonToDrive(auth, filename, jsonString) {
     const createRes = await drive.files.create({
       requestBody: {
         name: filename,
-        mimeType: "application/json"
+        mimeType: "application/json",
       },
       media: {
         mimeType: "application/json",
-        body: bufferStream
+        body: bufferStream,
       },
-      fields: "id,name"
+      fields: "id,name",
     });
     return { created: true, id: createRes.data.id, res: createRes.data };
   }
@@ -107,9 +105,13 @@ async function uploadJsonToDrive(auth, filename, jsonString) {
 
 app.post("/save-subs", async (req, res) => {
   const { subscriptions } = req.body;
-  if (!subscriptions) return res.status(400).json({ error: "subscriptions required in body" });
+  if (!subscriptions)
+    return res.status(400).json({ error: "subscriptions required in body" });
 
-  console.log("Received subscriptions (count):", Array.isArray(subscriptions) ? subscriptions.length : "unknown");
+  console.log(
+    "Received subscriptions (count):",
+    Array.isArray(subscriptions) ? subscriptions.length : "unknown"
+  );
 
   if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
     return res.status(500).json({
@@ -125,7 +127,7 @@ app.post("/save-subs", async (req, res) => {
     const authUrl = oAuth2Client.generateAuthUrl({
       access_type: "offline",
       scope: ["https://www.googleapis.com/auth/drive.file"],
-      prompt: "consent"
+      prompt: "consent",
     });
     return res.status(400).json({
       success: false,
@@ -142,7 +144,11 @@ app.post("/save-subs", async (req, res) => {
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const filename = `subsdata-backup-${timestamp}.json`;
-    const jsonString = JSON.stringify({ savedAt: new Date().toISOString(), subscriptions }, null, 2);
+    const jsonString = JSON.stringify(
+      { savedAt: new Date().toISOString(), subscriptions },
+      null,
+      2
+    );
 
     const result = await uploadJsonToDrive(oAuth2Client, filename, jsonString);
 
@@ -154,11 +160,13 @@ app.post("/save-subs", async (req, res) => {
 });
 
 // Отдаём сборку Vite
-app.use(express.static(path.join(__dirname, "dist")));
+app.use(express.static(path.join(process.cwd(), "dist")));
 
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "dist", "index.html"));
+// Любой маршрут отдаёт index.html (React Router)
+app.get("/*", (req, res) => {
+  res.sendFile(path.join(process.cwd(), "dist", "index.html"));
 });
 
-
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+app.listen(PORT, () =>
+  console.log(`Server running on http://localhost:${PORT}`)
+);
