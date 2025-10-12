@@ -1,106 +1,55 @@
 import express from "express";
-import cors from "cors";
-import bodyParser from "body-parser";
-import dotenv from "dotenv";
-import { google } from "googleapis";
-import { Readable } from "stream";
 import path from "path";
 import { fileURLToPath } from "url";
-import fs from "fs";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import dotenv from "dotenv";
 
 dotenv.config();
 
 const app = express();
-app.use(cors());
-app.use(bodyParser.json());
 
-const PORT = process.env.PORT || 4000;
+// Определяем __dirname для ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// ==== Google Drive upload (без изменений) ====
-const {
-  GOOGLE_CLIENT_ID,
-  GOOGLE_CLIENT_SECRET,
-  GOOGLE_REDIRECT_URI,
-  GOOGLE_REFRESH_TOKEN,
-} = process.env;
+// Порт и папка билда
+const PORT = process.env.PORT || 3000;
+const distPath = path.join(__dirname, "dist");
 
-function createOAuthClient() {
-  const oAuth2Client = new google.auth.OAuth2(
-    GOOGLE_CLIENT_ID,
-    GOOGLE_CLIENT_SECRET,
-    GOOGLE_REDIRECT_URI || "urn:ietf:wg:oauth:2.0:oob"
-  );
-  if (GOOGLE_REFRESH_TOKEN) {
-    oAuth2Client.setCredentials({ refresh_token: GOOGLE_REFRESH_TOKEN });
-  }
-  return oAuth2Client;
-}
+console.log("✅ Server starting...");
+console.log("🗂️  Serving static files from:", distPath);
 
-async function uploadJsonToDrive(auth, filename, jsonString) {
-  const drive = google.drive({ version: "v3", auth });
-  const q = `name='${filename.replace(/'/g, "\\'")}' and trashed=false`;
-  const listRes = await drive.files.list({ q, fields: "files(id,name)" });
-  const bufferStream = Readable.from([jsonString]);
+// Настройки безопасности
+app.disable("x-powered-by");
 
-  if (listRes.data.files?.length > 0) {
-    const fileId = listRes.data.files[0].id;
-    const updateRes = await drive.files.update({
-      fileId,
-      media: { mimeType: "application/json", body: bufferStream },
-    });
-    return { updated: true, id: fileId, res: updateRes.data };
-  } else {
-    const createRes = await drive.files.create({
-      requestBody: { name: filename, mimeType: "application/json" },
-      media: { mimeType: "application/json", body: bufferStream },
-      fields: "id,name",
-    });
-    return { created: true, id: createRes.data.id, res: createRes.data };
-  }
-}
+// Разрешаем статику
+app.use(express.static(distPath, { extensions: ["html", "js", "css", "mjs"] }));
 
-// ==== API ====
-app.post("/save-subs", async (req, res) => {
-  const { subscriptions } = req.body;
-  if (!subscriptions)
-    return res.status(400).json({ error: "subscriptions required" });
-
-  try {
-    const oAuth2Client = createOAuthClient();
-    await oAuth2Client.getAccessToken();
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const filename = `subsdata-backup-${timestamp}.json`;
-    const jsonString = JSON.stringify(
-      { savedAt: new Date().toISOString(), subscriptions },
-      null,
-      2
-    );
-    const result = await uploadJsonToDrive(oAuth2Client, filename, jsonString);
-    res.json({ success: true, drive: result });
-  } catch (err) {
-    console.error("Drive upload error:", err);
-    res.status(500).json({ success: false, error: err.message });
-  }
+// Логирование запросов
+app.use((req, res, next) => {
+  console.log(`➡️ ${req.method} ${req.url}`);
+  next();
 });
 
-// ==== FRONTEND (Vite) ====
-const distPath = path.join(__dirname, "dist");
-app.use(express.static(distPath, { maxAge: "1y", index: false }));
+// Тестовый API (для отладки)
+app.get("/api/health", (req, res) => {
+  console.log("💓 /api/health called");
+  res.json({ status: "ok", time: new Date().toISOString() });
+});
 
-// Отдаём index.html только если реального файла нет
-app.get("*", (req, res, next) => {
-  const requestedPath = path.join(distPath, req.path);
-  if (fs.existsSync(requestedPath) && fs.lstatSync(requestedPath).isFile()) {
-    console.log("Serving file:", requestedPath);
-    return res.sendFile(requestedPath);
-  }
-  console.log("Fallback to index.html for:", req.path);
+// Все остальные запросы направляем на index.html
+app.get("/*", (req, res) => {
+  console.log(`📄 Serving index.html for: ${req.url}`);
   res.sendFile(path.join(distPath, "index.html"));
 });
 
-app.listen(PORT, () =>
-  console.log(`✅ Server running on port ${PORT}, distPath: ${distPath}`)
-);
+// Глобальный обработчик ошибок
+app.use((err, req, res, next) => {
+  console.error("🔥 Server error:", err.stack || err);
+  res.status(500).send("Internal server error");
+});
+
+// Запуск
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🌐 Visit: http://localhost:${PORT}`);
+});
