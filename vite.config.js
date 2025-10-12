@@ -68,12 +68,16 @@ export default defineConfig({
 
   base: "./",
 
+  // build: {
+  //   rollupOptions: {
+  //     input: path.resolve(__dirname, "index.html"), // только корневой index.html
+  //     // Можно игнорировать node_modules через external
+  //     external: (id) => id.includes("node_modules"),
+  //   },
+  // },
   build: {
-    rollupOptions: {
-      input: path.resolve(__dirname, "index.html"), // только корневой index.html
-      // Можно игнорировать node_modules через external
-      external: (id) => id.includes("node_modules"),
-    },
+    outDir: "../dist",
+    emptyOutDir: true,
   },
 
   server: {
