@@ -6,6 +6,7 @@ import { google } from "googleapis";
 import { Readable } from "stream";
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from "fs";
 
 // Для __dirname в ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -19,7 +20,7 @@ app.use(bodyParser.json());
 
 const PORT = process.env.PORT || 4000;
 
-// Google credentials из env
+// Google credentials
 const {
   GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET,
@@ -40,7 +41,6 @@ function createOAuthClient() {
 }
 
 // --- Google OAuth маршруты ---
-
 app.get("/auth-url", (req, res) => {
   const oAuth2Client = createOAuthClient();
   const authUrl = oAuth2Client.generateAuthUrl({
@@ -141,20 +141,32 @@ app.post("/save-subs", async (req, res) => {
   }
 });
 
+// --- Раздача сборки Vite с логами ---
 const distPath = path.join(__dirname, "dist");
 
-// 1. Раздаём статику с расширениями
+app.use((req, res, next) => {
+  console.log(`[REQUEST] ${req.method} ${req.url}`);
+  next();
+});
+
+// Логика отдачи статических файлов с проверкой
 app.use(
   express.static(distPath, {
-    extensions: ["js", "css", "png", "svg", "ico"],
+    extensions: ["js", "jsx", "css", "png", "svg", "ico", "json"],
   })
 );
 
-// 2. Любой GET-запрос, который не нашёл файл, отдаём index.html
-app.get(/.*/, (req, res) => {
-  res.sendFile(path.join(distPath, "index.html"));
+// fallback для React Router с логами
+app.get("*", (req, res) => {
+  const filePath = path.join(distPath, req.path);
+  if (fs.existsSync(filePath)) {
+    console.log(`[STATIC FILE] Found: ${req.path}`);
+    res.sendFile(filePath);
+  } else {
+    console.log(`[FALLBACK] Serving index.html for: ${req.path}`);
+    res.sendFile(path.join(distPath, "index.html"));
+  }
 });
 
 // --- Запуск сервера ---
-
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
