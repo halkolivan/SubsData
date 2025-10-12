@@ -3,74 +3,67 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
     <title>SubsData — менеджер подписок и расходов</title>
+
+    <!-- ✅ SEO -->
     <meta
       name="description"
       content="SubsData — удобный веб-сервис для управления вашими подписками, расходами и напоминаниями о платежах."
     />
-
     <meta
       name="keywords"
       content="подписки, учет подписок, subsdata, subscription manager, финансы, расходы, PWA"
     />
 
+    <!-- ✅ Open Graph -->
     <meta property="og:title" content="SubsData — менеджер подписок" />
-
     <meta
       property="og:description"
       content="Управляйте своими подписками и следите за расходами просто и удобно."
     />
-
-    <meta property="og:image" content="/src/assets/images/SubsDataImage512.png" />
-
     <meta property="og:type" content="website" />
+    <meta property="og:image" content="/images/SubsDataImage512.png" />
+    <meta property="og:url" content="https://your-domain.com/" />
 
-    <!------------------------------ Добавить реальный домен. --------------------------->
-
-    <meta property="og:url" content="/" />
-
+    <!-- ✅ Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-
     <meta name="twitter:title" content="SubsData — менеджер подписок" />
-
     <meta
       name="twitter:description"
       content="Простой способ следить за подписками и расходами."
     />
-
     <meta name="twitter:image" content="/images/SubsDataImage512.png" />
 
+    <!-- ✅ PWA / icons / manifest -->
+    <link rel="icon" type="image/png" href="/icons/PWA192.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="theme-color" content="#2563eb" />
 
-    <link rel="manifest" href="/manifest.webmanifest" />
+    <!-- ✅ Canonical & hreflang -->
+    <link rel="canonical" href="https://your-domain.com/" />
+    <link rel="alternate" href="https://your-domain.com/" hreflang="x-default" />
 
-    <!--------------------------- Добавить реальный домен. ----------------------------->
-
-    <link rel="canonical" href="http://localhost:5173/" />
-
-    <link rel="alternate" href="http://localhost:5173/" hreflang="x-default" />
-
-    <link rel="icon" type="image/png" href="/src/assets/images/SubsDataImage32.png" />
-    <link rel="stylesheet" href="./src/assets/styles/index.css" />
-
+    <!-- ✅ JSON-LD structured data -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@type": "WebApplication",
         "name": "SubsData",
-
-        "url": "/",
-
+        "url": "https://your-domain.com/",
         "description": "Менеджер подписок и расходов",
         "applicationCategory": "FinanceApplication",
         "operatingSystem": "All"
       }
     </script>
+
+    <!-- ✅ Vite build: вставляются реальные пути к сгенерированным CSS -->
+    <link rel="stylesheet" href="/assets/index-DwvuMlGY.css" />
   </head>
 
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/Main.jsx"></script>
+
+    <!-- ✅ Vite build: сюда вставляется главный JS-бандл -->
+    <script type="module" crossorigin src="/assets/index-Dh8_U0ID.js"></script>
   </body>
 </html>
