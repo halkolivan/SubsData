@@ -7,7 +7,7 @@ import { Readable } from "stream";
 import path from "path";
 import { fileURLToPath } from "url";
 
-// --- Для корректной работы __dirname в ES-модулях ---
+// Для __dirname в ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -17,10 +17,9 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// --- Порт: берём из Render или локально 4000 ---
 const PORT = process.env.PORT || 4000;
 
-// --- Google credentials ---
+// Google credentials из env
 const {
   GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET,
@@ -41,6 +40,7 @@ function createOAuthClient() {
 }
 
 // --- Google OAuth маршруты ---
+
 app.get("/auth-url", (req, res) => {
   const oAuth2Client = createOAuthClient();
   const authUrl = oAuth2Client.generateAuthUrl({
@@ -65,7 +65,6 @@ app.post("/exchange-code", async (req, res) => {
   }
 });
 
-// --- Функция загрузки JSON на Google Drive ---
 async function uploadJsonToDrive(auth, filename, jsonString) {
   const drive = google.drive({ version: "v3", auth });
   const q = `name='${filename.replace(/'/g, "\\'")}' and trashed=false`;
@@ -89,11 +88,15 @@ async function uploadJsonToDrive(auth, filename, jsonString) {
   }
 }
 
-// --- Сохранение подписок на Google Drive ---
 app.post("/save-subs", async (req, res) => {
   const { subscriptions } = req.body;
   if (!subscriptions)
     return res.status(400).json({ error: "subscriptions required in body" });
+
+  console.log(
+    "Received subscriptions (count):",
+    Array.isArray(subscriptions) ? subscriptions.length : "unknown"
+  );
 
   if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
     return res.status(500).json({
@@ -130,6 +133,7 @@ app.post("/save-subs", async (req, res) => {
     );
 
     const result = await uploadJsonToDrive(oAuth2Client, filename, jsonString);
+
     res.json({ success: true, drive: result });
   } catch (err) {
     console.error("Error saving to Drive:", err);
@@ -137,17 +141,20 @@ app.post("/save-subs", async (req, res) => {
   }
 });
 
-// --- Раздача фронтенда Vite ---
-// Путь к сборке
 const distPath = path.join(__dirname, "dist");
 
-// Статика
-app.use(express.static(distPath));
+// 1. Раздаём статику с расширениями
+app.use(
+  express.static(distPath, {
+    extensions: ["js", "css", "png", "svg", "ico"],
+  })
+);
 
-// Фолбек для React Router: любой GET-запрос отдаёт index.html
-app.get("*", (req, res) => {
+// 2. Любой GET-запрос, который не нашёл файл, отдаём index.html
+app.get(/.*/, (req, res) => {
   res.sendFile(path.join(distPath, "index.html"));
 });
 
 // --- Запуск сервера ---
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
