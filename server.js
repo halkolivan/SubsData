@@ -19,7 +19,7 @@ app.use(bodyParser.json());
 
 const PORT = process.env.PORT || 4000;
 
-// Google credentials
+// ==== Google Drive upload (без изменений) ====
 const {
   GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET,
@@ -39,39 +39,13 @@ function createOAuthClient() {
   return oAuth2Client;
 }
 
-// --- Google OAuth маршруты ---
-app.get("/auth-url", (req, res) => {
-  const oAuth2Client = createOAuthClient();
-  const authUrl = oAuth2Client.generateAuthUrl({
-    access_type: "offline",
-    scope: ["https://www.googleapis.com/auth/drive.file"],
-    prompt: "consent",
-  });
-  res.json({ authUrl });
-});
-
-app.post("/exchange-code", async (req, res) => {
-  const { code } = req.body;
-  if (!code) return res.status(400).json({ error: "code required" });
-
-  try {
-    const oAuth2Client = createOAuthClient();
-    const { tokens } = await oAuth2Client.getToken(code);
-    res.json({ tokens });
-  } catch (err) {
-    console.error("Error exchanging code:", err);
-    res.status(500).json({ error: err.message || String(err) });
-  }
-});
-
-// --- Google Drive upload ---
 async function uploadJsonToDrive(auth, filename, jsonString) {
   const drive = google.drive({ version: "v3", auth });
   const q = `name='${filename.replace(/'/g, "\\'")}' and trashed=false`;
   const listRes = await drive.files.list({ q, fields: "files(id,name)" });
   const bufferStream = Readable.from([jsonString]);
 
-  if (listRes.data.files && listRes.data.files.length > 0) {
+  if (listRes.data.files?.length > 0) {
     const fileId = listRes.data.files[0].id;
     const updateRes = await drive.files.update({
       fileId,
@@ -88,37 +62,15 @@ async function uploadJsonToDrive(auth, filename, jsonString) {
   }
 }
 
+// ==== API ====
 app.post("/save-subs", async (req, res) => {
   const { subscriptions } = req.body;
   if (!subscriptions)
-    return res.status(400).json({ error: "subscriptions required in body" });
-
-  if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
-    return res.status(500).json({
-      success: false,
-      error:
-        "Google credentials not set. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env",
-    });
-  }
-
-  if (!GOOGLE_REFRESH_TOKEN) {
-    const oAuth2Client = createOAuthClient();
-    const authUrl = oAuth2Client.generateAuthUrl({
-      access_type: "offline",
-      scope: ["https://www.googleapis.com/auth/drive.file"],
-      prompt: "consent",
-    });
-    return res.status(400).json({
-      success: false,
-      error: "No GOOGLE_REFRESH_TOKEN found. Obtain one via auth URL.",
-      authUrl,
-    });
-  }
+    return res.status(400).json({ error: "subscriptions required" });
 
   try {
     const oAuth2Client = createOAuthClient();
     await oAuth2Client.getAccessToken();
-
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const filename = `subsdata-backup-${timestamp}.json`;
     const jsonString = JSON.stringify(
@@ -126,33 +78,29 @@ app.post("/save-subs", async (req, res) => {
       null,
       2
     );
-
     const result = await uploadJsonToDrive(oAuth2Client, filename, jsonString);
     res.json({ success: true, drive: result });
   } catch (err) {
-    console.error("Error saving to Drive:", err);
-    res.status(500).json({ success: false, error: err.message || String(err) });
+    console.error("Drive upload error:", err);
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// --- Раздача Vite сборки ---
+// ==== FRONTEND (Vite) ====
 const distPath = path.join(__dirname, "dist");
+app.use(express.static(distPath, { maxAge: "1y", index: false }));
 
-app.use((req, res, next) => {
-  console.log(`[REQUEST] ${req.method} ${req.url}`);
-  next();
-});
-
-// Статика
-app.use(
-  express.static(distPath, {
-    extensions: ["js", "jsx", "css", "png", "svg", "ico", "json"],
-  })
-);
-
-app.get(/^\/.*$/, (req, res) => {
-  console.log(`[FALLBACK] Serving index.html for: ${req.path}`);
+// Отдаём index.html только если реального файла нет
+app.get("*", (req, res, next) => {
+  const requestedPath = path.join(distPath, req.path);
+  if (fs.existsSync(requestedPath) && fs.lstatSync(requestedPath).isFile()) {
+    console.log("Serving file:", requestedPath);
+    return res.sendFile(requestedPath);
+  }
+  console.log("Fallback to index.html for:", req.path);
   res.sendFile(path.join(distPath, "index.html"));
 });
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () =>
+  console.log(`✅ Server running on port ${PORT}, distPath: ${distPath}`)
+);
