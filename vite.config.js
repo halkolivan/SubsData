@@ -65,6 +65,9 @@ export default defineConfig({
       },
     }),
   ],
+
+  base: "./",
+
   build: {
     rollupOptions: {
       input: path.resolve(__dirname, "index.html"), // только корневой index.html
