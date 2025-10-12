@@ -8,7 +8,6 @@ import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
 
-// Для __dirname в ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -65,6 +64,7 @@ app.post("/exchange-code", async (req, res) => {
   }
 });
 
+// --- Google Drive upload ---
 async function uploadJsonToDrive(auth, filename, jsonString) {
   const drive = google.drive({ version: "v3", auth });
   const q = `name='${filename.replace(/'/g, "\\'")}' and trashed=false`;
@@ -92,11 +92,6 @@ app.post("/save-subs", async (req, res) => {
   const { subscriptions } = req.body;
   if (!subscriptions)
     return res.status(400).json({ error: "subscriptions required in body" });
-
-  console.log(
-    "Received subscriptions (count):",
-    Array.isArray(subscriptions) ? subscriptions.length : "unknown"
-  );
 
   if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
     return res.status(500).json({
@@ -133,7 +128,6 @@ app.post("/save-subs", async (req, res) => {
     );
 
     const result = await uploadJsonToDrive(oAuth2Client, filename, jsonString);
-
     res.json({ success: true, drive: result });
   } catch (err) {
     console.error("Error saving to Drive:", err);
@@ -141,7 +135,7 @@ app.post("/save-subs", async (req, res) => {
   }
 });
 
-// --- Раздача сборки Vite с логами ---
+// --- Раздача Vite сборки ---
 const distPath = path.join(__dirname, "dist");
 
 app.use((req, res, next) => {
@@ -149,24 +143,16 @@ app.use((req, res, next) => {
   next();
 });
 
-// Логика отдачи статических файлов с проверкой
+// Статика
 app.use(
   express.static(distPath, {
     extensions: ["js", "jsx", "css", "png", "svg", "ico", "json"],
   })
 );
 
-// fallback для React Router с логами
-app.get("*", (req, res) => {
-  const filePath = path.join(distPath, req.path);
-  if (fs.existsSync(filePath)) {
-    console.log(`[STATIC FILE] Found: ${req.path}`);
-    res.sendFile(filePath);
-  } else {
-    console.log(`[FALLBACK] Serving index.html for: ${req.path}`);
-    res.sendFile(path.join(distPath, "index.html"));
-  }
+app.get(/^\/.*$/, (req, res) => {
+  console.log(`[FALLBACK] Serving index.html for: ${req.path}`);
+  res.sendFile(path.join(distPath, "index.html"));
 });
 
-// --- Запуск сервера ---
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
