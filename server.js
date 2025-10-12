@@ -7,7 +7,7 @@ import { Readable } from "stream";
 import path from "path";
 import { fileURLToPath } from "url";
 
-// Чтобы работал __dirname в ES-модулях
+// Для __dirname в ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -19,7 +19,7 @@ app.use(bodyParser.json());
 
 const PORT = process.env.PORT || 4000;
 
-// Read Google credentials from env
+// Google credentials из env
 const {
   GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET,
@@ -39,8 +39,9 @@ function createOAuthClient() {
   return oAuth2Client;
 }
 
+// --- Google OAuth маршруты ---
+
 app.get("/auth-url", (req, res) => {
-  // Return a one-time auth URL so the developer can obtain a code and exchange it for a refresh token.
   const oAuth2Client = createOAuthClient();
   const authUrl = oAuth2Client.generateAuthUrl({
     access_type: "offline",
@@ -51,14 +52,12 @@ app.get("/auth-url", (req, res) => {
 });
 
 app.post("/exchange-code", async (req, res) => {
-  // Exchange an OAuth2 code for tokens (one-time). Save refresh_token to use later.
-  // Body: { code: "CODE_FROM_GOOGLE" }
   const { code } = req.body;
   if (!code) return res.status(400).json({ error: "code required" });
+
   try {
     const oAuth2Client = createOAuthClient();
     const { tokens } = await oAuth2Client.getToken(code);
-    // tokens.refresh_token is what you want to persist in your .env (or secret store)
     res.json({ tokens });
   } catch (err) {
     console.error("Error exchanging code:", err);
@@ -68,35 +67,21 @@ app.post("/exchange-code", async (req, res) => {
 
 async function uploadJsonToDrive(auth, filename, jsonString) {
   const drive = google.drive({ version: "v3", auth });
-
-  // Try to find existing file with same name (not trashed)
   const q = `name='${filename.replace(/'/g, "\\'")}' and trashed=false`;
   const listRes = await drive.files.list({ q, fields: "files(id,name)" });
-
   const bufferStream = Readable.from([jsonString]);
 
   if (listRes.data.files && listRes.data.files.length > 0) {
     const fileId = listRes.data.files[0].id;
-    // update
     const updateRes = await drive.files.update({
       fileId,
-      media: {
-        mimeType: "application/json",
-        body: bufferStream,
-      },
+      media: { mimeType: "application/json", body: bufferStream },
     });
     return { updated: true, id: fileId, res: updateRes.data };
   } else {
-    // create
     const createRes = await drive.files.create({
-      requestBody: {
-        name: filename,
-        mimeType: "application/json",
-      },
-      media: {
-        mimeType: "application/json",
-        body: bufferStream,
-      },
+      requestBody: { name: filename, mimeType: "application/json" },
+      media: { mimeType: "application/json", body: bufferStream },
       fields: "id,name",
     });
     return { created: true, id: createRes.data.id, res: createRes.data };
@@ -117,12 +102,11 @@ app.post("/save-subs", async (req, res) => {
     return res.status(500).json({
       success: false,
       error:
-        "Google credentials not set. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in your .env.",
+        "Google credentials not set. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env",
     });
   }
 
   if (!GOOGLE_REFRESH_TOKEN) {
-    // If no refresh token set yet, instruct the developer how to obtain one
     const oAuth2Client = createOAuthClient();
     const authUrl = oAuth2Client.generateAuthUrl({
       access_type: "offline",
@@ -131,15 +115,13 @@ app.post("/save-subs", async (req, res) => {
     });
     return res.status(400).json({
       success: false,
-      error:
-        "No GOOGLE_REFRESH_TOKEN found. Obtain one by visiting the auth URL and exchanging the code.",
+      error: "No GOOGLE_REFRESH_TOKEN found. Obtain one via auth URL.",
       authUrl,
     });
   }
 
   try {
     const oAuth2Client = createOAuthClient();
-    // ensure we have fresh access token via refresh_token
     await oAuth2Client.getAccessToken();
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
@@ -159,14 +141,24 @@ app.post("/save-subs", async (req, res) => {
   }
 });
 
-// Отдаём сборку Vite
-app.use(express.static(path.join(process.cwd(), "dist")));
+// --- Раздача React фронтенда ---
 
-// Любой маршрут отдаёт index.html (React Router)
-app.get("/*", (req, res) => {
-  res.sendFile(path.join(process.cwd(), "dist", "index.html"));
+const distPath = path.join(__dirname, "dist");
+app.use(express.static(distPath));
+
+// Любой GET-запрос, не начинающийся с /api, отдаёт index.html
+app.use((req, res, next) => {
+  if (
+    req.method === "GET" &&
+    !req.path.startsWith("/auth") &&
+    !req.path.startsWith("/save-subs")
+  ) {
+    res.sendFile(path.join(distPath, "index.html"));
+  } else {
+    next();
+  }
 });
 
-app.listen(PORT, () =>
-  console.log(`Server running on http://localhost:${PORT}`)
-);
+// --- Запуск сервера ---
+
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
