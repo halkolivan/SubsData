@@ -154,9 +154,8 @@ console.log("🗂️ Serving static files from:", distPath);
 app.use(express.static(distPath, { extensions: ["html"] }));
 
 // Если пришёл запрос к файлу (имеется расширение) и express.static не нашёл — вернуть 404
-app.get("*", (req, res, next) => {
+app.get("/*", (req, res, next) => {
   const requestedPath = req.path;
-  // не маршрутизируем API через SPA fallback
   if (
     requestedPath.startsWith("/api/") ||
     requestedPath.startsWith("/auth-url") ||
@@ -166,13 +165,11 @@ app.get("*", (req, res, next) => {
     return next();
   }
 
-  // если у запроса есть расширение (.js .css .png .svg и т.д.) — не возвращаем index.html, вернуть 404
   if (path.extname(requestedPath)) {
     console.warn("🔍 Static file not found, returning 404 for:", requestedPath);
     return res.status(404).send("Not found");
   }
 
-  // иначе — SPA route, отправляем index.html
   const indexFile = path.join(distPath, "index.html");
   if (fs.existsSync(indexFile)) {
     console.log("📄 Serving index.html for:", requestedPath);
@@ -182,6 +179,7 @@ app.get("*", (req, res, next) => {
     return res.status(500).send("index.html not found on server");
   }
 });
+
 
 // --- Старт ---
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
