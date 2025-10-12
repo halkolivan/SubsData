@@ -150,8 +150,8 @@ app.use(express.static(distPath, {
 }));
 
 // Любой GET-запрос, который не нашёл файл, отдаёт index.html
-app.get('*', (req, res) => {
-  res.sendFile(path.join(distPath, 'index.html'));
+app.get(/.*/, (req, res) => {
+  res.sendFile(path.join(distPath, "index.html"));
 });
 
 // --- Запуск сервера ---
