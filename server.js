@@ -144,12 +144,10 @@ app.post("/save-subs", async (req, res) => {
 // --- Раздача сборки Vite ---
 const distPath = path.join(__dirname, "dist");
 
-// Сначала отдаём реальные файлы из dist
-app.use(express.static(distPath, {
-  extensions: ['js', 'css', 'png', 'svg', 'ico']
-}));
+// отдаём статику
+app.use(express.static(distPath));
 
-// Любой GET-запрос, который не нашёл файл, отдаёт index.html
+// fallback для React Router
 app.get(/.*/, (req, res) => {
   res.sendFile(path.join(distPath, "index.html"));
 });
