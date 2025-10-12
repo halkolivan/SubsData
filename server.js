@@ -1,3 +1,4 @@
+// server.js
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
@@ -5,13 +6,13 @@ import dotenv from "dotenv";
 import { google } from "googleapis";
 import { Readable } from "stream";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 
-// --- Для __dirname в ESM ---
+dotenv.config();
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-dotenv.config();
 
 const app = express();
 app.use(cors());
@@ -19,7 +20,7 @@ app.use(bodyParser.json());
 
 const PORT = process.env.PORT || 10000;
 
-// --- Google OAuth ---
+// --- Google OAuth (оставил как у вас) ---
 const {
   GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET,
@@ -85,7 +86,6 @@ async function uploadJsonToDrive(auth, filename, jsonString) {
   }
 }
 
-// --- API ---
 app.post("/save-subs", async (req, res) => {
   const { subscriptions } = req.body;
   if (!subscriptions)
@@ -138,15 +138,50 @@ app.post("/save-subs", async (req, res) => {
 });
 
 // --- Раздача фронтенда ---
-const distPath = path.join(__dirname, "dist");
-console.log("🗂️ Serving static files from:", distPath);
-app.use(express.static(distPath));
+// Попытаемся найти папку сборки (dist или build)
+const candidateDirs = ["dist", "build", "public"];
+let distPath = candidateDirs
+  .map((d) => path.join(__dirname, d))
+  .find((p) => fs.existsSync(p));
 
-// Fallback для React Router (не ловим /api)
-app.get(/^(?!\/api\/).*/, (req, res) => {
-  console.log("📄 Serving index.html for:", req.path);
-  res.sendFile(path.join(distPath, "index.html"));
+if (!distPath) {
+  // fallback — ожидаем dist (vite) по умолчанию
+  distPath = path.join(__dirname, "dist");
+}
+console.log("🗂️ Serving static files from:", distPath);
+
+// express.static с fallthrough=true (по умолчанию) — но мы обрабатываем "файловые" запросы отдельно
+app.use(express.static(distPath, { extensions: ["html"] }));
+
+// Если пришёл запрос к файлу (имеется расширение) и express.static не нашёл — вернуть 404
+app.get("*", (req, res, next) => {
+  const requestedPath = req.path;
+  // не маршрутизируем API через SPA fallback
+  if (
+    requestedPath.startsWith("/api/") ||
+    requestedPath.startsWith("/auth-url") ||
+    requestedPath.startsWith("/exchange-code") ||
+    requestedPath.startsWith("/save-subs")
+  ) {
+    return next();
+  }
+
+  // если у запроса есть расширение (.js .css .png .svg и т.д.) — не возвращаем index.html, вернуть 404
+  if (path.extname(requestedPath)) {
+    console.warn("🔍 Static file not found, returning 404 for:", requestedPath);
+    return res.status(404).send("Not found");
+  }
+
+  // иначе — SPA route, отправляем index.html
+  const indexFile = path.join(distPath, "index.html");
+  if (fs.existsSync(indexFile)) {
+    console.log("📄 Serving index.html for:", requestedPath);
+    return res.sendFile(indexFile);
+  } else {
+    console.error("❌ index.html not found in", distPath);
+    return res.status(500).send("index.html not found on server");
+  }
 });
 
-// --- Старт сервера ---
+// --- Старт ---
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
