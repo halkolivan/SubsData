@@ -1,3 +1,4 @@
+// server.js
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -7,48 +8,55 @@ dotenv.config();
 
 const app = express();
 
-// Определяем __dirname для ESM
+// Определяем __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Порт и папка билда
 const PORT = process.env.PORT || 3000;
 const distPath = path.join(__dirname, "dist");
 
 console.log("✅ Server starting...");
-console.log("🗂️  Serving static files from:", distPath);
+console.log("🗂️ Serving static files from:", distPath);
 
-// Настройки безопасности
+// Безопасность
 app.disable("x-powered-by");
 
-// Разрешаем статику
-app.use(express.static(distPath, { extensions: ["html", "js", "css", "mjs"] }));
+// Раздаём статику
+app.use(
+  express.static(distPath, {
+    extensions: ["html", "js", "css", "mjs"],
+  })
+);
 
-// Логирование запросов
+// Логирование
 app.use((req, res, next) => {
   console.log(`➡️ ${req.method} ${req.url}`);
   next();
 });
 
-// Тестовый API (для отладки)
+// Проверка API
 app.get("/api/health", (req, res) => {
   console.log("💓 /api/health called");
   res.json({ status: "ok", time: new Date().toISOString() });
 });
 
-// Все остальные запросы направляем на index.html
-app.get("/*", (req, res) => {
+// ВАЖНО: вместо "/*" используем правильный RegExp
+app.get(/.*/, (req, res) => {
   console.log(`📄 Serving index.html for: ${req.url}`);
-  res.sendFile(path.join(distPath, "index.html"));
+  res.sendFile(path.join(distPath, "index.html"), (err) => {
+    if (err) {
+      console.error("❌ Error sending index.html:", err);
+      res.status(500).send("Error loading page");
+    }
+  });
 });
 
-// Глобальный обработчик ошибок
+// Обработка ошибок
 app.use((err, req, res, next) => {
   console.error("🔥 Server error:", err.stack || err);
   res.status(500).send("Internal server error");
 });
 
-// Запуск
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🌐 Visit: http://localhost:${PORT}`);
