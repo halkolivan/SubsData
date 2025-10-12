@@ -41,11 +41,7 @@
 
     <!-- ✅ Canonical & hreflang -->
     <link rel="canonical" href="https://your-domain.com/" />
-    <link
-      rel="alternate"
-      href="https://your-domain.com/"
-      hreflang="x-default"
-    />
+    <link rel="alternate" href="https://your-domain.com/" hreflang="x-default" />
 
     <!-- ✅ JSON-LD structured data -->
     <script type="application/ld+json">
@@ -61,12 +57,13 @@
     </script>
 
     <!-- ✅ Vite build: вставляются реальные пути к сгенерированным CSS -->
-     
+    
   </head>
 
   <body>
     <div id="root"></div>
 
     <!-- ✅ Vite build: сюда вставляется главный JS-бандл -->
+    <script type="module" src="/src/main.js"></script>
   </body>
 </html>
