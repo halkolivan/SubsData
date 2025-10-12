@@ -141,22 +141,17 @@ app.post("/save-subs", async (req, res) => {
   }
 });
 
-// --- Раздача React фронтенда ---
-
+// --- Раздача сборки Vite ---
 const distPath = path.join(__dirname, "dist");
-app.use(express.static(distPath));
 
-// Любой GET-запрос, не начинающийся с /api, отдаёт index.html
-app.use((req, res, next) => {
-  if (
-    req.method === "GET" &&
-    !req.path.startsWith("/auth") &&
-    !req.path.startsWith("/save-subs")
-  ) {
-    res.sendFile(path.join(distPath, "index.html"));
-  } else {
-    next();
-  }
+// Сначала отдаём реальные файлы из dist
+app.use(express.static(distPath, {
+  extensions: ['js', 'css', 'png', 'svg', 'ico']
+}));
+
+// Любой GET-запрос, который не нашёл файл, отдаёт index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(distPath, 'index.html'));
 });
 
 // --- Запуск сервера ---
