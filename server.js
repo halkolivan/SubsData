@@ -5,6 +5,13 @@ import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import { google } from "googleapis";
 import { Readable } from "stream";
+import path from "path";
+import { fileURLToPath } from "url";
+
+// Чтобы работал __dirname в ES-модулях
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 
 dotenv.config();
 
@@ -145,5 +152,14 @@ app.post("/save-subs", async (req, res) => {
     res.status(500).json({ success: false, error: err.message || String(err) });
   }
 });
+
+// Отдаём сборку Vite
+app.use(express.static(path.join(process.cwd(), "dist")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(process.cwd(), "dist", "index.html"));
+});
+
+
 
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
