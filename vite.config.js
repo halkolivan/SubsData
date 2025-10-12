@@ -65,6 +65,7 @@ export default defineConfig({
       },
     }),
   ],
+  root: "src",
 
   base: "./",
 
