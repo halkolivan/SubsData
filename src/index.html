@@ -23,7 +23,7 @@
     />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="/images/Logo.png" />
-    <meta property="og:url" content="https://your-domain.com/" />
+  <meta property="og:url" content="/" />
 
     <!-- ✅ Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -40,14 +40,14 @@
     <meta name="theme-color" content="#2563eb" />
 
     <!-- ✅ Canonical & hreflang -->
-    <link rel="canonical" href="https://your-domain.com/" />
+  <link rel="canonical" href="/" />
     <link
       rel="alternate"
       href="https://your-domain.com/"
       hreflang="x-default"
     />
 
-    <!-- ✅ JSON-LD structured data -->
+  <!-- ✅ JSON-LD structured data -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -57,6 +57,19 @@
         "description": "Менеджер подписок и расходов",
         "applicationCategory": "FinanceApplication",
         "operatingSystem": "All"
+      }
+    </script>
+
+    <!-- Set canonical and og:url to the actual origin at runtime (works on Render) -->
+    <script>
+      try {
+        const origin = window.location.origin.replace(/\/$/, '');
+        const canonical = document.querySelector('link[rel="canonical"]');
+        if (canonical) canonical.href = origin + '/';
+        const ogUrl = document.querySelector('meta[property="og:url"]');
+        if (ogUrl) ogUrl.content = origin + '/';
+      } catch (e) {
+        // noop
       }
     </script>
 
