@@ -129,6 +129,25 @@ app.post("/auth/github", async (req, res) => {
   }
 });
 
+app.post("/save-subs", async (req, res) => {
+  try {
+    const { subscriptions } = req.body;
+    if (!subscriptions || !Array.isArray(subscriptions)) {
+      return res.status(400).json({ error: "invalid_subscriptions_data" });
+    }
+
+    // Для теста просто сохраняем на диск (или потом интеграция с Google Drive)
+    const filePath = path.join(__dirname, "subscriptions.json");
+    fs.writeFileSync(filePath, JSON.stringify(subscriptions, null, 2));
+
+    res.status(200).json({ ok: true, saved: subscriptions.length });
+  } catch (err) {
+    console.error("Ошибка при сохранении:", err);
+    res.status(500).json({ error: "failed_to_save" });
+  }
+});
+
+
 // --- Раздача статики ---
 app.use(express.static(distPath));
 
