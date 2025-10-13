@@ -13,8 +13,14 @@ console.log("🗂 Serving static from:", distPath);
 const app = express();
 app.use(express.static(distPath));
 
-app.get("*", (req, res) => {
-  res.sendFile(path.join(distPath, "index.html"));
+app.get("/*", (req, res) => {
+  const indexHtml = path.join(distPath, "index.html");
+  if (fs.existsSync(indexHtml)) {
+    res.sendFile(indexHtml);
+  } else {
+    console.error("index.html not found in dist folder:", indexHtml);
+    res.status(500).send("index.html not found");
+  }
 });
 
 const PORT = process.env.PORT || 10000;
