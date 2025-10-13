@@ -13,7 +13,8 @@ console.log("🗂 Serving static from:", distPath);
 const app = express();
 app.use(express.static(distPath));
 
-app.get("/*", (req, res) => {
+// Catch-all route for SPA: use a RegExp route to avoid path-to-regexp parameter parsing issues
+app.get(/.*/, (req, res) => {
   const indexHtml = path.join(distPath, "index.html");
   if (fs.existsSync(indexHtml)) {
     res.sendFile(indexHtml);
