@@ -11,6 +11,8 @@ const distPath = path.join(__dirname, "dist");
 console.log("🗂 Serving static from:", distPath);
 
 const app = express();
+// parse JSON bodies for POST /auth/github
+app.use(express.json());
 
 // Serve service worker if present; otherwise return a small no-op SW to avoid 404s
 app.get('/sw.js', (req, res) => {
@@ -67,6 +69,43 @@ app.get('/__assets', (req, res) => {
   }
 });
 
+// Add a small token-exchange endpoint so frontend can POST code -> server and get user/token
+// Requires GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET environment variables set on the host.
+app.post('/auth/github', async (req, res) => {
+  const { code } = req.body || {};
+  if (!code) return res.status(400).json({ error: 'missing_code' });
+
+  const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID;
+  const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
+  if (!GITHUB_CLIENT_ID || !GITHUB_CLIENT_SECRET) {
+    return res.status(500).json({ error: 'missing_github_client_env' });
+  }
+
+  try {
+    // Exchange code for access token
+    const tokenResp = await fetch('https://github.com/login/oauth/access_token', {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ client_id: GITHUB_CLIENT_ID, client_secret: GITHUB_CLIENT_SECRET, code }),
+    });
+    const tokenJson = await tokenResp.json();
+    if (tokenJson.error) return res.status(500).json({ error: tokenJson.error_description || tokenJson.error });
+
+    const access_token = tokenJson.access_token;
+
+    // Fetch user profile
+    const userResp = await fetch('https://api.github.com/user', {
+      headers: { Authorization: `token ${access_token}`, Accept: 'application/vnd.github.v3+json' },
+    });
+    const user = await userResp.json();
+
+    return res.json({ user, token: access_token });
+  } catch (err) {
+    console.error('GitHub exchange error', err);
+    return res.status(500).json({ error: 'github_exchange_failed' });
+  }
+});
+
 app.use(express.static(distPath));
 
 // Log missing static asset requests (so missing JS/CSS/images are visible in logs)
@@ -84,15 +123,13 @@ app.use((req, res, next) => {
   next();
 });
 
-// Catch-all route for SPA: use a RegExp route to avoid path-to-regexp parameter parsing issues
-app.get(/^\/locales\/.*/, (req, res) => {
-  const rel = req.path.replace(/^\//, '');
-  const fileOnDisk = path.join(distPath, rel);
-  if (fs.existsSync(fileOnDisk)) {
-    console.log(`200 Serve locale: ${req.method} ${req.url} -> ${fileOnDisk}`);
-    return res.sendFile(fileOnDisk);
+// SPA fallback: serve index.html for any other GET requests (use RegExp to avoid path parsing issues)
+app.get(/.*/, (req, res) => {
+  const indexFile = path.join(distPath, 'index.html');
+  if (fs.existsSync(indexFile)) {
+    res.setHeader('X-Served-Index', 'true');
+    return res.sendFile(indexFile);
   }
-  console.warn(`404 locale not found: ${req.method} ${req.url} -> ${fileOnDisk}`);
   return res.status(404).send('Not found');
 });
 

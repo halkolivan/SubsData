@@ -17,9 +17,8 @@ export default function AuthCallback() {
       return;
     }
 
-    // адрес твоего auth-сервера
-    const AUTH_SERVER =
-      import.meta.env.VITE_AUTH_SERVER || "http://localhost:4000";
+  // адрес твоего auth-сервера — по умолчанию используем тот же origin, если VITE_AUTH_SERVER не задан
+  const AUTH_SERVER = import.meta.env.VITE_AUTH_SERVER || window.location.origin;
 
     fetch(`${AUTH_SERVER}/auth/github`, {
       method: "POST",
