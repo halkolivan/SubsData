@@ -18,7 +18,7 @@ import SaveButton from "@/components/SaveButton";
 const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
 
 // import images
-import logoSubsData from "@assets/images/Logo120.png";
+import logoSubsData from "@assets/images/Logo.png";
 
 export default function Header() {
   const { t, i18n } = useTranslation();

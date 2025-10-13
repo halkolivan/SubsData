@@ -23,7 +23,7 @@
     />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="/images/Logo.png" />
-  <meta property="og:url" content="http://localhost:5173/" />
+    <meta property="og:url" content="https://subsdata.onrender.com/" />
 
     <!-- ✅ Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -40,14 +40,14 @@
     <meta name="theme-color" content="#2563eb" />
 
     <!-- ✅ Canonical & hreflang -->
-  <link rel="canonical" href="http://localhost:5173/" />
+    <link rel="canonical" href="https://subsdata.onrender.com/" />
     <link
       rel="alternate"
       href="https://subsdata.onrender.com/"
       hreflang="x-default"
     />
 
-  <!-- ✅ JSON-LD structured data -->
+    <!-- ✅ JSON-LD structured data -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -63,11 +63,11 @@
     <!-- Set canonical and og:url to the actual origin at runtime (works on Render) -->
     <script>
       try {
-        const origin = window.location.origin.replace(/\/$/, '');
+        const origin = window.location.origin.replace(/\/$/, "");
         const canonical = document.querySelector('link[rel="canonical"]');
-        if (canonical) canonical.href = origin + '/';
+        if (canonical) canonical.href = origin + "/";
         const ogUrl = document.querySelector('meta[property="og:url"]');
-        if (ogUrl) ogUrl.content = origin + '/';
+        if (ogUrl) ogUrl.content = origin + "/";
       } catch (e) {
         // noop
       }
@@ -79,7 +79,7 @@
   <body>
     <div id="root"></div>
 
-  <!-- ✅ Vite build: сюда вставляется главный JS-бандл -->
-  <script type="module" src="/Main.jsx"></script>
+    <!-- ✅ Vite build: сюда вставляется главный JS-бандл -->
+    <script type="module" src="/Main.jsx"></script>
   </body>
 </html>
