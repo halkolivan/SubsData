@@ -1,8 +1,8 @@
 import "./i18n";
-import React, { Suspense, useEffect } from "react";
 import Router from "./Router";
 import "@assets/styles/App.css";
 import { registerSW } from "virtual:pwa-register";
+import React, { Suspense, useEffect } from "react";
 import { AuthProvider } from "@/context/AuthContext";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
