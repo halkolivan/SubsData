@@ -11,6 +11,19 @@ const distPath = path.join(__dirname, "dist");
 console.log("🗂 Serving static from:", distPath);
 
 const app = express();
+
+// Serve service worker if present; otherwise return a small no-op SW to avoid 404s
+app.get('/sw.js', (req, res) => {
+  const swFile = path.join(distPath, 'sw.js');
+  if (fs.existsSync(swFile)) {
+    res.setHeader('Content-Type', 'application/javascript');
+    return res.sendFile(swFile);
+  }
+  // minimal noop service worker
+  res.setHeader('Content-Type', 'application/javascript');
+  res.send("// noop service worker\nself.addEventListener('install', ()=>self.skipWaiting());\nself.addEventListener('activate', ()=>self.clients.claim());\n");
+});
+
 app.use(express.static(distPath));
 
 // Log missing static asset requests (so missing JS/CSS/images are visible in logs)
