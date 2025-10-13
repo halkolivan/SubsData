@@ -42,18 +42,17 @@ app.use((req, res, next) => {
 });
 
 // Catch-all route for SPA: use a RegExp route to avoid path-to-regexp parameter parsing issues
-app.get(/.*/, (req, res) => {
-  const indexHtml = path.join(distPath, "index.html");
-  if (fs.existsSync(indexHtml)) {
-    // mark response so we can detect what was served in the browser/network
-    res.setHeader("X-Served-Index", "dist");
-    console.log(`200 Serve index.html for ${req.method} ${req.url} -> ${indexHtml}`);
-    res.sendFile(indexHtml);
-  } else {
-    console.error("index.html not found in dist folder:", indexHtml);
-    res.status(500).send("index.html not found");
+app.get(/^\/locales\/.*/, (req, res) => {
+  const rel = req.path.replace(/^\//, '');
+  const fileOnDisk = path.join(distPath, rel);
+  if (fs.existsSync(fileOnDisk)) {
+    console.log(`200 Serve locale: ${req.method} ${req.url} -> ${fileOnDisk}`);
+    return res.sendFile(fileOnDisk);
   }
+  console.warn(`404 locale not found: ${req.method} ${req.url} -> ${fileOnDisk}`);
+  return res.status(404).send('Not found');
 });
+
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));
