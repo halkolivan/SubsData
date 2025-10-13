@@ -48,6 +48,25 @@ app.get(/^\/locales\/.*/, (req, res) => {
   return res.status(404).send('Not found');
 });
 
+// Diagnostic endpoint: list files in dist (assets, icons, locales)
+app.get('/__assets', (req, res) => {
+  try {
+    const listDir = (p) => {
+      const full = path.join(distPath, p);
+      if (!fs.existsSync(full)) return null;
+      return fs.readdirSync(full);
+    };
+    return res.json({
+      assets: listDir('assets'),
+      icons: listDir('icons'),
+      locales: listDir('locales'),
+    });
+  } catch (err) {
+    console.error('Error listing dist folders', err);
+    return res.status(500).json({ error: 'failed to list' });
+  }
+});
+
 app.use(express.static(distPath));
 
 // Log missing static asset requests (so missing JS/CSS/images are visible in logs)
