@@ -26,6 +26,18 @@ app.get('/sw.js', (req, res) => {
 
 app.use(express.static(distPath));
 
+// Serve locale files explicitly and log when missing
+app.get('/locales/*', (req, res) => {
+  const rel = req.path.replace(/^\//, '');
+  const fileOnDisk = path.join(distPath, rel);
+  if (fs.existsSync(fileOnDisk)) {
+    console.log(`200 Serve locale: ${req.method} ${req.url} -> ${fileOnDisk}`);
+    return res.sendFile(fileOnDisk);
+  }
+  console.warn(`404 locale not found: ${req.method} ${req.url} -> ${fileOnDisk}`);
+  return res.status(404).send('Not found');
+});
+
 // Log missing static asset requests (so missing JS/CSS/images are visible in logs)
 app.use((req, res, next) => {
   const urlPath = req.path || req.url || "";
