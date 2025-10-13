@@ -32,6 +32,9 @@ app.use((req, res, next) => {
 app.get(/.*/, (req, res) => {
   const indexHtml = path.join(distPath, "index.html");
   if (fs.existsSync(indexHtml)) {
+    // mark response so we can detect what was served in the browser/network
+    res.setHeader("X-Served-Index", "dist");
+    console.log(`200 Serve index.html for ${req.method} ${req.url} -> ${indexHtml}`);
     res.sendFile(indexHtml);
   } else {
     console.error("index.html not found in dist folder:", indexHtml);
