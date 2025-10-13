@@ -24,6 +24,30 @@ app.get('/sw.js', (req, res) => {
   res.send("// noop service worker\nself.addEventListener('install', ()=>self.skipWaiting());\nself.addEventListener('activate', ()=>self.clients.claim());\n");
 });
 
+// Serve icons explicitly (avoid possible static middleware issues on some hosts)
+app.get(/^\/icons\/.*/, (req, res) => {
+  const rel = req.path.replace(/^\//, '');
+  const fileOnDisk = path.join(distPath, rel);
+  if (fs.existsSync(fileOnDisk)) {
+    console.log(`200 Serve icon: ${req.method} ${req.url} -> ${fileOnDisk}`);
+    return res.sendFile(fileOnDisk);
+  }
+  console.warn(`404 icon not found: ${req.method} ${req.url} -> ${fileOnDisk}`);
+  return res.status(404).send('Not found');
+});
+
+// Serve locale files explicitly and log when missing (placed before static)
+app.get(/^\/locales\/.*/, (req, res) => {
+  const rel = req.path.replace(/^\//, '');
+  const fileOnDisk = path.join(distPath, rel);
+  if (fs.existsSync(fileOnDisk)) {
+    console.log(`200 Serve locale: ${req.method} ${req.url} -> ${fileOnDisk}`);
+    return res.sendFile(fileOnDisk);
+  }
+  console.warn(`404 locale not found: ${req.method} ${req.url} -> ${fileOnDisk}`);
+  return res.status(404).send('Not found');
+});
+
 app.use(express.static(distPath));
 
 // Log missing static asset requests (so missing JS/CSS/images are visible in logs)
