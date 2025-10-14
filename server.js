@@ -175,7 +175,9 @@ app.post("/save-subs", authMiddleware, async (req, res) => {
       "https://www.googleapis.com/drive/v3/files?q=name='subscriptions.json'&spaces=drive&fields=files(id,name)",
       { headers: { Authorization: `Bearer ${token}` } }
     );
+
     const listData = await listRes.json();
+
     const fileExists = listData.files && listData.files.length > 0;
     const fileId = fileExists ? listData.files[0].id : null;
 
@@ -224,30 +226,48 @@ app.post("/save-subs", authMiddleware, async (req, res) => {
 
 
 // --- Загрузка из Google Drive ---
-app.get("/mysubscriptions", authMiddleware, async (req, res) => {
+app.get("/mysubscriptions", async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: "Нет токена" });
+
+  const token = auth.split(" ")[1];
   try {
-    const token = req.token;
+    // 1️⃣ Ищем файл subscriptions.json в "My Drive"
     const listRes = await fetch(
       "https://www.googleapis.com/drive/v3/files?q=name='subscriptions.json'&spaces=drive&fields=files(id,name)",
       { headers: { Authorization: `Bearer ${token}` } }
     );
 
-    const { files } = await listRes.json();
-    if (!files?.length) return res.json({ subscriptions: [] });
+    const listData = await listRes.json();
+    if (!listData.files || listData.files.length === 0) {
+      console.log("⚠️ Файл subscriptions.json не найден");
+      return res.json({ subscriptions: [] });
+    }
 
-    const fileId = files[0].id;
-    const contentRes = await fetch(
+    const fileId = listData.files[0].id;
+
+    // 2️⃣ Читаем содержимое
+    const fileRes = await fetch(
       `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
-    const subs = await contentRes.json();
 
-    res.json({ subscriptions: subs });
+    if (!fileRes.ok) {
+      console.error("Ошибка чтения файла:", await fileRes.text());
+      return res.json({ subscriptions: [] });
+    }
+
+    const content = await fileRes.text();
+    const parsed = JSON.parse(content || "[]");
+
+    console.log("📥 Прочитано из Drive:", parsed.length, "подписок");
+    res.json({ subscriptions: parsed });
   } catch (err) {
-    console.error("Ошибка при загрузке подписок:", err);
-    res.status(500).json({ error: "failed_to_load" });
+    console.error("❌ Ошибка при получении подписок:", err);
+    res.status(500).json({ error: "Ошибка при получении подписок" });
   }
 });
+
 
 // --- Раздача статики ---
 app.use(express.static(distPath));
