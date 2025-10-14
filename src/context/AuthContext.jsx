@@ -80,27 +80,30 @@ export const AuthProvider = ({ children }) => {
     setToken(jwt);
     localStorage.setItem("user", JSON.stringify(userData));
     localStorage.setItem("authToken", jwt);
+
     try {
-      const res = await fetch(
-        "https://subsdata-api.onrender.com/mysubscriptions",
-        {
-          headers: { Authorization: `Bearer ${jwt}` },
-        }
-      );
+      // ✅ Подставляем адрес API из .env (в продакшне Render = subsdata-api.onrender.com)
+      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:10000";
+
+      // ✅ Запрашиваем подписки с твоего backend
+      const res = await fetch(`${API_URL}/mysubscriptions`, {
+        headers: { Authorization: `Bearer ${jwt}` },
+      });
+
       const data = await res.json();
+
       if (data.subscriptions) {
         setSubscriptions(data.subscriptions);
       }
     } catch (err) {
       console.error("Ошибка при загрузке подписок:", err);
     }
+
     setIsAuthModalOpen(false);
     setIsAddModalOpen(false);
     setJustLoggedIn(true);
-
-    const savedUserSubs = localStorage.getItem("userSubscriptions");
-    if (savedUserSubs) setSubscriptions(JSON.parse(savedUserSubs));
   };
+
 
   const logout = () => {
     setUser(null);
