@@ -251,6 +251,13 @@ app.get("/mysubscriptions", authMiddleware, async (req, res) => {
 // --- Раздача статики ---
 app.use(express.static(distPath));
 
+// --- SPA fallback (React) ---
+app.get(/.*/, (req, res) => {
+  const indexFile = path.join(distPath, "index.html");
+  if (fs.existsSync(indexFile)) return res.sendFile(indexFile);
+  return res.status(404).send("Not found");
+});
+
 // --- Лог отсутствующих ассетов ---
 app.use((req, res, next) => {
   const urlPath = req.path || req.url || "";
