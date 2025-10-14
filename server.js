@@ -172,6 +172,7 @@ app.post("/save-subs", authMiddleware, async (req, res) => {
     const metadata = {
       name: "subscriptions.json",
       mimeType: "application/json",
+      parents: ["root"],
     };
     const form = new FormData();
     form.append("metadata", JSON.stringify(metadata), {
@@ -203,9 +204,10 @@ app.get("/mysubscriptions", authMiddleware, async (req, res) => {
   try {
     const token = req.token;
     const listRes = await fetch(
-      "https://www.googleapis.com/drive/v3/files?q=name='subscriptions.json'&fields=files(id,name)",
+      "https://www.googleapis.com/drive/v3/files?q=name='subscriptions.json'&spaces=drive&fields=files(id,name)",
       { headers: { Authorization: `Bearer ${token}` } }
     );
+
     const { files } = await listRes.json();
     if (!files?.length) return res.json({ subscriptions: [] });
 

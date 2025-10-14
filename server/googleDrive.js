@@ -1,4 +1,4 @@
-// server/googleDrive.js
+
 import express from "express";
 import fetch from "node-fetch";
 
@@ -18,6 +18,7 @@ router.post("/save", async (req, res) => {
     const metadata = {
       name: "subscriptions.json",
       mimeType: "application/json",
+      parents: ["root"],
     };
 
     const form = new FormData();
