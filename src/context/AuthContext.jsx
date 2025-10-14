@@ -75,11 +75,23 @@ export const AuthProvider = ({ children }) => {
   }, [settings]);
 
   // Функции
-  const login = (userData, jwt) => {
+  const login = async (userData, jwt) => {
     setUser(userData);
     setToken(jwt);
     localStorage.setItem("user", JSON.stringify(userData));
     localStorage.setItem("authToken", jwt);
+    try {
+      const res = await fetch("https://subsdata-api.onrender.com/get-subs", {
+        
+        headers: { Authorization: `Bearer ${jwt}` },
+      });
+      const data = await res.json();
+      if (data.subscriptions) {
+        setSubscriptions(data.subscriptions);
+      }
+    } catch (err) {
+      console.error("Ошибка при загрузке подписок:", err);
+    }
     setIsAuthModalOpen(false);
     setIsAddModalOpen(false);
     setJustLoggedIn(true);

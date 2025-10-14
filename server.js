@@ -147,6 +147,19 @@ app.post("/save-subs", async (req, res) => {
   }
 });
 
+app.get("/get-subs", async (req, res) => {
+  try {
+    const filePath = path.join(__dirname, "subscriptions.json");
+    if (!fs.existsSync(filePath)) return res.json({ subscriptions: [] });
+    const data = JSON.parse(fs.readFileSync(filePath, "utf8"));
+    res.json({ subscriptions: data });
+  } catch (err) {
+    console.error("Ошибка при загрузке подписок:", err);
+    res.status(500).json({ error: "failed_to_load" });
+  }
+});
+
+
 
 // --- Раздача статики ---
 app.use(express.static(distPath));
