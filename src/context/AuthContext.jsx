@@ -115,32 +115,47 @@ export const AuthProvider = ({ children }) => {
 
   const loadMockSubscriptions = () => setSubscriptions(mockSubs);
 
-  const addSubscription = async (newSub) => {
-    const subToAdd = {
-      id: Date.now(),
-      name: newSub.name,
-      price: parseFloat(newSub.price),
-      currency: newSub.currency || "USD",
-      category: newSub.category,
-      nextPayment: newSub.nextPayment,
-      cycle: "ежемесячно",
-      status: newSub.status || "active",
-    };
+ const addSubscription = async (newSub) => {
+   const subToAdd = {
+     id: Date.now(),
+     name: newSub.name,
+     price: parseFloat(newSub.price),
+     currency: newSub.currency || "USD",
+     category: newSub.category,
+     nextPayment: newSub.nextPayment,
+     cycle: "ежемесячно",
+     status: newSub.status || "active",
+   };
 
-    setSubscriptions((prev) => {
-      const updated = [...prev, subToAdd];
-      localStorage.setItem("subscriptions", JSON.stringify(updated));
-      // Сохраняем на Google Drive
-      if (token) {
-        import("@/utils/drive").then(({ saveSubscriptions }) => {
-          saveSubscriptions(token, updated)
-            .then(() => console.log("✅ Сохранено на Google Drive"))
-            .catch((err) => console.error("❌ Ошибка при сохранении:", err));
-        });
-      }
-      return updated;
-    });
-  };
+   try {
+     // 1️⃣ Берём актуальные подписки из localStorage (на случай первой)
+     const existing = JSON.parse(localStorage.getItem("subscriptions")) || [];
+
+     // 2️⃣ Добавляем новую
+     const updated = [...existing, subToAdd];
+
+     // 3️⃣ Сразу сохраняем в localStorage
+     localStorage.setItem("subscriptions", JSON.stringify(updated));
+
+     // 4️⃣ Обновляем React state (асинхронно, но уже не критично)
+     setSubscriptions(updated);
+
+     console.log("🆕 Добавлена подписка:", subToAdd);
+     console.log("📦 Текущее состояние:", updated);
+
+     // 5️⃣ Сохраняем на Google Drive, если есть токен
+     if (token) {
+       import("@/utils/drive").then(({ saveSubscriptions }) => {
+         saveSubscriptions(token, updated)
+           .then(() => console.log("✅ Сохранено на Google Drive"))
+           .catch((err) => console.error("❌ Ошибка при сохранении:", err));
+       });
+     }
+   } catch (err) {
+     console.error("Ошибка при добавлении подписки:", err);
+   }
+ };
+
 
   const updateSettings = (patch) => {
     setSettings((prev) => ({
