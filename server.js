@@ -231,8 +231,9 @@ app.get("/mysubscriptions", async (req, res) => {
   if (!auth) return res.status(401).json({ error: "Нет токена" });
 
   const token = auth.split(" ")[1];
+
   try {
-    // 1️⃣ Ищем файл subscriptions.json в "My Drive"
+    // 1️⃣ Ищем файл subscriptions.json именно в "My Drive"
     const listRes = await fetch(
       "https://www.googleapis.com/drive/v3/files?q=name='subscriptions.json'&spaces=drive&fields=files(id,name)",
       { headers: { Authorization: `Bearer ${token}` } }
@@ -246,7 +247,7 @@ app.get("/mysubscriptions", async (req, res) => {
 
     const fileId = listData.files[0].id;
 
-    // 2️⃣ Читаем содержимое
+    // 2️⃣ Читаем содержимое файла
     const fileRes = await fetch(
       `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
       { headers: { Authorization: `Bearer ${token}` } }
@@ -267,6 +268,7 @@ app.get("/mysubscriptions", async (req, res) => {
     res.status(500).json({ error: "Ошибка при получении подписок" });
   }
 });
+
 
 
 // --- Раздача статики ---
