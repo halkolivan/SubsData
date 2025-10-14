@@ -6,45 +6,43 @@ export default function SaveButton() {
   const { token, subscriptions } = useAuth();
   const [status, setStatus] = useState("");
 
-  const handleSave = async () => {
-    console.log("TOKEN:", token);
-    console.log("SUBSCRIPTIONS:", subscriptions);
+ const handleSave = async () => {
+   console.log("TOKEN:", token);
+   console.log("SUBSCRIPTIONS (до проверки):", subscriptions);
 
-    if (!token) {
-      setStatus("Ошибка: не авторизован");
-      return;
-    }
+   // получаем актуальные данные из localStorage, если они там есть
+   const localSubs = JSON.parse(
+     localStorage.getItem("userSubscriptions") || "[]"
+   );
 
-    if (!subscriptions || subscriptions.length === 0) {
-      setStatus("Нет данных для сохранения");
-      return;
-    }
+   const finalSubs = subscriptions.length ? subscriptions : localSubs;
+   console.log("📦 Отправляем в Drive:", finalSubs);
 
-    try {
-      const res = await fetch("https://subsdata-api.onrender.com/save-subs", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // можно оставить для теста
-        },
-        body: JSON.stringify({ subscriptions }),
-      });
+   if (!token) return setStatus("Ошибка: не авторизован");
+   if (!finalSubs.length) return setStatus("Нет данных для сохранения");
 
-      const data = await res.json();
-      console.log("Ответ сервера:", data);
+   try {
+     const res = await fetch(`${import.meta.env.VITE_API_URL}/save-subs`, {
+       method: "POST",
+       headers: {
+         "Content-Type": "application/json",
+         Authorization: `Bearer ${token}`,
+       },
+       body: JSON.stringify({ subscriptions: finalSubs }),
+     });
 
-      if (res.ok && !data.error) {
-        setStatus("✅ Успешно сохранено в Google Drive!");
-      } else {
-        setStatus(
-          `Ошибка сервера: ${data.error?.message || "неизвестная ошибка"}`
-        );
-      }
-    } catch (err) {
-      console.error("Ошибка fetch:", err);
-      setStatus("❌ Ошибка при сохранении");
-    }
-  };
+     const data = await res.json();
+     if (res.ok && !data.error) {
+       setStatus("✅ Успешно сохранено в Google Drive!");
+     } else {
+       setStatus(`Ошибка: ${data.error?.message || "Неизвестная ошибка"}`);
+     }
+   } catch (err) {
+     console.error("Ошибка fetch:", err);
+     setStatus("❌ Ошибка при сохранении");
+   }
+ };
+
 
   return (
     <button
