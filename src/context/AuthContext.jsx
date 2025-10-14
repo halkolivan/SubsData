@@ -1,12 +1,12 @@
 import { subscriptions as mockSubs } from "@mock/mockData";
 import { notifySubscriptions } from "@/hooks/useNotifyDataSub";
 import { createContext, useContext, useState, useEffect } from "react";
+import { saveSubscriptions } from "@/utils/drive"; // <--- добавлен импорт
 
-// 1️⃣ Создаём контекст
 export const AuthContext = createContext();
 
-// 2️⃣ Провайдер
 export const AuthProvider = ({ children }) => {
+  // --- Состояния ---
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem("user");
     return saved ? JSON.parse(saved) : null;
@@ -21,15 +21,11 @@ export const AuthProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : [];
   });
 
-  const [userSubscriptions, setUserSubscriptions] = useState(() => {
-    const saved = localStorage.getItem("userSubscriptions");
-    return saved ? JSON.parse(saved) : [];
-  });
-
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [justLoggedIn, setJustLoggedIn] = useState(false);
 
+  // --- Настройки пользователя ---
   const defaultSettings = {
     notif: {
       enabled: true,
@@ -58,23 +54,28 @@ export const AuthProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : defaultSettings;
   });
 
-  // Сохраняем подписки и настройки в localStorage
+  // --- Сохранение в localStorage ---
   useEffect(() => {
     localStorage.setItem("subscriptions", JSON.stringify(subscriptions));
   }, [subscriptions]);
 
   useEffect(() => {
-    localStorage.setItem(
-      "userSubscriptions",
-      JSON.stringify(userSubscriptions)
-    );
-  }, [userSubscriptions]);
-
-  useEffect(() => {
     localStorage.setItem("settings", JSON.stringify(settings));
   }, [settings]);
 
-  // Функции
+  // --- Автосохранение на Google Drive ---
+  useEffect(() => {
+    if (token && subscriptions.length > 0) {
+      console.log("🌀 Автосохранение на Google Drive...");
+      console.log("📦 Текущее состояние подписок:", subscriptions);
+
+      saveSubscriptions(token, subscriptions)
+        .then(() => console.log("✅ Автосохранено на Google Drive"))
+        .catch((err) => console.error("❌ Ошибка автосохранения:", err));
+    }
+  }, [subscriptions, token]);
+
+  // --- Авторизация ---
   const login = async (userData, jwt) => {
     setUser(userData);
     setToken(jwt);
@@ -82,19 +83,12 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("authToken", jwt);
 
     try {
-      // ✅ Подставляем адрес API из .env (в продакшне Render = subsdata-api.onrender.com)
-      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:10000";      
-
+      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:10000";
       const res = await fetch(`${API_URL}/mysubscriptions`, {
         headers: { Authorization: `Bearer ${jwt}` },
       });
-
-
       const data = await res.json();
-
-      if (data.subscriptions) {
-        setSubscriptions(data.subscriptions);
-      }
+      if (data.subscriptions) setSubscriptions(data.subscriptions);
     } catch (err) {
       console.error("Ошибка при загрузке подписок:", err);
     }
@@ -104,7 +98,7 @@ export const AuthProvider = ({ children }) => {
     setJustLoggedIn(true);
   };
 
-
+  // --- Выход ---
   const logout = () => {
     setUser(null);
     setToken(null);
@@ -113,50 +107,33 @@ export const AuthProvider = ({ children }) => {
     setSubscriptions([]);
   };
 
-  const loadMockSubscriptions = () => setSubscriptions(mockSubs);
+  // --- Добавление подписки ---
+  const addSubscription = async (newSub) => {
+    const subToAdd = {
+      id: Date.now(),
+      name: newSub.name,
+      price: parseFloat(newSub.price),
+      currency: newSub.currency || "USD",
+      category: newSub.category,
+      nextPayment: newSub.nextPayment,
+      cycle: "ежемесячно",
+      status: newSub.status || "active",
+    };
 
- const addSubscription = async (newSub) => {
-   const subToAdd = {
-     id: Date.now(),
-     name: newSub.name,
-     price: parseFloat(newSub.price),
-     currency: newSub.currency || "USD",
-     category: newSub.category,
-     nextPayment: newSub.nextPayment,
-     cycle: "ежемесячно",
-     status: newSub.status || "active",
-   };
+    try {
+      const existing = JSON.parse(localStorage.getItem("subscriptions")) || [];
+      const updated = [...existing, subToAdd];
+      localStorage.setItem("subscriptions", JSON.stringify(updated));
+      setSubscriptions(updated);
 
-   try {
-     // 1️⃣ Берём актуальные подписки из localStorage (на случай первой)
-     const existing = JSON.parse(localStorage.getItem("subscriptions")) || [];
+      console.log("🆕 Добавлена подписка:", subToAdd);
+      console.log("📦 Текущее состояние:", updated);
+    } catch (err) {
+      console.error("Ошибка при добавлении подписки:", err);
+    }
+  };
 
-     // 2️⃣ Добавляем новую
-     const updated = [...existing, subToAdd];
-
-     // 3️⃣ Сразу сохраняем в localStorage
-     localStorage.setItem("subscriptions", JSON.stringify(updated));
-
-     // 4️⃣ Обновляем React state (асинхронно, но уже не критично)
-     setSubscriptions(updated);
-
-     console.log("🆕 Добавлена подписка:", subToAdd);
-     console.log("📦 Текущее состояние:", updated);
-
-     // 5️⃣ Сохраняем на Google Drive, если есть токен
-     if (token) {
-       import("@/utils/drive").then(({ saveSubscriptions }) => {
-         saveSubscriptions(token, updated)
-           .then(() => console.log("✅ Сохранено на Google Drive"))
-           .catch((err) => console.error("❌ Ошибка при сохранении:", err));
-       });
-     }
-   } catch (err) {
-     console.error("Ошибка при добавлении подписки:", err);
-   }
- };
-
-
+  // --- Настройки ---
   const updateSettings = (patch) => {
     setSettings((prev) => ({
       ...prev,
@@ -166,13 +143,15 @@ export const AuthProvider = ({ children }) => {
     }));
   };
 
+  // --- Уведомления после логина ---
   useEffect(() => {
     if (justLoggedIn) {
-      notifySubscriptions(mockSubs);
+      notifySubscriptions(subscriptions);
       setJustLoggedIn(false);
     }
   }, [justLoggedIn]);
 
+  // --- Возврат контекста ---
   return (
     <AuthContext.Provider
       value={{
@@ -186,7 +165,6 @@ export const AuthProvider = ({ children }) => {
         setIsAddModalOpen,
         subscriptions,
         setSubscriptions,
-        loadMockSubscriptions,
         addSubscription,
         settings,
         updateSettings,
@@ -197,5 +175,4 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-// 3️⃣ Удобный хук
 export const useAuth = () => useContext(AuthContext);
