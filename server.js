@@ -169,10 +169,20 @@ app.post("/save-subs", authMiddleware, async (req, res) => {
     const token = req.token;
     if (!subscriptions) return res.status(400).json({ error: "no_subs" });
 
+    // 1️⃣ ищем файл с таким именем
+    const listRes = await fetch(
+      "https://www.googleapis.com/drive/v3/files?q=name='subscriptions.json'&spaces=drive&fields=files(id,name)",
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    const listData = await listRes.json();
+    const fileExists = listData.files && listData.files.length > 0;
+    const fileId = fileExists ? listData.files[0].id : null;
+
+    // 2️⃣ формируем тело запроса
     const metadata = {
       name: "subscriptions.json",
       mimeType: "application/json",
-      parents: ["root"],
+      parents: ["root"], // сохраняем в «Мой диск»
     };
     const form = new FormData();
     form.append("metadata", JSON.stringify(metadata), {
@@ -182,22 +192,35 @@ app.post("/save-subs", authMiddleware, async (req, res) => {
       contentType: "application/json",
     });
 
-    const r = await fetch(
-      "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
-      {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: form,
-      }
-    );
-    const data = await r.json();
+    // 3️⃣ если файл есть — обновляем, иначе создаём
+    const uploadUrl = fileExists
+      ? `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart`
+      : "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart";
 
-    res.json({ ok: true, fileId: data.id });
+    const method = fileExists ? "PATCH" : "POST";
+    const uploadRes = await fetch(uploadUrl, {
+      method,
+      headers: { Authorization: `Bearer ${token}` },
+      body: form,
+    });
+    const uploadData = await uploadRes.json();
+
+    console.log(
+      `✅ ${fileExists ? "Обновлён" : "Создан"} файл subscriptions.json`,
+      uploadData
+    );
+
+    res.json({
+      ok: true,
+      action: fileExists ? "updated" : "created",
+      fileId: uploadData.id,
+    });
   } catch (err) {
     console.error("Ошибка при сохранении в Google Drive:", err);
     res.status(500).json({ error: "drive_upload_failed" });
   }
 });
+
 
 // --- Загрузка из Google Drive ---
 app.get("/mysubscriptions", authMiddleware, async (req, res) => {
