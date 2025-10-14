@@ -21,7 +21,7 @@ export default function SaveButton() {
     }
 
     try {
-      const res = await fetch("http://localhost:4000/save-subs", {
+      const res = await fetch("http://subsdata-api.onrender.com/save-subs", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
