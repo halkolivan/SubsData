@@ -83,12 +83,12 @@ export const AuthProvider = ({ children }) => {
 
     try {
       // ✅ Подставляем адрес API из .env (в продакшне Render = subsdata-api.onrender.com)
-      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:10000";
+      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:10000";      
 
-      // ✅ Запрашиваем подписки с твоего backend
       const res = await fetch(`${API_URL}/mysubscriptions`, {
         headers: { Authorization: `Bearer ${jwt}` },
       });
+
 
       const data = await res.json();
 
