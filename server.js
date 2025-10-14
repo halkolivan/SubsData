@@ -1,8 +1,11 @@
-import path from "path";
-import express from "express";
 import fs from "fs";
-import { fileURLToPath } from "url";
+import path from "path";
 import cors from "cors";
+import express from "express";
+import fetch from "node-fetch";
+import FormData from "form-data";
+import { fileURLToPath } from "url";
+import { OAuth2Client } from "google-auth-library";
 
 // --- Инициализация приложения ---
 const app = express();
@@ -129,24 +132,6 @@ app.post("/auth/github", async (req, res) => {
   }
 });
 
-app.post("/save-subs", async (req, res) => {
-  try {
-    const { subscriptions } = req.body;
-    if (!subscriptions || !Array.isArray(subscriptions)) {
-      return res.status(400).json({ error: "invalid_subscriptions_data" });
-    }
-
-    // Для теста просто сохраняем на диск (или потом интеграция с Google Drive)
-    const filePath = path.join(__dirname, "subscriptions.json");
-    fs.writeFileSync(filePath, JSON.stringify(subscriptions, null, 2));
-
-    res.status(200).json({ ok: true, saved: subscriptions.length });
-  } catch (err) {
-    console.error("Ошибка при сохранении:", err);
-    res.status(500).json({ error: "failed_to_save" });
-  }
-});
-
 app.get("/get-subs", async (req, res) => {
   try {
     const filePath = path.join(__dirname, "subscriptions.json");
@@ -159,7 +144,84 @@ app.get("/get-subs", async (req, res) => {
   }
 });
 
+// --- Проверка Google токена ---
+const googleClient = new OAuth2Client();
+async function authMiddleware(req, res, next) {
+  const auth = req.headers.authorization;
+  if (!auth?.startsWith("Bearer "))
+    return res.status(401).json({ error: "missing_token" });
+  const token = auth.split(" ")[1];
+  try {
+    const ticket = await googleClient.getTokenInfo(token);
+    req.user = { id: ticket.email || ticket.sub, email: ticket.email };
+    req.token = token;
+    next();
+  } catch (err) {
+    console.error("Google token verify error:", err);
+    res.status(401).json({ error: "invalid_token" });
+  }
+}
 
+// --- Сохранение в Google Drive ---
+app.post("/save-subs", authMiddleware, async (req, res) => {
+  try {
+    const { subscriptions } = req.body;
+    const token = req.token;
+    if (!subscriptions) return res.status(400).json({ error: "no_subs" });
+
+    const metadata = {
+      name: "subscriptions.json",
+      mimeType: "application/json",
+    };
+    const form = new FormData();
+    form.append("metadata", JSON.stringify(metadata), {
+      contentType: "application/json",
+    });
+    form.append("file", JSON.stringify(subscriptions, null, 2), {
+      contentType: "application/json",
+    });
+
+    const r = await fetch(
+      "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: form,
+      }
+    );
+    const data = await r.json();
+
+    res.json({ ok: true, fileId: data.id });
+  } catch (err) {
+    console.error("Ошибка при сохранении в Google Drive:", err);
+    res.status(500).json({ error: "drive_upload_failed" });
+  }
+});
+
+// --- Загрузка из Google Drive ---
+app.get("/mysubscriptions", authMiddleware, async (req, res) => {
+  try {
+    const token = req.token;
+    const listRes = await fetch(
+      "https://www.googleapis.com/drive/v3/files?q=name='subscriptions.json'&fields=files(id,name)",
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    const { files } = await listRes.json();
+    if (!files?.length) return res.json({ subscriptions: [] });
+
+    const fileId = files[0].id;
+    const contentRes = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    const subs = await contentRes.json();
+
+    res.json({ subscriptions: subs });
+  } catch (err) {
+    console.error("Ошибка при загрузке подписок:", err);
+    res.status(500).json({ error: "failed_to_load" });
+  }
+});
 
 // --- Раздача статики ---
 app.use(express.static(distPath));
