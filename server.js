@@ -27,6 +27,7 @@ app.use(
     origin: FRONT_ORIGIN,
     credentials: true, // чтобы работали куки / авторизация
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
