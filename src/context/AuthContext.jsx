@@ -81,10 +81,12 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("user", JSON.stringify(userData));
     localStorage.setItem("authToken", jwt);
     try {
-      const res = await fetch("https://subsdata-api.onrender.com/get-subs", {
-        
-        headers: { Authorization: `Bearer ${jwt}` },
-      });
+      const res = await fetch(
+        "https://subsdata-api.onrender.com/mysubscriptions",
+        {
+          headers: { Authorization: `Bearer ${jwt}` },
+        }
+      );
       const data = await res.json();
       if (data.subscriptions) {
         setSubscriptions(data.subscriptions);
