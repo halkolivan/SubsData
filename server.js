@@ -323,17 +323,12 @@ app.get("/mysubscriptions", async (req, res) => {
 // --- Раздача статики ---
 app.use(express.static(distPath));
 
-// --- SPA fallback (React) ---
-app.get(/.*/, (req, res) => {
-  const indexFile = path.join(distPath, "index.html");
-  if (fs.existsSync(indexFile)) return res.sendFile(indexFile);
-  return res.status(404).send("Not found");
-});
-
-// --- Лог отсутствующих ассетов ---
+// --- Лог отсутствующих ассетов (только для диагностики) ---
 app.use((req, res, next) => {
   const urlPath = req.path || req.url || "";
   const staticExt = /\.(js|css|png|jpg|jpeg|svg|webmanifest|ico|json)$/i;
+
+  // если путь похож на статик-файл, но его нет — просто логируем
   if (
     staticExt.test(urlPath) ||
     urlPath.startsWith("/assets/") ||
@@ -341,13 +336,20 @@ app.use((req, res, next) => {
   ) {
     const fileOnDisk = path.join(distPath, urlPath.replace(/^\//, ""));
     if (!fs.existsSync(fileOnDisk)) {
-      console.warn(`404 static asset not found: ${req.method} ${req.url}`);
-      return res.status(404).send("Not found");
+      console.warn(`⚠️ 404 static asset not found: ${req.method} ${req.url}`);
     }
   }
   next();
 });
 
-// --- Запуск ---
+// --- SPA fallback (React Router) ---
+// Всё, что не /auth, /save-subs, /mysubscriptions и не статические файлы — отдаём index.html
+app.get("*", (req, res) => {
+  const indexFile = path.join(distPath, "index.html");
+  res.sendFile(indexFile);
+});
+
+// --- Запуск сервера ---
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));
+
