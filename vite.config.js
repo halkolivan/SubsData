@@ -69,7 +69,7 @@ export default defineConfig({
   // When root !== project root, set publicDir so top-level public/ is copied to dist
   publicDir: path.resolve(__dirname, "public"),
 
-  base: "./",
+  base: "/",
 
   // build: {
   //   rollupOptions: {
