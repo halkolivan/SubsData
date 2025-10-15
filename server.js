@@ -175,8 +175,6 @@ async function authMiddleware(req, res, next) {
   }
 }
 
-
-
 // --- Сохранение в Google Drive ---
 app.post("/save-subs", authMiddleware, async (req, res) => {
   try {
@@ -186,7 +184,7 @@ app.post("/save-subs", authMiddleware, async (req, res) => {
     if (!Array.isArray(subscriptions))
       return res.status(400).json({ error: "no_subs_array" });
 
-    // 1️⃣ Ищем файл subscriptions.json
+    // 1️⃣ Проверяем, есть ли уже файл
     const listRes = await fetch(
       "https://www.googleapis.com/drive/v3/files?q=name='subscriptions.json'&spaces=drive&fields=files(id,name,parents)",
       { headers: { Authorization: `Bearer ${token}` } }
@@ -195,37 +193,56 @@ app.post("/save-subs", authMiddleware, async (req, res) => {
     const fileExists = listData.files?.length > 0;
     const fileId = fileExists ? listData.files[0].id : null;
 
-    // 2️⃣ Готовим метаданные
-    const metadata = {
-      name: "subscriptions.json",
-      mimeType: "application/json",
-      parents: ["root"], // гарантируем, что это My Drive
-    };
+    let uploadData;
 
-    const form = new FormData();
-    form.append("metadata", JSON.stringify(metadata), {
-      contentType: "application/json",
-    });
-    form.append("file", JSON.stringify(subscriptions, null, 2), {
-      contentType: "application/json",
-    });
+    if (fileExists) {
+      // 🔄 Обновляем существующий файл без поля "parents"
+      const updateRes = await fetch(
+        `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(subscriptions, null, 2),
+        }
+      );
 
-    // 3️⃣ Создаём или обновляем файл
-    const uploadUrl = fileExists
-      ? `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart`
-      : "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart";
+      uploadData = await updateRes.json();
+      console.log("💾 Обновлён subscriptions.json", uploadData);
+    } else {
+      // 🆕 Создаём новый файл (с parents)
+      const metadata = {
+        name: "subscriptions.json",
+        mimeType: "application/json",
+        parents: ["root"], // только при создании
+      };
 
-    const uploadRes = await fetch(uploadUrl, {
-      method: fileExists ? "PATCH" : "POST",
-      headers: { Authorization: `Bearer ${token}` },
-      body: form,
-    });
+      const form = new FormData();
+      form.append(
+        "metadata",
+        new Blob([JSON.stringify(metadata)], { type: "application/json" })
+      );
+      form.append(
+        "file",
+        new Blob([JSON.stringify(subscriptions, null, 2)], {
+          type: "application/json",
+        })
+      );
 
-    const uploadData = await uploadRes.json();
-    console.log(
-      `💾 ${fileExists ? "Обновлён" : "Создан"} subscriptions.json`,
-      uploadData
-    );
+      const createRes = await fetch(
+        "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: form,
+        }
+      );
+
+      uploadData = await createRes.json();
+      console.log("💾 Создан subscriptions.json", uploadData);
+    }
 
     res.json({
       ok: true,
@@ -237,6 +254,7 @@ app.post("/save-subs", authMiddleware, async (req, res) => {
     res.status(500).json({ error: "drive_upload_failed" });
   }
 });
+
 
 // --- ВРЕМЕННО: проверить что реально отвечает Google Drive ---
 app.get("/debug-drive", authMiddleware, async (req, res) => {
@@ -254,9 +272,6 @@ app.get("/debug-drive", authMiddleware, async (req, res) => {
     res.status(500).send("Ошибка при обращении к Drive");
   }
 });
-
-
-
 
 // --- Загрузка из Google Drive ---
 app.get("/mysubscriptions", async (req, res) => {
