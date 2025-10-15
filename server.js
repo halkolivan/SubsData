@@ -344,7 +344,7 @@ app.use((req, res, next) => {
 
 // --- SPA fallback (React Router) ---
 // Всё, что не /auth, /save-subs, /mysubscriptions и не статические файлы — отдаём index.html
-app.get("*", (req, res) => {
+app.get(/.*/, (req, res) => {
   const indexFile = path.join(distPath, "index.html");
   res.sendFile(indexFile);
 });
