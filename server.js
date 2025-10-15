@@ -224,6 +224,24 @@ app.post("/save-subs", authMiddleware, async (req, res) => {
   }
 });
 
+// --- ВРЕМЕННО: проверить что реально отвечает Google Drive ---
+app.get("/debug-drive", authMiddleware, async (req, res) => {
+  const token = req.token;
+  try {
+    const listRes = await fetch(
+      "https://www.googleapis.com/drive/v3/files?q=name='subscriptions.json'&spaces=drive&fields=files(id,name,parents)",
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    const listData = await listRes.text(); // читаем как текст, чтобы увидеть всё
+    console.log("🔍 Ответ Google Drive /files:", listData);
+    res.send(listData);
+  } catch (err) {
+    console.error("❌ Ошибка /debug-drive:", err);
+    res.status(500).send("Ошибка при обращении к Drive");
+  }
+});
+
+
 
 
 // --- Загрузка из Google Drive ---
