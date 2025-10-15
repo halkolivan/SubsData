@@ -344,7 +344,17 @@ app.use((req, res, next) => {
 
 // --- SPA fallback (React Router) ---
 // Всё, что не /auth, /save-subs, /mysubscriptions и не статические файлы — отдаём index.html
-app.get(/.*/, (req, res) => {
+app.get("*", (req, res, next) => {
+  if (
+    req.path.startsWith("/api") || // если будет API префикс
+    req.path.startsWith("/save-subs") || // твои API-маршруты
+    req.path.startsWith("/mysubscriptions") || // <-- это важно!
+    req.path.startsWith("/auth") ||
+    req.path.startsWith("/debug-drive")
+  ) {
+    return next(); // пропускаем дальше
+  }
+
   const indexFile = path.join(distPath, "index.html");
   res.sendFile(indexFile);
 });
