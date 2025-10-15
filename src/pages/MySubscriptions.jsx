@@ -216,7 +216,7 @@ export default function MySubscriptions() {
                   >
                     {sub.status}
                   </td>
-                  <td className="border-b-1 text-center flex gap-2 justify-center">
+                  <td className="border-b-1 text-center gap-2 justify-center">
                     <button
                       onClick={() => openEditModal(sub)}
                       className="px-3 py-1 !bg-gray-200 text-blue-600 rounded hover:!border-gray-200"
