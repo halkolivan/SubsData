@@ -151,10 +151,22 @@ async function authMiddleware(req, res, next) {
   const auth = req.headers.authorization;
   if (!auth?.startsWith("Bearer "))
     return res.status(401).json({ error: "missing_token" });
+
   const token = auth.split(" ")[1];
+
   try {
-    const ticket = await googleClient.getTokenInfo(token);
-    req.user = { id: ticket.email || ticket.sub, email: ticket.email };
+    // Проверяем токен напрямую через Google API (без google-auth-library)
+    const verifyRes = await fetch(
+      `https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${token}`
+    );
+    const data = await verifyRes.json();
+
+    if (data.error_description || !data.email) {
+      console.error("Google token verify failed:", data);
+      return res.status(401).json({ error: "invalid_token" });
+    }
+
+    req.user = { id: data.sub, email: data.email };
     req.token = token;
     next();
   } catch (err) {
@@ -162,6 +174,7 @@ async function authMiddleware(req, res, next) {
     res.status(401).json({ error: "invalid_token" });
   }
 }
+
 
 // --- Сохранение в Google Drive ---
 app.post("/save-subs", authMiddleware, async (req, res) => {
