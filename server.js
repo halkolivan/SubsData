@@ -255,6 +255,10 @@ app.post("/save-subs", authMiddleware, async (req, res) => {
   }
 });
 
+// --- API prefix guard ---
+app.use("/api", (req, res) => {
+  res.status(404).json({ error: "API route not found" });
+});
 
 // --- ВРЕМЕННО: проверить что реально отвечает Google Drive ---
 app.get("/debug-drive", authMiddleware, async (req, res) => {
@@ -342,13 +346,6 @@ app.use((req, res, next) => {
     }
   }
   next();
-});
-
-// --- SPA fallback (React) ---
-app.get(/.*/, (req, res) => {
-  const indexFile = path.join(distPath, "index.html");
-  if (fs.existsSync(indexFile)) return res.sendFile(indexFile);
-  return res.status(404).send("Not found");
 });
 
 // --- Запуск ---
