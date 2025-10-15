@@ -40,9 +40,11 @@ export default function Header() {
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
   };
-
-  // Google Login
+  
+  // Google Login с полными правами для Drive
   const loginWithGoogle = useGoogleLogin({
+    scope:
+      "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.metadata.readonly email profile openid",
     onSuccess: async (tokenResponse) => {
       try {
         const userInfo = await fetch(
@@ -369,7 +371,7 @@ export default function Header() {
                   >
                     {t("Save")}
                   </button> */}
-                <SaveButton className="px-4 py-2 !bg-blue-500 text-white rounded hover:!bg-blue-600" />
+                  <SaveButton className="px-4 py-2 !bg-blue-500 text-white rounded hover:!bg-blue-600" />
                 </div>
               </form>
             </div>
