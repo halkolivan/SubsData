@@ -320,9 +320,6 @@ app.get("/mysubscriptions", async (req, res) => {
   }
 });
 
-// --- Раздача статики ---
-app.use(express.static(distPath));
-
 // --- Лог отсутствующих ассетов (только для диагностики) ---
 app.use((req, res, next) => {
   const urlPath = req.path || req.url || "";
@@ -343,23 +340,29 @@ app.use((req, res, next) => {
 });
 
 // --- SPA fallback (React Router) ---
-// Всё, что не /auth, /save-subs, /mysubscriptions и не статические файлы — отдаём index.html
-app.get("*", (req, res, next) => {
+// --- Раздача статики ---
+app.use(express.static(distPath));
+
+// --- Перехват только "неизвестных" маршрутов и отдача index.html ---
+// ⚠️ В Express 5 нельзя использовать "*" — только /.* регулярку
+app.get(/.*/, (req, res) => {
+  // Если это запрос к API — ничего не делаем
   if (
-    req.path.startsWith("/api") || // если будет API префикс
-    req.path.startsWith("/save-subs") || // твои API-маршруты
-    req.path.startsWith("/mysubscriptions") || // <-- это важно!
+    req.path.startsWith("/save-subs") ||
+    req.path.startsWith("/mysubscriptions") ||
     req.path.startsWith("/auth") ||
     req.path.startsWith("/debug-drive")
   ) {
-    return next(); // пропускаем дальше
+    return res.status(404).json({ error: "API route not found" });
   }
 
   const indexFile = path.join(distPath, "index.html");
+  console.log("➡️ SPA fallback for", req.path);
   res.sendFile(indexFile);
 });
 
-// --- Запуск сервера ---
+// --- Запуск ---
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));
+
 
