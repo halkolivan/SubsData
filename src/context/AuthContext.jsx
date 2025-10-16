@@ -1,7 +1,9 @@
 import { subscriptions as mockSubs } from "@mock/mockData";
 import { notifySubscriptions } from "@/hooks/useNotifyDataSub";
 import { createContext, useContext, useState, useEffect } from "react";
-import { saveSubscriptions } from "@/utils/drive"; // <--- добавлен импорт
+import { saveSubscriptions } from "@/utils/drive";
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 export const AuthContext = createContext();
 
@@ -15,6 +17,31 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(
     () => localStorage.getItem("authToken") || null
   );
+
+  // --- Автообновление access_token ---
+  useEffect(() => {
+    if (!GOOGLE_CLIENT_ID) return;
+
+    const tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: GOOGLE_CLIENT_ID,
+      scope: "https://www.googleapis.com/auth/drive.file email profile",
+      callback: (resp) => {
+        if (resp?.access_token) {
+          console.log("🔄 Обновлён Google access_token");
+          setToken(resp.access_token);
+          localStorage.setItem("authToken", resp.access_token);
+        }
+      },
+    });
+
+    // Проверяем раз в 50 минут (токен живёт ~60 мин)
+    const interval = setInterval(() => {
+      console.log("♻️ Автообновление Google токена...");
+      tokenClient.requestAccessToken({ prompt: "" });
+    }, 50 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const [subscriptions, setSubscriptions] = useState(() => {
     const saved = localStorage.getItem("subscriptions");
