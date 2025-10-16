@@ -146,36 +146,35 @@ app.get("/get-subs", async (req, res) => {
 });
 
 // --- Проверка Google токена ---
-const googleClient = new OAuth2Client();
 async function authMiddleware(req, res, next) {
   const auth = req.headers.authorization;
-  if (!auth?.startsWith("Bearer "))
+  if (!auth?.startsWith("Bearer ")) {
     return res.status(401).json({ error: "missing_token" });
+  }
 
   const token = auth.split(" ")[1];
 
   try {
-    // Проверяем токен напрямую через Google API (без google-auth-library)
-    try {
-      const ticket = await googleClient.verifyIdToken({
-        idToken: token,
-        audience: process.env.GOOGLE_CLIENT_ID, // добавь это в Render env vars
-      });
-      const payload = ticket.getPayload();
+    // Проверяем access_token через Google API
+    const verifyRes = await fetch(
+      `https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${token}`
+    );
+    const data = await verifyRes.json();
 
-      req.user = { id: payload.sub, email: payload.email };
-      req.token = token;
-      next();
-    } catch (err) {
-      console.error("Google token verify failed:", err);
-      res.status(401).json({ error: "invalid_token" });
+    if (data.error_description || !data.email) {
+      console.error("Google token verify failed:", data);
+      return res.status(401).json({ error: "invalid_token" });
     }
 
+    req.user = { id: data.sub, email: data.email };
+    req.token = token;
+    next();
   } catch (err) {
     console.error("Google token verify error:", err);
     res.status(401).json({ error: "invalid_token" });
   }
 }
+
 
 // --- Сохранение в Google Drive ---
 app.post("/save-subs", authMiddleware, async (req, res) => {
