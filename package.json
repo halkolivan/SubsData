@@ -38,7 +38,6 @@
     "echarts-for-react": "^3.0.2",
     "express": "^5.1.0",
     "form-data": "^4.0.4",
-    "google-auth-library": "^10.4.0",
     "googleapis": "^162.0.0",
     "i18next": "^25.5.2",
     "i18next-browser-languagedetector": "^8.2.0",
