@@ -278,7 +278,7 @@ app.get("/debug-drive", authMiddleware, async (req, res) => {
 });
 
 // --- Загрузка из Google Drive ---
-app.get("/mysubscriptions", async (req, res) => {
+app.get("/api/mysubscriptions", async (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: "Нет токена" });
   const token = auth.split(" ")[1];
@@ -345,19 +345,14 @@ app.use(express.static(distPath));
 
 // --- Перехват только "неизвестных" маршрутов и отдача index.html ---
 // ⚠️ В Express 5 нельзя использовать "*" — только /.* регулярку
+
 app.get(/.*/, (req, res) => {
-  // Если это запрос к API — ничего не делаем
-  if (
-    req.path.startsWith("/save-subs") ||
-    req.path.startsWith("/mysubscriptions") ||
-    req.path.startsWith("/auth") ||
-    req.path.startsWith("/debug-drive")
-  ) {
+  // Игнорируем только API
+  if (req.path.startsWith("/api") || req.path.startsWith("/auth")) {
     return res.status(404).json({ error: "API route not found" });
   }
 
   const indexFile = path.join(distPath, "index.html");
-  console.log("➡️ SPA fallback for", req.path);
   res.sendFile(indexFile);
 });
 
