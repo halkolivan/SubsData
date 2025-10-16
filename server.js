@@ -5,7 +5,6 @@ import express from "express";
 import fetch from "node-fetch";
 import FormData from "form-data";
 import { fileURLToPath } from "url";
-import { OAuth2Client } from "google-auth-library";
 
 // --- Инициализация приложения ---
 const app = express();
@@ -155,7 +154,6 @@ async function authMiddleware(req, res, next) {
   const token = auth.split(" ")[1];
 
   try {
-    // Проверяем access_token через Google API
     const verifyRes = await fetch(
       `https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${token}`
     );
@@ -174,6 +172,7 @@ async function authMiddleware(req, res, next) {
     res.status(401).json({ error: "invalid_token" });
   }
 }
+
 
 
 // --- Сохранение в Google Drive ---
