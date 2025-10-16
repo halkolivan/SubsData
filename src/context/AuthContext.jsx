@@ -84,7 +84,7 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const API_URL = import.meta.env.VITE_API_URL || "http://localhost:10000";
-      const res = await fetch(`${API_URL}/mysubscriptions`, {
+      const res = await fetch(`${API_URL}/api/mysubscriptions`, {
         headers: { Authorization: `Bearer ${jwt}` },
       });
       const data = await res.json();
