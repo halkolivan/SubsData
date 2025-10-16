@@ -156,19 +156,21 @@ async function authMiddleware(req, res, next) {
 
   try {
     // Проверяем токен напрямую через Google API (без google-auth-library)
-    const verifyRes = await fetch(
-      `https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${token}`
-    );
-    const data = await verifyRes.json();
+    try {
+      const ticket = await googleClient.verifyIdToken({
+        idToken: token,
+        audience: process.env.GOOGLE_CLIENT_ID, // добавь это в Render env vars
+      });
+      const payload = ticket.getPayload();
 
-    if (data.error_description || !data.email) {
-      console.error("Google token verify failed:", data);
-      return res.status(401).json({ error: "invalid_token" });
+      req.user = { id: payload.sub, email: payload.email };
+      req.token = token;
+      next();
+    } catch (err) {
+      console.error("Google token verify failed:", err);
+      res.status(401).json({ error: "invalid_token" });
     }
 
-    req.user = { id: data.sub, email: data.email };
-    req.token = token;
-    next();
   } catch (err) {
     console.error("Google token verify error:", err);
     res.status(401).json({ error: "invalid_token" });
