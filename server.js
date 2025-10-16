@@ -144,7 +144,7 @@ app.get("/get-subs", async (req, res) => {
   }
 });
 
-// --- Проверка Google токена ---
+// --- Проверка Google access_token ---
 async function authMiddleware(req, res, next) {
   const auth = req.headers.authorization;
   if (!auth?.startsWith("Bearer ")) {
@@ -155,11 +155,21 @@ async function authMiddleware(req, res, next) {
 
   try {
     const verifyRes = await fetch(
-      `https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${token}`
+      `https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${token}`,
+      {
+        headers: { "User-Agent": "SubsData-Server/1.0" },
+      }
     );
-    const data = await verifyRes.json();
 
-    if (data.error_description || !data.email) {
+    // Google вернул ответ не 200
+    if (!verifyRes.ok) {
+      const errText = await verifyRes.text();
+      console.error("Google token verify failed:", errText);
+      return res.status(401).json({ error: "invalid_token" });
+    }
+
+    const data = await verifyRes.json();
+    if (!data.email) {
       console.error("Google token verify failed:", data);
       return res.status(401).json({ error: "invalid_token" });
     }
@@ -172,8 +182,6 @@ async function authMiddleware(req, res, next) {
     res.status(401).json({ error: "invalid_token" });
   }
 }
-
-
 
 // --- Сохранение в Google Drive ---
 app.post("/save-subs", authMiddleware, async (req, res) => {
@@ -253,11 +261,6 @@ app.post("/save-subs", authMiddleware, async (req, res) => {
     console.error("Ошибка при сохранении:", err);
     res.status(500).json({ error: "drive_upload_failed" });
   }
-});
-
-// --- API prefix guard ---
-app.use("/api", (req, res) => {
-  res.status(404).json({ error: "API route not found" });
 });
 
 // --- ВРЕМЕННО: проверить что реально отвечает Google Drive ---
