@@ -6,6 +6,8 @@ import { RouterProvider, createBrowserRouter } from "react-router-dom";
 
 //import pages
 const Home = lazy(() => import("./pages/Home"));
+const Privacy = lazy(() => import("./pages/Privacy"))
+const Terms = lazy(() => import("./pages/Terms"))
 const Settings = lazy(() => import("./pages/Settings"));
 const MySubscriptions = lazy(() => import("./pages/MySubscriptions"));
 export default function Router() {
@@ -30,6 +32,14 @@ export default function Router() {
               <MySubscriptions />
             </ProtectedRoute>
           ),
+        },
+        {
+          path: "/privacy",
+          element: <Privacy />,
+        },
+        {
+          path: "/terms",
+          element: <Terms />,
         },
       ],
     },

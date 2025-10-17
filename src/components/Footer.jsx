@@ -1,13 +1,17 @@
-import { useTranslation } from "react-i18next";
+import { NavLink } from "react-router-dom";
 
 //import images
 import pp from "@assets/images/pp.png";
-export default function Footer() {
-  const { t } = useTranslation();
+
+export default function Footer() {  
   return (
     <div className="flex sticky bottom-0 z-10 bg-gray-300 gap-4 pl-2 pr-2 mt-4 justify-between items-center rounded-b-lg">
       <div className="flex flex-1 w-full justify-start items-center">
         <span>Copyright © | SubsData 2025</span>
+      </div>
+      <div className="flex flex-col sm:flex-row items-center justify-center">
+        <NavLink to="/privacy">Privacy</NavLink>
+        <NavLink to="/terms">Terms</NavLink>
       </div>
       <div className="flex flex-col flex-1 sm:flex-row justify-end items-center w-1/2 sm:w-auto gap-2 sm:gap-4">
         <a href="https://paypal.me/RTomayli" target="_blank">
