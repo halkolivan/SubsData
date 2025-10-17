@@ -342,7 +342,11 @@ app.use((req, res, next) => {
   next();
 });
 
-// --- SPA fallback (React Router) ---
+// --- Google site verification ---
+app.get("/googlea37d48efab48b1a5.html", (req, res) => {
+  res.send("google-site-verification: googlea37d48efab48b1a5.html");
+});
+
 // --- Раздача статики ---
 app.use(express.static(distPath));
 
