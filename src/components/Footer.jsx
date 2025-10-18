@@ -5,7 +5,7 @@ import pp from "@assets/images/pp.png";
 
 export default function Footer() {  
   return (
-    <div className="flex sticky bottom-0 z-10 bg-gray-300 gap-4 pl-2 pr-2 mt-4 justify-between items-center rounded-b-lg">
+    <footer className="flex sticky bottom-0 z-10 bg-gray-300 gap-4 pl-2 pr-2 mt-4 justify-between items-center rounded-b-lg">
       <div className="flex flex-1 w-full justify-start items-center">
         <span>Copyright © | SubsData 2025</span>
       </div>
@@ -33,6 +33,6 @@ export default function Footer() {
           gemdtera@gmail.com
         </a>
       </div>
-    </div>
+    </footer>
   );
 }
