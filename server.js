@@ -342,13 +342,13 @@ app.use((req, res, next) => {
   next();
 });
 
-// --- Google site verification ---
-app.get("/googlea37d48efab48b1a5.html", (req, res) => {
-  res.sendFile("google-site-verification: googlea37d48efab48b1a5.html");
-});
-
 // --- Раздача статики ---
 app.use(express.static(distPath));
+
+// --- Google site verification ---
+app.get("/googlea37d48efab48b1a5.html", (req, res) => {
+  res.sendFile(path.join(__dirname, "dist", "googlea37d48efab48b1a5.html"));
+});
 
 // --- Перехват только "неизвестных" маршрутов и отдача index.html ---
 // ⚠️ В Express 5 нельзя использовать "*" — только /.* регулярку

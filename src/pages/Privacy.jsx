@@ -1,6 +1,6 @@
 export default function Privacy() {
   return (
-    <div className="max-w-[800px] p-[20px] my-20 mx-auto">
+    <div className="flex max-w-[800px] p-[20px] my-20 mx-auto">
       <h1>Privacy Policy</h1>
       <p>Last updated: October 2025</p>
       <p>
@@ -22,7 +22,7 @@ export default function Privacy() {
       </p>
       <p>
         For any questions, please contact us at:{" "}
-        <a href="mailto:gemdtera@gmail.com">gemdtera@gmail.com</a>
+        <a href="flex mailto:gemdtera@gmail.com">gemdtera@gmail.com</a>
       </p>
     </div>
   );
