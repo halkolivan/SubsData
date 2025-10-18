@@ -344,7 +344,7 @@ app.use((req, res, next) => {
 
 // --- Google site verification ---
 app.get("/googlea37d48efab48b1a5.html", (req, res) => {
-  res.send("google-site-verification: googlea37d48efab48b1a5.html");
+  res.sendFile("google-site-verification: googlea37d48efab48b1a5.html");
 });
 
 // --- Раздача статики ---
