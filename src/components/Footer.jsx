@@ -9,7 +9,7 @@ export default function Footer() {
       <div className="flex flex-1 w-full justify-start items-center">
         <span>Copyright © | SubsData 2025</span>
       </div>
-      <div className="flex flex-col sm:flex-row items-center justify-center">
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-5">
         <NavLink to="/privacy">Privacy</NavLink>
         <NavLink to="/terms">Terms</NavLink>
       </div>
