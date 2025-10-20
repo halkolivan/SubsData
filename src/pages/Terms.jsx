@@ -1,6 +1,6 @@
 export default function Terms() {
   return (
-    <div className="max-w-[800px] p-[20px] my-20 mx-auto">
+    <div className="flex flex-col m-3">
       <h1>Terms of Service</h1>
       <p>Last updated: October 2025</p>
       <p>

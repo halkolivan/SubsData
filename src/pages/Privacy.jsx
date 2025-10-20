@@ -1,6 +1,6 @@
 export default function Privacy() {
   return (
-    <div className="flex max-w-[800px] p-[20px] my-20 mx-auto">
+    <div className="flex flex-col m-3">
       <h1>Privacy Policy</h1>
       <p>Last updated: October 2025</p>
       <p>
@@ -13,7 +13,7 @@ export default function Privacy() {
       </p>
       <p>
         Access is granted via Google OAuth for the scope{" "}
-        <code>https://www.googleapis.com/auth/drive.file</code>, which limits
+        <code className="text-sm">https://www.googleapis.com/auth/drive.file</code>, which limits
         access only to files created by SubsData.
       </p>
       <p>
