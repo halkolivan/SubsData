@@ -17,7 +17,10 @@
       property="og:image"
       content="https://subsdata.onrender.com/og-image.png"
     />
-    <meta name="google-site-verification" content="qopMPM3gR_xknbz0ORXlKoEoJmM6i83pU_mAwiOXNiE" />
+    <meta
+      name="google-site-verification"
+      content="qopMPM3gR_xknbz0ORXlKoEoJmM6i83pU_mAwiOXNiE"
+    />
 
     <!-- ✅ SEO -->
     <meta
@@ -36,7 +39,16 @@
       content="Управляйте своими подписками и следите за расходами просто и удобно."
     />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="/images/Logo.png" />
+    <!-- <meta property="og:image" content="/images/Logo.png" /> -->
+    <meta
+      property="og:image"
+      content="https://subsdata.onrender.com/images/Logo.png"
+    />
+    <meta
+      name="twitter:image"
+      content="https://subsdata.onrender.com/images/SubsDataImage512.png"
+    />
+
     <meta property="og:url" content="https://subsdata.onrender.com/" />
 
     <!-- ✅ Twitter -->
@@ -55,7 +67,16 @@
       sizes="32x32"
       href="/icons/PWA192.png?v=2"
     />
+    <link rel="apple-touch-icon" href="/icons/PWA512.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
     <link rel="manifest" href="/manifest.webmanifest" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://accounts.google.com" />
+
     <meta name="theme-color" content="#2563eb" />
     <meta
       name="google-site-verification"
@@ -70,6 +91,26 @@
       hreflang="x-default"
     />
 
+    <!-- Alternate language versions -->
+    <link rel="alternate" href="https://subsdata.onrender.com/" hreflang="en" />
+    <link rel="alternate" href="https://subsdata.onrender.com/ro/" hreflang="ro" />
+    <link rel="alternate" href="https://subsdata.onrender.com/ru/" hreflang="ru" />
+    <link rel="alternate" href="https://subsdata.onrender.com/fr/" hreflang="fr" />
+    <link rel="alternate" href="https://subsdata.onrender.com/it/" hreflang="it" />
+    <link rel="alternate" href="https://subsdata.onrender.com/es/" hreflang="es" />
+    <link rel="alternate" href="https://subsdata.onrender.com/nl/" hreflang="nl" />
+    <link rel="alternate" href="https://subsdata.onrender.com/pt/" hreflang="pt" />
+    <link rel="alternate" href="https://subsdata.onrender.com/de/" hreflang="de" />
+    <link rel="alternate" href="https://subsdata.onrender.com/" hreflang="x-default" />
+
+    <!-- Preconnect and DNS Prefetch -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://accounts.google.com" />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+    <link rel="dns-prefetch" href="https://accounts.google.com" />
+
     <!-- ✅ JSON-LD structured data -->
     <script type="application/ld+json">
       {
@@ -79,7 +120,16 @@
         "url": "https://subsdata.onrender.com/",
         "description": "Менеджер подписок и расходов",
         "applicationCategory": "FinanceApplication",
-        "operatingSystem": "All"
+        "operatingSystem": "All",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "author": {
+          "@type": "Organization",
+          "name": "SubsData"
+        }
       }
     </script>
 

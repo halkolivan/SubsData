@@ -167,7 +167,7 @@ export default function Header() {
 
           <CirclePlus
             size={33}
-            className={`${iconColor} flex lg:hidden cursor-pointer text-gray-700`}
+            className={`${iconColor} flex lg:hidden cursor-pointer text-green-700`}
             onClick={() => {
               if (user) {
                 setIsAddModalOpen(true); // открыть модалку добавления подписки
