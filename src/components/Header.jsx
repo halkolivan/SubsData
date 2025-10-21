@@ -95,7 +95,7 @@ export default function Header() {
                 className={
                   user
                     ? (isActive ? "text-blue-500" : "text-gray-700") +
-                      " hover:text-blue-500 transition-color duration-300 hover:shadow-green-400 shadow-lg rounded-full shadow-blue-300 active:shadow-green-600 bg-gray-50 p-2"
+                      " hover:text-blue-500 shadow-lg shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg"
                     : "text-gray-400 cursor-not-allowed"
                 }
                 onClick={(e) => {
