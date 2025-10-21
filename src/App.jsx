@@ -29,7 +29,7 @@ function App() {
               <img
                 src={Loader}
                 alt="Loading..."
-                className="w-16 h-16 animate-pulse"
+                className="w-32 h-32 animate-pulse"
               />
             </div>
           }
