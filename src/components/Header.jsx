@@ -156,7 +156,7 @@ export default function Header() {
           <h5
             className={
               user
-                ? "cursor-pointer hover:text-green-600 font-semibold text-green-700 hidden lg:flex shadow-lg shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg"
+                ? "cursor-pointer hover:text-green-600 font-semibold text-green-700 hidden lg:flex shadow-lg shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg whitespace-nowrap"
                 : "text-gray-400 cursor-not-allowed font-semibold hidden lg:flex"
             }
             onClick={() => {
