@@ -181,7 +181,7 @@ export default function Home() {
                 <tbody className="w-full mb-5" key={sub.id}>
                   <tr>
                     <td className="border-b-1">{sub.name}</td>
-                    <td className="border-b-1 whitespace-nowrap text-right">
+                    <td className="border-b-1 whitespace-nowrap">
                       {formatPrice(sub, settings)}
                     </td>
                     <td className="border-b-1">{t(sub.category)}</td>

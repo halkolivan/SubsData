@@ -72,7 +72,7 @@ export default function Header() {
 
   return (
     <header className="flex justify-center mb-4 w-auto sticky top-0 z-50 ">
-      <nav className="flex flex-col sm:flex-row justify-between w-full min-h-[50px] items-center gap-3 p-2 rounded-t-lg bg-gradient-to-t from-white via-gray-400 to-black">
+      <nav className="flex flex-col sm:flex-row justify-between w-full min-h-[50px] items-center gap-3 p-2 rounded-b-lg bg-gradient-to-t from-white via-gray-400 to-black">
         <div className="flex w-auto items-center justify-center">
           <NavLink to="/" className={"h-auto min-w-[150px]"}>
             <div
@@ -95,7 +95,7 @@ export default function Header() {
                 className={
                   user
                     ? (isActive ? "text-blue-500" : "text-gray-700") +
-                      " hover:text-blue-500 shadow-lg shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg"
+                      " hover:text-blue-500 shadow-lg shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg whitespace-nowrap"
                     : "text-gray-400 cursor-not-allowed"
                 }
                 onClick={(e) => {
@@ -127,7 +127,7 @@ export default function Header() {
                 className={
                   user
                     ? (isActive ? "text-blue-500" : "text-gray-700") +
-                      " hover:text-blue-500 shadow-lg shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg"
+                      " hover:text-blue-500 shadow-lg shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg whitespace-nowrap"
                     : "text-gray-400 cursor-not-allowed"
                 }
                 onClick={(e) => {
@@ -139,7 +139,10 @@ export default function Header() {
             )}
           </NavLink>
 
-          <NavLink to={user ? "/settings" : "#"} className="flex lg:hidden ">
+          <NavLink
+            to={user ? "/settings" : "#"}
+            className="flex lg:hidden whitespace-nowrap"
+          >
             <Settings
               size={33}
               className={`${iconColor} flex lg:hidden cursor-pointer text-gray-700`}
