@@ -72,7 +72,7 @@ export default function Header() {
 
   return (
     <header className="flex justify-center mb-4 w-auto sticky top-0 z-50 ">
-      <nav className="flex flex-col sm:flex-row justify-between w-full min-h-[50px] items-center gap-3 p-2 rounded-b-lg bg-gradient-to-t from-white via-gray-400 to-black">
+      <nav className="flex flex-col sm:flex-row justify-between w-full min-h-[50px] items-center gap-3 p-2 rounded-b-lg bg-gradient-to-t from-gray-600 via-gray-300 to-gray-600">
         <div className="flex w-auto items-center justify-center">
           <NavLink to="/" className={"h-auto min-w-[150px]"}>
             <div
@@ -84,7 +84,8 @@ export default function Header() {
             </div>
           </NavLink>
         </div>
-        <div className="flex w-full items-end justify-between gap-3 sm:ml-[50px]">
+        <div className="flex w-full items-center justify-between gap-3 sm:ml-[50px]">
+
           {/* Мои подписки — отключаем, если нет user */}
           <NavLink
             to={user ? "/mysubscriptions" : "#"}
@@ -95,8 +96,8 @@ export default function Header() {
                 className={
                   user
                     ? (isActive ? "text-blue-500" : "text-gray-700") +
-                      " hover:text-blue-500 shadow-lg shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg whitespace-nowrap"
-                    : "text-gray-400 cursor-not-allowed"
+                      " hover:text-blue-500 shadow-md shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg whitespace-nowrap"
+                    : "text-gray-500 cursor-not-allowed"
                 }
                 onClick={(e) => {
                   if (!user) e.preventDefault(); // блокируем переход
@@ -127,8 +128,8 @@ export default function Header() {
                 className={
                   user
                     ? (isActive ? "text-blue-500" : "text-gray-700") +
-                      " hover:text-blue-500 shadow-lg shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg whitespace-nowrap"
-                    : "text-gray-400 cursor-not-allowed"
+                      " hover:text-blue-500 shadow-md shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg whitespace-nowrap"
+                    : "text-gray-500 cursor-not-allowed"
                 }
                 onClick={(e) => {
                   if (!user) e.preventDefault(); // блокируем переход
@@ -156,8 +157,8 @@ export default function Header() {
           <h5
             className={
               user
-                ? "cursor-pointer hover:text-green-600 font-semibold text-green-700 hidden lg:flex shadow-lg shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg whitespace-nowrap"
-                : "text-gray-400 cursor-not-allowed font-semibold hidden lg:flex"
+                ? "cursor-pointer hover:text-green-600 font-semibold text-green-700 hidden lg:flex shadow-md shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg whitespace-nowrap"
+                : "text-gray-500 cursor-not-allowed font-semibold hidden lg:flex"
             }
             onClick={() => {
               if (user) {
@@ -186,14 +187,14 @@ export default function Header() {
           <button
             onClick={() => setShowPrivacy(true)}
             className="flex items-center text-gray-600 hidden lg:flex hover:shadow-green-400 hover:!border-red-200/0
-            shadow-lg shadow-sky-300 active:shadow-green-600 rounded-lg !bg-gray-50/0"
+            shadow-md shadow-sky-300 active:shadow-green-600 rounded-lg !bg-gray-50/0 hover:!text-gray-900"
           >
             <Lock className="!bg-gray-50/0" />
             {t("Privacy")}
           </button>
           <Lock
             size={33}
-            className="!bg-gray-300 flex lg:hidden cursor-pointer"
+            className="text-gray-600 flex lg:hidden cursor-pointer"
             onClick={() => setShowPrivacy(true)}
           />
 
@@ -221,7 +222,7 @@ export default function Header() {
           ) : (
             <>
               <h5
-                className="cursor-pointer hover:text-yellow-500 font-semibold text-yellow-700 hidden lg:flex shadow-lg shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg"
+                className="cursor-pointer hover:text-yellow-500 font-semibold text-yellow-700 hidden lg:flex shadow-md shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg"
                 onClick={() => setIsModalOpen(true)}
               >
                 {t("SignIn")}
@@ -239,7 +240,7 @@ export default function Header() {
             <select
               value={i18n.language}
               onChange={(e) => changeLanguage(e.target.value)}
-              className="border rounded px-2 py-1 text-sm bg-gray-50/0 shadow-lg shadow-sky-300 text-gray-700 
+              className="border rounded px-2 py-1 text-sm bg-gray-50/0 shadow-md shadow-sky-300 text-gray-700 
               hover:border-blue-50/0 border-blue-50/0 hover:shadow-green-400 cursor-pointer"
             >
               <option value="en">English</option>
@@ -255,8 +256,8 @@ export default function Header() {
           </div>
           <div className="flex lg:hidden relative">
             <Globe
-              size={30}
-              className="text-gray-700 cursor-pointer"
+              size={33}
+              className="text-gray-600 cursor-pointer"
               onClick={() => setShowLangMenu(!showLangMenu)}
             />
 

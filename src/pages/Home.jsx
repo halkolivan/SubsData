@@ -40,7 +40,7 @@ export default function Home() {
       formatter: ({ name, value, percent }) =>
         `${name}: ${Number(value).toFixed(2)} $ (${percent}%)`,
     },
-    legend: { orient: "horizontal", left: "left", top: 20 },
+    legend: { orient: "horizontal", left: "center", top: 40 },
     series: [
       {
         type: "pie",
@@ -141,10 +141,10 @@ export default function Home() {
   }, [subscriptions]);
 
   return (
-    <div className="flex h-full w-full bg-gray-200">
+    <div className="flex h-full w-full">
       <div className="flex flex-col items-start w-full mt-4 pr-4 pl-4">
         {showDemoNotice && (
-          <div className="flex items-center w-full justify-center gap-2 bg-blue-100 text-blue-800 p-3 rounded-lg shadow mb-4">
+          <div className="flex items-center w-auto m-auto justify-center gap-2 text-sky-500 p-3 rounded-lg shadow-md shadow-gray-700 mb-4">
             <Info className="w-5 h-5" />
             <span>{t("DemoNotice")}</span>
           </div>
