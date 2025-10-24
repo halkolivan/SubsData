@@ -82,7 +82,6 @@ export default function Header() {
           </NavLink>
         </div>
         <div className="flex w-full items-center justify-between gap-3 sm:ml-[50px]">
-
           {/* Мои подписки — отключаем, если нет user */}
           <NavLink
             to={user ? "/mysubscriptions" : "#"}
@@ -93,7 +92,7 @@ export default function Header() {
                 className={
                   user
                     ? (isActive ? "text-blue-500" : "text-gray-700") +
-                      "hover:text-blue-500 shadow-md font-bold shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg whitespace-nowrap"
+                      "hover:text-blue-500 font-bold shadow-md shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg whitespace-nowrap"
                     : "text-gray-500 cursor-not-allowed font-bold"
                 }
                 onClick={(e) => {
