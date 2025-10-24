@@ -1,0 +1,16 @@
+@font-face {
+  font-family: 'Jura';
+  src: url('/src/assets/fonts/Jura/Jura-VariableFont_wght.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Если есть жирный вариант */
+@font-face {
+  font-family: 'Jura';
+  src: url('/src/assets/fonts/Jura/Jura-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}

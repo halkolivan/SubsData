@@ -236,7 +236,7 @@ export default function Home() {
 
         <div className="flex flex-col w-full mb-4 border-b-2 pb-3">
           <div className="flex flex-col w-full mb-4">
-            <h2>{t("SumSubs")}</h2>
+            <h2 className="font-jura font-light">{t("SumSubs")}</h2>
             <span className="text-[40px]">{subSum.toFixed(2)} $</span>
           </div>
           <p className="text-[20px]">
