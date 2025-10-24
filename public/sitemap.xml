@@ -3,16 +3,19 @@
   <url>
     <loc>https://subsdata.onrender.com/</loc>
     <lastmod>2025-10-18</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://subsdata.onrender.com/privacy</loc>
+    <loc>https://subsdata.onrender.com/privacy.html</loc>
     <lastmod>2025-10-18</lastmod>
+    <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://subsdata.onrender.com/terms</loc>
+    <loc>https://subsdata.onrender.com/terms.html</loc>
     <lastmod>2025-10-18</lastmod>
+    <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
 </urlset>
