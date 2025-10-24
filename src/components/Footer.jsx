@@ -5,7 +5,7 @@ import pp from "@assets/images/pp.png";
 
 export default function Footer() {  
   return (
-    <footer className="flex sticky bottom-0 z-10 bg-gray-300 gap-4 pl-2 pr-2 mt-4 justify-between items-center rounded-t-lg bg-gradient-to-b from-gray-600 via-gray-300 to-gray-600">
+    <footer className="flex sticky bottom-0 z-10 bg-gray-300 gap-4 pl-2 pr-2 justify-between items-center  bg-gradient-to-b from-gray-800 via-gray-300 to-gray-600">
       <div className="flex flex-1 w-full justify-start items-center text-black">
         <span>Copyright © | SubsData 2025</span>
       </div>

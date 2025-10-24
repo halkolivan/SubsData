@@ -71,8 +71,8 @@ export default function Header() {
   });
 
   return (
-    <header className="flex justify-center mb-4 w-auto sticky top-0 z-50 ">
-      <nav className="flex flex-col sm:flex-row justify-between w-full min-h-[50px] items-center gap-3 p-2 rounded-b-lg bg-gradient-to-t from-gray-600 via-gray-300 to-gray-600">
+    <header className="flex justify-center w-auto sticky top-0 z-50">
+      <nav className="flex flex-col sm:flex-row justify-between w-full min-h-[50px] items-center gap-3 p-2 bg-gradient-to-t from-gray-800 via-gray-300 to-gray-600">
         <div className="flex w-auto items-center justify-center">
           <NavLink to="/" className={"h-auto min-w-[150px]"}>
             <div
