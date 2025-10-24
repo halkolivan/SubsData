@@ -6,7 +6,7 @@ import React, { Suspense, useEffect } from "react";
 import { AuthProvider } from "@/context/AuthContext";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import Loader from "@assets/loaders/loaderBlack.svg";
-import "@assets/fonts/Jura/fonts.css";
+import "@assets/styles/fonts.css";
 
 const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID ||
   "408629276793-90jf6aqt0lupftengqnodqd0dgnl2lck.apps.googleusercontent.com";

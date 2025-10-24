@@ -96,8 +96,8 @@ export default function Header() {
                 className={
                   user
                     ? (isActive ? "text-blue-500" : "text-gray-700") +
-                      " hover:text-blue-500 shadow-md shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg whitespace-nowrap"
-                    : "text-gray-500 cursor-not-allowed"
+                      "hover:text-blue-500 shadow-md font-bold shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg whitespace-nowrap"
+                    : "text-gray-500 cursor-not-allowed font-bold"
                 }
                 onClick={(e) => {
                   if (!user) e.preventDefault(); // блокируем переход
@@ -122,14 +122,14 @@ export default function Header() {
           </NavLink>
 
           {/* Настройки — отключаем, если нет user */}
-          <NavLink to={user ? "/settings" : "#"} className={"hidden lg:flex"}>
+          <NavLink to={user ? "/settings" : "#"} className={"hidden lg:flex "}>
             {({ isActive }) => (
               <h5
                 className={
                   user
                     ? (isActive ? "text-blue-500" : "text-gray-700") +
-                      " hover:text-blue-500 shadow-md shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg whitespace-nowrap"
-                    : "text-gray-500 cursor-not-allowed"
+                      " hover:text-blue-500 font-bold shadow-md shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg whitespace-nowrap"
+                    : "text-gray-500 cursor-not-allowed font-bold"
                 }
                 onClick={(e) => {
                   if (!user) e.preventDefault(); // блокируем переход
@@ -142,11 +142,11 @@ export default function Header() {
 
           <NavLink
             to={user ? "/settings" : "#"}
-            className="flex lg:hidden whitespace-nowrap"
+            className="flex lg:hidden whitespace-nowrap "
           >
             <Settings
               size={33}
-              className={`${iconColor} flex lg:hidden cursor-pointer text-gray-700`}
+              className={`${iconColor} flex lg:hidden cursor-pointer text-gray-700 `}
               onClick={(e) => {
                 if (!user) e.preventDefault(); // блокируем переход
               }}
@@ -157,8 +157,8 @@ export default function Header() {
           <h5
             className={
               user
-                ? "cursor-pointer hover:text-green-600 font-semibold text-green-700 hidden lg:flex shadow-md shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg whitespace-nowrap"
-                : "text-gray-500 cursor-not-allowed font-semibold hidden lg:flex"
+                ? "cursor-pointer hover:text-green-600 font-bold text-green-700 hidden lg:flex shadow-md shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg whitespace-nowrap"
+                : "text-gray-500 cursor-not-allowed font-bold hidden lg:flex"
             }
             onClick={() => {
               if (user) {
@@ -222,7 +222,7 @@ export default function Header() {
           ) : (
             <>
               <h5
-                className="cursor-pointer hover:text-yellow-500 font-semibold text-yellow-700 hidden lg:flex shadow-md shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg"
+                className="cursor-pointer hover:text-yellow-600 font-semibold text-yellow-800 hidden lg:flex shadow-md shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg"
                 onClick={() => setIsModalOpen(true)}
               >
                 {t("SignIn")}

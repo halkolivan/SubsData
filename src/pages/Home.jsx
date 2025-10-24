@@ -43,53 +43,57 @@ export default function Home() {
 
 
   const categoryOption = {
-    title: { text: t("ExpensesByCategory"), left: "center", 
-    textStyle: {color: "rgba(218, 218, 218, 0.87)"}},
+    title: {
+      text: t("ExpensesByCategory"),
+      left: "center",
+      textStyle: { color: "rgba(218, 218, 218, 0.87)" },
+    },
     tooltip: {
       trigger: "item",
       formatter: ({ name, value, percent }) =>
         `${name}: ${Number(value).toFixed(2)} $ (${percent}%)`,
     },
-    legend: { orient: "horizontal", left: "center", top: 40, textStyle: {color: "rgba(218, 218, 218, 0.87)"} },
+    legend: {
+      orient: "horizontal",
+      left: "center",
+      top: 40,
+      textStyle: { color: "rgba(218, 218, 218, 0.87)" },
+    },
     series: [
-  {
-    type: "pie",
-    radius: ["35%", "55%"],
-    top: 40,
-    avoidLabelOverlap: false,
-    data: Object.entries(categoryTotals).map(([cat, val], index) => ({
-      name: t(cat),
-      value: Math.round((val + Number.EPSILON) * 100) / 100,
-      itemStyle: {
-        color: new echarts.graphic.LinearGradient(0, 0, 1, 1, [
-          { offset: 0, color: neonColors[index % neonColors.length][0] },
-          { offset: 1, color: neonColors[index % neonColors.length][1] },
-        ]),
-        shadowBlur: 7,
-        shadowColor: neonColors[index % neonColors.length][1],
+      {
+        type: "pie",
+        radius: ["35%", "55%"],
+        top: 40,
+        avoidLabelOverlap: false,
+        data: Object.entries(categoryTotals).map(([cat, val], index) => ({
+          name: t(cat),
+          value: Math.round((val + Number.EPSILON) * 100) / 100,
+          itemStyle: {
+            color: neonColors[index % neonColors.length][0],
+            shadowBlur: 6,
+            shadowColor: neonColors[index % neonColors.length][0],
+          },
+        })),
+        label: {
+          formatter: "{b}: {c} $",
+          color: "#c2f8ff",
+          textShadowColor: "#00eaff",
+          textShadowBlur: 2,
+        },
+        emphasis: {
+          scale: true,
+          scaleSize: 3,
+          itemStyle: {
+            shadowBlur: 15,
+            shadowColor: "#00eaff",
+          },
+          label: {
+            color: "#00eaff",
+            fontWeight: "bold",
+          },
+        },
       },
-    })),
-    label: {
-      formatter: "{b}: {c} $",
-      color: "#c2f8ff",
-      textShadowColor: "#00eaff",
-      textShadowBlur: 2,
-    },
-    emphasis: {
-      scale: true,
-      scaleSize: 3,
-      itemStyle: {
-        shadowBlur: 15,
-        shadowColor: "#00eaff",
-      },
-      label: {
-        color: "#00eaff",
-        fontWeight: "bold",
-      },
-    },
-  },
-],
-
+    ],
   };
 
   // --- 2. По сервисам (bar) ---
