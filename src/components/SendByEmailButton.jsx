@@ -34,7 +34,7 @@ export default function SendByEmailButton({ subscriptions }) {
           message: body,
           subject: "Список подписок из SubsData",
         },
-        "tKxYz9_exampleKey123" // ✅ твой public_key
+        "EL9DfyStsk6YNx-23" // ✅ твой public_key
       );
 
       alert(`Письмо отправлено на ${userEmail}`);

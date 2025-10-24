@@ -1,4 +1,3 @@
-import { subscriptions as mockSubs } from "@mock/mockData";
 import { notifySubscriptions } from "@/hooks/useNotifyDataSub";
 import { createContext, useContext, useState, useEffect } from "react";
 import { saveSubscriptions } from "@/utils/drive";
