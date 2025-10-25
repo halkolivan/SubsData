@@ -5,6 +5,7 @@ import express from "express";
 import fetch from "node-fetch";
 import FormData from "form-data";
 import { fileURLToPath } from "url";
+import nodemailer from "nodemailer";
 
 // --- Инициализация приложения ---
 const app = express();
@@ -263,65 +264,113 @@ app.post("/save-subs", authMiddleware, async (req, res) => {
   }
 });
 
-// --- ВРЕМЕННО: проверить что реально отвечает Google Drive ---
-app.get("/debug-drive", authMiddleware, async (req, res) => {
-  const token = req.token;
-  try {
-    const listRes = await fetch(
-      "https://www.googleapis.com/drive/v3/files?q=name='subscriptions.json'&spaces=drive&fields=files(id,name,parents)",
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    const listData = await listRes.text(); // читаем как текст, чтобы увидеть всё
-    console.log("🔍 Ответ Google Drive /files:", listData);
-    res.send(listData);
-  } catch (err) {
-    console.error("❌ Ошибка /debug-drive:", err);
-    res.status(500).send("Ошибка при обращении к Drive");
-  }
+// --- Nodemailer Setup (ДОБАВЛЕНО) ---
+const transporter = nodemailer.createTransport({
+    // Переменные окружения берутся с Render: MAIL_HOST, MAIL_PORT, MAIL_USER, MAIL_PASS
+    host: process.env.MAIL_HOST, 
+    port: process.env.MAIL_PORT,
+    secure: false, // true для 465, false для 587
+    auth: {
+        user: process.env.MAIL_USER, // 'apikey'
+        pass: process.env.MAIL_PASS, // Ваш ключ SG.ip0s...
+    },
 });
+// --- Новый маршрут для отправки писем (ДОБАВЛЕНО) ---
+app.post("/api/send-subs-email", authMiddleware, async (req, res) => {
+    // Получаем данные, которые прислал фронтенд
+    const { subscriptions, userEmail } = req.body;
+    
+    if (!subscriptions || !userEmail) {
+        return res.status(400).json({ error: "Отсутствуют данные подписок или email получателя." });
+    }
+
+    // Формируем тело письма
+    const emailBody = subscriptions
+        .map(
+            (sub, i) =>
+              `${i + 1}. ${sub.name} — ${sub.price} ${sub.currency || ""} (${
+                sub.status
+              }), категория: ${sub.category}, следующая оплата: ${sub.nextPayment}`
+        )
+        .join("\n");
+
+    const mailOptions = {
+        // ОТПРАВИТЕЛЬ: Имя "Web Service SubsData" и ваш подтвержденный адрес
+        from: `"Web Service SubsData" <${process.env.FROM_EMAIL}>`,
+        // ПОЛУЧАТЕЛЬ: Email пользователя, полученный с фронтенда
+        to: userEmail, 
+        subject: `Список ваших подписок из SubsData`,
+        text: `Здравствуйте!\n\nВаш список подписок:\n\n${emailBody}\n\nС уважением, команда SubsData.`,
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        res.status(200).json({ message: "Письмо успешно отправлено!" });
+    } catch (error) {
+        console.error("❌ Ошибка Nodemailer (SendGrid):", error);
+        res.status(500).json({ error: "Ошибка при отправке письма через сервер." });
+    }
+});
+
+// --- ВРЕМЕННО: проверить что реально отвечает Google Drive ---
+// app.get("/debug-drive", authMiddleware, async (req, res) => {
+//   const token = req.token;
+//   try {
+//     const listRes = await fetch(
+//       "https://www.googleapis.com/drive/v3/files?q=name='subscriptions.json'&spaces=drive&fields=files(id,name,parents)",
+//       { headers: { Authorization: `Bearer ${token}` } }
+//     );
+//     const listData = await listRes.text(); // читаем как текст, чтобы увидеть всё
+//     console.log("🔍 Ответ Google Drive /files:", listData);
+//     res.send(listData);
+//   } catch (err) {
+//     console.error("❌ Ошибка /debug-drive:", err);
+//     res.status(500).send("Ошибка при обращении к Drive");
+//   }
+// });
 
 // --- Загрузка из Google Drive ---
-app.get("/api/mysubscriptions", async (req, res) => {
-  const auth = req.headers.authorization;
-  if (!auth) return res.status(401).json({ error: "Нет токена" });
-  const token = auth.split(" ")[1];
+// app.get("/api/mysubscriptions", async (req, res) => {
+//   const auth = req.headers.authorization;
+//   if (!auth) return res.status(401).json({ error: "Нет токена" });
+//   const token = auth.split(" ")[1];
 
-  try {
-    // 1️⃣ Ищем файл в My Drive
-    const listRes = await fetch(
-      "https://www.googleapis.com/drive/v3/files?q=name='subscriptions.json'&spaces=drive&fields=files(id,name,parents)",
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+//   try {
+//     // 1️⃣ Ищем файл в My Drive
+//     const listRes = await fetch(
+//       "https://www.googleapis.com/drive/v3/files?q=name='subscriptions.json'&spaces=drive&fields=files(id,name,parents)",
+//       { headers: { Authorization: `Bearer ${token}` } }
+//     );
 
-    const listData = await listRes.json();
-    if (!listData.files || listData.files.length === 0) {
-      console.log("⚠️ Файл subscriptions.json не найден");
-      return res.json({ subscriptions: [] });
-    }
+//     const listData = await listRes.json();
+//     if (!listData.files || listData.files.length === 0) {
+//       console.log("⚠️ Файл subscriptions.json не найден");
+//       return res.json({ subscriptions: [] });
+//     }
 
-    const fileId = listData.files[0].id;
+//     const fileId = listData.files[0].id;
 
-    // 2️⃣ Читаем содержимое
-    const fileRes = await fetch(
-      `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+//     // 2️⃣ Читаем содержимое
+//     const fileRes = await fetch(
+//       `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
+//       { headers: { Authorization: `Bearer ${token}` } }
+//     );
 
-    if (!fileRes.ok) {
-      console.error("Ошибка чтения:", await fileRes.text());
-      return res.json({ subscriptions: [] });
-    }
+//     if (!fileRes.ok) {
+//       console.error("Ошибка чтения:", await fileRes.text());
+//       return res.json({ subscriptions: [] });
+//     }
 
-    const content = await fileRes.text();
-    const parsed = JSON.parse(content || "[]");
-    console.log("📥 Прочитано из Drive:", parsed.length, "подписок");
+//     const content = await fileRes.text();
+//     const parsed = JSON.parse(content || "[]");
+//     console.log("📥 Прочитано из Drive:", parsed.length, "подписок");
 
-    res.json({ subscriptions: parsed });
-  } catch (err) {
-    console.error("❌ Ошибка при получении подписок:", err);
-    res.status(500).json({ error: "Ошибка при получении подписок" });
-  }
-});
+//     res.json({ subscriptions: parsed });
+//   } catch (err) {
+//     console.error("❌ Ошибка при получении подписок:", err);
+//     res.status(500).json({ error: "Ошибка при получении подписок" });
+//   }
+// });
 
 // --- Лог отсутствующих ассетов (только для диагностики) ---
 app.use((req, res, next) => {

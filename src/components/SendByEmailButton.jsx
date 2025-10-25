@@ -1,14 +1,13 @@
-import emailjs from "@emailjs/browser";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/AuthContext"; //
 
-// НОВЫЕ КЛЮЧИ EMAILJS: импортируем их из .env
-const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
-const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
-const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+// Импортируем VITE_API_URL, который указывает на ваш бэкенд на Render
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function SendByEmailButton({ subscriptions }) {
-  const { user } = useAuth(); // получаем текущего пользователя
-  const userEmail = user?.email;
+  
+  // Получаем токен для авторизации и email пользователя
+  const { user, token } = useAuth(); //
+  const userEmail = user?.email; //
 
   const sendEmail = async () => {
     if (!subscriptions || subscriptions.length === 0) {
@@ -17,45 +16,58 @@ export default function SendByEmailButton({ subscriptions }) {
     }
 
     if (!userEmail) {
-      alert("Не удалось определить email пользователя.");
+      alert("Не удалось определить email пользователя. Войдите в аккаунт.");
       return;
     }
 
-    const body = subscriptions
-      .map(
-        (sub, i) =>
-          `${i + 1}. ${sub.name} — ${sub.price} ${sub.currency || ""} (${
-            sub.status
-          }), категория: ${sub.category}, следующая оплата: ${sub.nextPayment}`
-      )
-      .join("\n");
+    if (!token) {
+      alert("Необходимо авторизоваться для отправки данных.");
+      return;
+    }
+
+    // Собираем данные, которые отправим на сервер
+    const payload = {
+      subscriptions: subscriptions.map((sub) => ({
+        name: sub.name,
+        price: sub.price,
+        currency: sub.currency,
+        status: sub.status,
+        category: sub.category,
+        nextPayment: sub.nextPayment,
+      })),
+      userEmail: userEmail, // Email пользователя (ПОЛУЧАТЕЛЬ)
+    };
 
     try {
-      await emailjs.send(
-        // Используем переменную из .env
-        EMAILJS_SERVICE_ID,
-        // Используем переменную из .env
-        EMAILJS_TEMPLATE_ID,
-        {
-          to_email: userEmail,
-          message: body,
-          subject: "Список подписок из SubsData",
+      // Отправка данных на ваш API-сервер
+      const res = await fetch(`${API_URL}/api/send-subs-email`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // Отправляем токен для authMiddleware на бэкенде
+          Authorization: `Bearer ${token}`,
         },
-        // Используем переменную из .env
-        EMAILJS_PUBLIC_KEY
-      );
+        body: JSON.stringify(payload),
+      });
 
-      alert(`Письмо отправлено на ${userEmail}`);
+      const data = await res.json();
+
+      if (res.ok) {
+        alert(`✅ Письмо успешно отправлено на ${userEmail}`);
+      } else {
+        console.error("Ошибка API:", data.error);
+        alert(`❌ Ошибка отправки: ${data.error || "Произошла ошибка."}`);
+      }
     } catch (error) {
-      console.error("Ошибка при отправке письма:", error);
-      alert("Не удалось отправить письмо. Проверь настройки EmailJS.");
+      console.error("Ошибка fetch:", error);
+      alert("❌ Не удалось отправить запрос на сервер.");
     }
   };
 
   return (
     <button
       onClick={sendEmail}
-      className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 mb-3"
+      className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 mb-3" //
     >
       Отправить данные на почту
     </button>
