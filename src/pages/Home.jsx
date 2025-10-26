@@ -1,9 +1,9 @@
+import * as echarts from "echarts";
 import { Info } from "lucide-react";
 import { useEffect, useState } from "react";
 import ReactECharts from "echarts-for-react";
-import * as echarts from "echarts";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth-context-export";
 import { subscriptions as mockSubs } from "@mock/mockData";
 import { formatDate, formatPrice } from "@/utils/formatUtils";
 

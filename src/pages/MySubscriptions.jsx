@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth-context-export";
 import { formatDate, formatPrice } from "@/utils/formatUtils";
 import SendByEmailButton from "@components/SendByEmailButton";
 

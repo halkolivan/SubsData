@@ -1,8 +1,8 @@
 // src/pages/AuthCallback.jsx
 import { useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "@/context/auth-context-export";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export default function AuthCallback() {
   const { t } = useTranslation();

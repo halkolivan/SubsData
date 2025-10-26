@@ -1,4 +1,4 @@
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth-context-export";
 
 // Импортируем VITE_API_URL, который указывает на ваш бэкенд на Render
 const API_URL = import.meta.env.VITE_API_URL;

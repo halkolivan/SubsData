@@ -1,5 +1,5 @@
-import { useAuth } from "@/context/AuthContext";
 import { useEffect } from "react";
+import { useAuth } from "@/context/auth-context-export";
 
 export default function ProtectedRoute({ children }) {
   const { user, setIsAuthModalOpen } = useAuth();
