@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { notifySubscriptions } from "@/hooks/useNotifyDataSub";
-import { AuthContext } from "./auth-context-export";
+import { AuthContext } from "./auth-context-export.js";
 
 // ✅ 1. ПРОВЕРКА ENV: GOOGLE_CLIENT_ID и API_URL
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
