@@ -229,16 +229,17 @@ app.post("/save-subs", authMiddleware, async (req, res) => {
       };
 
       const form = new FormData();
-      form.append(
-        "metadata",
-        new Blob([JSON.stringify(metadata)], { type: "application/json" })
-      );
-      form.append(
-        "file",
-        new Blob([JSON.stringify(subscriptions, null, 2)], {
-          type: "application/json",
-        })
-      );
+
+      // ✅ ИСПРАВЛЕНО: используем прямую JSON-строку вместо Blob
+      // Метаданные (первая часть запроса)
+      form.append("metadata", JSON.stringify(metadata), {
+        contentType: "application/json",
+      });
+
+      // Контент файла (вторая часть запроса)
+      form.append("file", JSON.stringify(subscriptions, null, 2), {
+        contentType: "application/json",
+      });
 
       const createRes = await fetch(
         "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
@@ -264,12 +265,13 @@ app.post("/save-subs", authMiddleware, async (req, res) => {
   }
 });
 
-// --- Nodemailer Setup (ДОБАВЛЕНО) ---
+// --- Nodemailer Setup ---
 const transporter = nodemailer.createTransport({
     // Переменные окружения берутся с Render: MAIL_HOST, MAIL_PORT, MAIL_USER, MAIL_PASS
-    host: process.env.MAIL_HOST, 
+    host: process.env.MAIL_HOST,
     port: process.env.MAIL_PORT,
-    secure: false, // true для 465, false для 587
+    // Если порт 465 (SMTPS), нужен secure: true. Для 587 (STARTTLS) нужен secure: false.
+    secure: process.env.MAIL_PORT === '465' || process.env.MAIL_PORT === 465, // ✅ ИСПРАВЛЕНО
     auth: {
         user: process.env.MAIL_USER, // 'apikey'
         pass: process.env.MAIL_PASS, // Ваш ключ SG.ip0s...
