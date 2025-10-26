@@ -225,18 +225,15 @@ app.post("/save-subs", authMiddleware, async (req, res) => {
       const metadata = {
         name: "subscriptions.json",
         mimeType: "application/json",
-        parents: ["root"], // только при создании
+        parents: ["root"],
       };
 
       const form = new FormData();
-
-      // ✅ ИСПРАВЛЕНО: используем прямую JSON-строку вместо Blob
-      // Метаданные (первая часть запроса)
+      
+      // ✅ ИСПРАВЛЕНИЕ: используем прямую JSON-строку
       form.append("metadata", JSON.stringify(metadata), {
         contentType: "application/json",
       });
-
-      // Контент файла (вторая часть запроса)
       form.append("file", JSON.stringify(subscriptions, null, 2), {
         contentType: "application/json",
       });
@@ -267,51 +264,53 @@ app.post("/save-subs", authMiddleware, async (req, res) => {
 
 // --- Nodemailer Setup ---
 const transporter = nodemailer.createTransport({
-    // Переменные окружения берутся с Render: MAIL_HOST, MAIL_PORT, MAIL_USER, MAIL_PASS
-    host: process.env.MAIL_HOST,
-    port: process.env.MAIL_PORT,
-    // Если порт 465 (SMTPS), нужен secure: true. Для 587 (STARTTLS) нужен secure: false.
-    secure: process.env.MAIL_PORT === '465' || process.env.MAIL_PORT === 465, // ✅ ИСПРАВЛЕНО
-    auth: {
-        user: process.env.MAIL_USER, // 'apikey'
-        pass: process.env.MAIL_PASS, // Ваш ключ SG.ip0s...
-    },
+  host: process.env.MAIL_HOST,
+  port: process.env.MAIL_PORT,
+  // ✅ ИСПРАВЛЕНИЕ A: secure должен быть true, если порт 465.
+  secure: process.env.MAIL_PORT === "465" || process.env.MAIL_PORT === 465,
+  auth: {
+    user: process.env.MAIL_USER,
+    pass: process.env.MAIL_PASS,
+  },
 });
+
 // --- Новый маршрут для отправки писем (ДОБАВЛЕНО) ---
 app.post("/api/send-subs-email", authMiddleware, async (req, res) => {
-    // Получаем данные, которые прислал фронтенд
-    const { subscriptions, userEmail } = req.body;
-    
-    if (!subscriptions || !userEmail) {
-        return res.status(400).json({ error: "Отсутствуют данные подписок или email получателя." });
-    }
+  // Получаем данные, которые прислал фронтенд
+  const { subscriptions, userEmail } = req.body;
 
-    // Формируем тело письма
-    const emailBody = subscriptions
-        .map(
-            (sub, i) =>
-              `${i + 1}. ${sub.name} — ${sub.price} ${sub.currency || ""} (${
-                sub.status
-              }), категория: ${sub.category}, следующая оплата: ${sub.nextPayment}`
-        )
-        .join("\n");
+  if (!subscriptions || !userEmail) {
+    return res
+      .status(400)
+      .json({ error: "Отсутствуют данные подписок или email получателя." });
+  }
 
-    const mailOptions = {
-        // ОТПРАВИТЕЛЬ: Имя "Web Service SubsData" и ваш подтвержденный адрес
-        from: `"Web Service SubsData" <${process.env.FROM_EMAIL}>`,
-        // ПОЛУЧАТЕЛЬ: Email пользователя, полученный с фронтенда
-        to: userEmail, 
-        subject: `Список ваших подписок из SubsData`,
-        text: `Здравствуйте!\n\nВаш список подписок:\n\n${emailBody}\n\nС уважением, команда SubsData.`,
-    };
+  // Формируем тело письма
+  const emailBody = subscriptions
+    .map(
+      (sub, i) =>
+        `${i + 1}. ${sub.name} — ${sub.price} ${sub.currency || ""} (${
+          sub.status
+        }), категория: ${sub.category}, следующая оплата: ${sub.nextPayment}`
+    )
+    .join("\n");
 
-    try {
-        await transporter.sendMail(mailOptions);
-        res.status(200).json({ message: "Письмо успешно отправлено!" });
-    } catch (error) {
-        console.error("❌ Ошибка Nodemailer (SendGrid):", error);
-        res.status(500).json({ error: "Ошибка при отправке письма через сервер." });
-    }
+  const mailOptions = {
+    // ОТПРАВИТЕЛЬ: Имя "Web Service SubsData" и ваш подтвержденный адрес
+    from: `"Web Service SubsData" <${process.env.FROM_EMAIL}>`,
+    // ПОЛУЧАТЕЛЬ: Email пользователя, полученный с фронтенда
+    to: userEmail,
+    subject: `Список ваших подписок из SubsData`,
+    text: `Здравствуйте!\n\nВаш список подписок:\n\n${emailBody}\n\nС уважением, команда SubsData.`,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    res.status(200).json({ message: "Письмо успешно отправлено!" });
+  } catch (error) {
+    console.error("❌ Ошибка Nodemailer (SendGrid):", error);
+    res.status(500).json({ error: "Ошибка при отправке письма через сервер." });
+  }
 });
 
 // --- ВРЕМЕННО: проверить что реально отвечает Google Drive ---

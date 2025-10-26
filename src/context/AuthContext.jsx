@@ -1,10 +1,10 @@
+import { useState, useEffect, useCallback } from "react";
 import { notifySubscriptions } from "@/hooks/useNotifyDataSub";
-import { createContext, useContext, useState, useEffect } from "react";
-import { saveSubscriptions } from "@/utils/drive";
+import { AuthContext } from "@/auth-context-export";
 
+// ✅ 1. ПРОВЕРКА ENV: GOOGLE_CLIENT_ID и API_URL
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-
-export const AuthContext = createContext();
+const API_URL = import.meta.env.VITE_API_URL;
 
 export const AuthProvider = ({ children }) => {
   // --- Состояния ---
@@ -17,11 +17,94 @@ export const AuthProvider = ({ children }) => {
     () => localStorage.getItem("authToken") || null
   );
 
-  // --- Автообновление access_token ---
-  useEffect(() => {
-    if (!GOOGLE_CLIENT_ID) return;
+  // 2. КОРРЕКЦИЯ: Инициализация subscriptions из localStorage
+  const [subscriptions, setSubscriptions] = useState(() => {
+    const saved = localStorage.getItem("userSubscriptions");
+    // Если токен есть, загружаем сохраненное
+    return localStorage.getItem("authToken") && saved ? JSON.parse(saved) : [];
+  });
 
-    const tokenClient = google.accounts.oauth2.initTokenClient({
+  const [settings, setSettings] = useState(() => {
+    const saved = localStorage.getItem("userSettings");
+    return saved ? JSON.parse(saved) : { currency: { main: "USD" } };
+  });
+
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [justLoggedIn, setJustLoggedIn] = useState(false);
+
+  // --- Асинхронная функция загрузки подписок ---
+  const loadSubscriptions = useCallback(async (token, setSubscriptions) => {
+    if (!token || !API_URL) return;
+
+    try {
+      const res = await fetch(`${API_URL}/get-subs`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.subscriptions && Array.isArray(data.subscriptions)) {
+        console.log("✅ Подписки успешно загружены с Google Drive");
+        setSubscriptions(data.subscriptions);
+        localStorage.setItem(
+          "userSubscriptions",
+          JSON.stringify(data.subscriptions)
+        );
+      } else if (res.status === 404 || res.status === 403) {
+        console.log(
+          "⚠️ Файл подписок не найден или нет доступа. Начинаем с пустого списка."
+        );
+        setSubscriptions([]);
+        localStorage.removeItem("userSubscriptions");
+      } else {
+        console.error(
+          "❌ Ошибка загрузки подписок с сервера:",
+          data.error || res.statusText
+        );
+      }
+    } catch (error) {
+      console.error("❌ Ошибка fetch при загрузке данных:", error);
+    }
+  }, []);
+
+  // --- Функция входа ---
+  const login = (userData, accessToken) => {
+    localStorage.setItem("user", JSON.stringify(userData));
+    localStorage.setItem("authToken", accessToken);
+    setUser(userData);
+    setToken(accessToken);
+    setJustLoggedIn(true);
+
+    // 3. ✅ КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Запуск загрузки данных сразу после логина
+    setSubscriptions([]);
+    loadSubscriptions(accessToken, setSubscriptions);
+  };
+
+  // --- Функция выхода ---
+  const logout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userSubscriptions");
+    setUser(null);
+    setToken(null);
+    setSubscriptions([]);
+  };
+
+  // --- Автообновление access_token и загрузка при монтировании ---
+  useEffect(() => {
+    // 4. ✅ ИСПРАВЛЕНИЕ: Блокируем, если нет GOOGLE_CLIENT_ID или библиотеки
+    if (!GOOGLE_CLIENT_ID || typeof window.google === "undefined") return;
+
+    // Загрузка данных при старте, если токен есть
+    if (token && subscriptions.length === 0) {
+      loadSubscriptions(token, setSubscriptions);
+    }
+
+    const tokenClient = window.google.accounts.oauth2.initTokenClient({
       client_id: GOOGLE_CLIENT_ID,
       scope: "https://www.googleapis.com/auth/drive.file email profile",
       callback: (resp) => {
@@ -29,131 +112,41 @@ export const AuthProvider = ({ children }) => {
           console.log("🔄 Обновлён Google access_token");
           setToken(resp.access_token);
           localStorage.setItem("authToken", resp.access_token);
+          // После обновления токена, убедимся, что данные загружены
+          loadSubscriptions(resp.access_token, setSubscriptions);
         }
       },
     });
 
-    // Проверяем раз в 50 минут (токен живёт ~60 мин)
     const interval = setInterval(() => {
-      console.log("♻️ Автообновление Google токена...");
-      tokenClient.requestAccessToken({ prompt: "" });
+      if (token) {
+        tokenClient.requestAccessToken();
+      }
     }, 50 * 60 * 1000);
 
     return () => clearInterval(interval);
-  }, []);
-
-  const [subscriptions, setSubscriptions] = useState(() => {
-    const saved = localStorage.getItem("subscriptions");
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [justLoggedIn, setJustLoggedIn] = useState(false);
-
-  // --- Настройки пользователя ---
-  const defaultSettings = {
-    notif: {
-      enabled: true,
-      time: "09:00",
-      frequency: "daily",
-      weeklyDays: {
-        mon: true,
-        tue: true,
-        wed: true,
-        thu: true,
-        fri: true,
-        sat: false,
-        sun: false,
-      },
-    },
-    currency: {
-      defaultCurrency: "USD",
-      showOriginalCurrency: true,
-      rates: { USD: 1, EUR: 0.92, RUB: 80, MDL: 18.0, GBP: 0.79 },
-    },
-    dateFormat: "DD.MM.YYYY",
-  };
-
-  const [settings, setSettings] = useState(() => {
-    const saved = localStorage.getItem("settings");
-    return saved ? JSON.parse(saved) : defaultSettings;
-  });
-
-  // --- Сохранение в localStorage ---
-  useEffect(() => {
-    localStorage.setItem("subscriptions", JSON.stringify(subscriptions));
-  }, [subscriptions]);
-
-  useEffect(() => {
-    localStorage.setItem("settings", JSON.stringify(settings));
-  }, [settings]);
-
-  // --- Автосохранение на Google Drive ---
-  useEffect(() => {
-    if (token && subscriptions.length > 0) {
-      console.log("🌀 Автосохранение на Google Drive...");
-      console.log("📦 Текущее состояние подписок:", subscriptions);
-
-      saveSubscriptions(token, subscriptions)
-        .then(() => console.log("✅ Автосохранено на Google Drive"))
-        .catch((err) => console.error("❌ Ошибка автосохранения:", err));
-    }
-  }, [subscriptions, token]);
-
-  // --- Авторизация ---
-  const login = async (userData, jwt) => {
-    setUser(userData);
-    setToken(jwt);
-    localStorage.setItem("user", JSON.stringify(userData));
-    localStorage.setItem("authToken", jwt);
-
-    try {
-      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:10000";
-      const res = await fetch(`${API_URL}/api/mysubscriptions`, {
-        headers: { Authorization: `Bearer ${jwt}` },
-      });
-      const data = await res.json();
-      if (data.subscriptions) setSubscriptions(data.subscriptions);
-    } catch (err) {
-      console.error("Ошибка при загрузке подписок:", err);
-    }
-
-    setIsAuthModalOpen(false);
-    setIsAddModalOpen(false);
-    setJustLoggedIn(true);
-  };
-
-  // --- Выход ---
-  const logout = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem("user");
-    localStorage.removeItem("authToken");
-    setSubscriptions([]);
-  };
+  }, [GOOGLE_CLIENT_ID, token, subscriptions.length]);
 
   // --- Добавление подписки ---
-  const addSubscription = async (newSub) => {
+  const addSubscription = (newSub) => {
     const subToAdd = {
       id: Date.now(),
-      name: newSub.name,
-      price: parseFloat(newSub.price),
+      name: newSub.name || "Новая подписка",
+      price: parseFloat(newSub.price) || 0,
       currency: newSub.currency || "USD",
-      category: newSub.category,
-      nextPayment: newSub.nextPayment,
-      cycle: "ежемесячно",
+      category: newSub.category || "Прочее",
+      nextPayment: newSub.nextPayment || new Date().toISOString().split("T")[0],
+      period: newSub.period || "Ежемесячно",
       status: newSub.status || "active",
     };
 
     try {
-      const existing = JSON.parse(localStorage.getItem("subscriptions")) || [];
-      const updated = [...existing, subToAdd];
-      localStorage.setItem("subscriptions", JSON.stringify(updated));
+      // ИСПРАВЛЕНО: используем state `subscriptions`
+      const updated = [...subscriptions, subToAdd];
+      localStorage.setItem("userSubscriptions", JSON.stringify(updated));
       setSubscriptions(updated);
 
       console.log("🆕 Добавлена подписка:", subToAdd);
-      console.log("📦 Текущее состояние:", updated);
     } catch (err) {
       console.error("Ошибка при добавлении подписки:", err);
     }
@@ -167,6 +160,8 @@ export const AuthProvider = ({ children }) => {
       notif: { ...(prev.notif || {}), ...(patch.notif || {}) },
       currency: { ...(prev.currency || {}), ...(patch.currency || {}) },
     }));
+    // Сохранение настроек в localStorage
+    localStorage.setItem("userSettings", JSON.stringify(settings));
   };
 
   // --- Уведомления после логина ---
@@ -175,7 +170,7 @@ export const AuthProvider = ({ children }) => {
       notifySubscriptions(subscriptions);
       setJustLoggedIn(false);
     }
-  }, [justLoggedIn]);
+  }, [justLoggedIn, subscriptions]);
 
   // --- Возврат контекста ---
   return (
@@ -189,9 +184,9 @@ export const AuthProvider = ({ children }) => {
         setIsAuthModalOpen,
         isAddModalOpen,
         setIsAddModalOpen,
+        addSubscription,
         subscriptions,
         setSubscriptions,
-        addSubscription,
         settings,
         updateSettings,
       }}
@@ -200,5 +195,3 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
-
-export const useAuth = () => useContext(AuthContext);
