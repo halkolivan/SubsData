@@ -344,7 +344,7 @@ const transporter = nodemailer.createTransport({
   socketTimeout: 20000,
 });
 
-// Создание сообщения
+// Создание сообщения . ПОпытка доставки писем не в спам.
 const mailOptions = {
   from: `${process.env.MAIL_SENDER_NAME} <${process.env.MAIL_USER}>`,
   to: userEmail,
