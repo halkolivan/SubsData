@@ -382,6 +382,7 @@ app.post("/api/send-subs-email", authMiddleware, async (req, res) => {
     res.status(500).json({ error: "Ошибка при отправке письма через сервер." });
   }
 });
+app.options("/api/send-subs-email", cors());
 
 // --- ВРЕМЕННО: проверить что реально отвечает Google Drive ---
 // app.get("/debug-drive", authMiddleware, async (req, res) => {
