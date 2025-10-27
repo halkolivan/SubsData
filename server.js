@@ -135,10 +135,78 @@ app.post("/auth/github", async (req, res) => {
 
 app.get("/get-subs", async (req, res) => {
   try {
-    const filePath = path.join(__dirname, "subscriptions.json");
-    if (!fs.existsSync(filePath)) return res.json({ subscriptions: [] });
-    const data = JSON.parse(fs.readFileSync(filePath, "utf8"));
-    res.json({ subscriptions: data });
+    // 1. ИЗВЛЕЧЕНИЕ ТОКЕНА
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Токен не найден" });
+    }
+    const token = authHeader.split(" ")[1];
+
+    // 2. ПОИСК ФАЙЛА (subscriptions.json)
+    const searchUrl =
+      'https://www.googleapis.com/drive/v3/files?q=name="subscriptions.json"&fields=files(id,name)&spaces=drive';
+    const searchRes = await fetch(searchUrl, {
+      method: "GET",
+      headers: {
+        // ✅ КРИТИЧЕСКИ ВАЖНО: Токен должен быть здесь
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    // 3. ПРОВЕРКА ОТВЕТА GOOGLE
+    if (searchRes.status === 401 || searchRes.status === 403) {
+      console.error(
+        "❌ Google Drive API вернул 401/403. Токен недействителен или нет доступа."
+      );
+      // Отправляем фронтенду статус, который он умеет обрабатывать (например, 403)
+      return res.status(403).json({
+        error:
+          "Google токен недействителен или требуется повторная авторизация.",
+      });
+    }
+
+    const searchData = await searchRes.json();
+    const files = searchData.files;
+    
+    // 4. ПРОВЕРКА НАЛИЧИЯ ФАЙЛА (Первое использование 'files')
+    if (!files || files.length === 0) {
+      console.log("⚠️ Файл подписок subscriptions.json не найден.");
+      // Отправляем 404, который фронтенд (AuthContext.jsx) использует, чтобы начать с пустого списка
+      return res.status(404).json({ error: "Файл подписок не найден." });
+    }
+
+    // 5. ПОЛУЧЕНИЕ ID ПЕРВОГО ФАЙЛА (Второе использование 'files')
+    // Мы предполагаем, что существует только один файл с таким именем.
+    const fileId = files[0].id;
+
+    // 6. ВТОРОЙ ЗАПРОС: СКАЧИВАНИЕ КОНТЕНТА
+    // Используем fileId для запроса контента (alt=media)
+    const downloadUrl = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`;
+
+    const downloadRes = await fetch(downloadUrl, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`, // Используем тот же токен!
+      },
+    });
+
+    // 7. ОБРАБОТКА ОТВЕТА СКАЧИВАНИЯ
+    if (!downloadRes.ok) {
+      console.error(
+        "❌ Ошибка при скачивании контента файла:",
+        downloadRes.statusText
+      );
+      return res
+        .status(downloadRes.status)
+        .json({ error: "Ошибка при скачивании файла подписок." });
+    }
+
+    // 8. ПАРСИНГ И ОТПРАВКА
+    const subscriptionsText = await downloadRes.text(); // Контент — это JSON-строка
+    const subscriptions = JSON.parse(subscriptionsText);
+
+    // Отправляем данные обратно на фронтенд
+    res.status(200).json({ subscriptions: subscriptions });
   } catch (err) {
     console.error("Ошибка при загрузке подписок:", err);
     res.status(500).json({ error: "failed_to_load" });
