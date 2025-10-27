@@ -386,6 +386,7 @@ const mailOptions = {
 
 // --- Новый маршрут для отправки писем (ДОБАВЛЕНО) ---
 app.post("/api/send-subs-email", authMiddleware, async (req, res) => {
+  
   // Получаем данные, которые прислал фронтенд
   const { subscriptions, userEmail } = req.body;
 
