@@ -297,7 +297,7 @@ app.post("/save-subs", authMiddleware, async (req, res) => {
       };
 
       const form = new FormData();
-      
+
       // ✅ ИСПРАВЛЕНИЕ: используем прямую JSON-строку
       form.append("metadata", JSON.stringify(metadata), {
         contentType: "application/json",
@@ -333,7 +333,7 @@ app.post("/save-subs", authMiddleware, async (req, res) => {
 // --- Nodemailer Setup ---
 const transporter = nodemailer.createTransport({
   host: process.env.MAIL_HOST,
-  port: 465,
+  port: 2525,
   secure: true,
   auth: {
     user: process.env.MAIL_USER,

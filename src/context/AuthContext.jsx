@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { notifySubscriptions } from "@/hooks/useNotifyDataSub";
 import { AuthContext } from "./auth-context-export.js";
 
@@ -116,7 +116,7 @@ export const AuthProvider = ({ children }) => {
           loadSubscriptions(resp.access_token, setSubscriptions);
         }
       },
-    });
+    });   
 
     const interval = setInterval(() => {
       if (token) {
@@ -200,6 +200,17 @@ export const AuthProvider = ({ children }) => {
     }
   }, [justLoggedIn, subscriptions]);
 
+  const tokenClientRef = useRef(null);
+
+  const refreshAccessToken = useCallback(() => {
+    if (tokenClientRef.current) {
+      console.log("🚀 Запуск принудительного обновления токена.");
+      tokenClientRef.current.requestAccessToken({ prompt: "" }); // prompt: "" для бесшумного обновления
+    } else {
+      console.error("Google Token Client не инициализирован.");
+    }
+  }, []);
+
   // --- Возврат контекста ---
   return (
     <AuthContext.Provider
@@ -218,6 +229,7 @@ export const AuthProvider = ({ children }) => {
         settings,
         updateSettings,
         saveSubscriptionsToDrive,
+        refreshAccessToken,
       }}
     >
       {children}
