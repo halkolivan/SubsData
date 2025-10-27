@@ -33,6 +33,8 @@ export const AuthProvider = ({ children }) => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [justLoggedIn, setJustLoggedIn] = useState(false);
 
+  const tokenClientRef = useRef(null);
+
   // --- Асинхронная функция загрузки подписок ---
   const loadSubscriptions = useCallback(async (token, setSubscriptions) => {
     if (!token || !API_URL) return;
@@ -96,36 +98,57 @@ export const AuthProvider = ({ children }) => {
 
   // --- Автообновление access_token и загрузка при монтировании ---
   useEffect(() => {
-    // 4. ✅ ИСПРАВЛЕНИЕ: Блокируем, если нет GOOGLE_CLIENT_ID или библиотеки
-    if (!GOOGLE_CLIENT_ID || typeof window.google === "undefined") return;
+    if (!GOOGLE_CLIENT_ID) return;
 
-    // Загрузка данных при старте, если токен есть
-    if (token && subscriptions.length === 0) {
-      loadSubscriptions(token, setSubscriptions);
-    }
-
-    const tokenClient = window.google.accounts.oauth2.initTokenClient({
+    // Инициализируем объект и сохраняем его в Ref
+    tokenClientRef.current = window.google.accounts.oauth2.initTokenClient({
       client_id: GOOGLE_CLIENT_ID,
       scope: "https://www.googleapis.com/auth/drive.file email profile",
       callback: (resp) => {
         if (resp?.access_token) {
-          console.log("🔄 Обновлён Google access_token");
+          console.log("🔄 Автоматически обновлён Google access_token");
           setToken(resp.access_token);
           localStorage.setItem("authToken", resp.access_token);
-          // После обновления токена, убедимся, что данные загружены
-          loadSubscriptions(resp.access_token, setSubscriptions);
         }
+        // ВАЖНО: Ничего не делаем в случае ошибки здесь. Ожидаем, что сработает refreshAccessToken при 401.
       },
-    });   
+    });
 
+    // Проверяем раз в 50 минут (токен живёт ~60 мин)
     const interval = setInterval(() => {
-      if (token) {
-        tokenClient.requestAccessToken();
+      if (tokenClientRef.current) {
+        tokenClientRef.current.requestAccessToken({ prompt: "" });
       }
     }, 50 * 60 * 1000);
 
     return () => clearInterval(interval);
-  }, [token]);
+  }, []);
+
+  const refreshAccessToken = useCallback(() => {
+    if (!tokenClientRef.current) {
+      console.error("Google Token Client не инициализирован.");
+      return Promise.resolve(null); // Возвращаем resolve(null) вместо reject
+    }
+
+    // Оборачиваем вызов в Promise
+    return new Promise((resolve) => {
+      tokenClientRef.current.requestAccessToken({
+        prompt: "",
+        // Используем колбэк для разрешения Promise
+        callback: (resp) => {
+          if (resp?.access_token) {
+            console.log("🔄 Обновлён Google access_token (Принудительно)");
+            setToken(resp.access_token);
+            localStorage.setItem("authToken", resp.access_token);
+            resolve(resp.access_token); // ✅ ВОЗВРАЩАЕМ НОВЫЙ ТОКЕН
+          } else {
+            console.error("❌ Не удалось обновить токен.", resp);
+            resolve(null); // Разрешаем с null в случае ошибки
+          }
+        },
+      });
+    });
+  }, []);
 
   // --- Добавление подписки ---
   const addSubscription = async (newSub) => {
@@ -199,17 +222,6 @@ export const AuthProvider = ({ children }) => {
       setJustLoggedIn(false);
     }
   }, [justLoggedIn, subscriptions]);
-
-  const tokenClientRef = useRef(null);
-
-  const refreshAccessToken = useCallback(() => {
-    if (tokenClientRef.current) {
-      console.log("🚀 Запуск принудительного обновления токена.");
-      tokenClientRef.current.requestAccessToken({ prompt: "" }); // prompt: "" для бесшумного обновления
-    } else {
-      console.error("Google Token Client не инициализирован.");
-    }
-  }, []);
 
   // --- Возврат контекста ---
   return (
