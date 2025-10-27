@@ -128,7 +128,7 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   // --- Добавление подписки ---
-  const addSubscription = (newSub) => {
+  const addSubscription = async (newSub) => {
     const subToAdd = {
       id: Date.now(),
       name: newSub.name || "Новая подписка",
@@ -145,6 +145,8 @@ export const AuthProvider = ({ children }) => {
       const updated = [...subscriptions, subToAdd];
       localStorage.setItem("userSubscriptions", JSON.stringify(updated));
       setSubscriptions(updated);
+
+      await saveSubscriptionsToDrive(updated);
 
       console.log("🆕 Добавлена подписка:", subToAdd);
     } catch (err) {
@@ -222,4 +224,3 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
-
