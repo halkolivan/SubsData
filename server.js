@@ -504,11 +504,15 @@ app.use((req, res, next) => {
 });
 
 // --- Раздача статики ---
-app.use(express.static(distPath));
+app.use(express.static(distPath, { index: false }));
 
 // --- Google site verification ---
 app.get("/googlea37d48efab48b1a5.html", (req, res) => {
   res.sendFile(path.join(__dirname, "dist", "googlea37d48efab48b1a5.html"));
+});
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(distPath, "index.html"));
 });
 
 // --- Перехват только "неизвестных" маршрутов и отдача index.html ---
