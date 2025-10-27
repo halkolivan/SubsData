@@ -333,9 +333,8 @@ app.post("/save-subs", authMiddleware, async (req, res) => {
 // --- Nodemailer Setup ---
 const transporter = nodemailer.createTransport({
   host: process.env.MAIL_HOST,
-  port: process.env.MAIL_PORT,
-  // ✅ ИСПРАВЛЕНИЕ A: secure должен быть true, если порт 465.
-  secure: process.env.MAIL_PORT === "465" || process.env.MAIL_PORT === 465,
+  port: 465, 
+  secure: true, 
   auth: {
     user: process.env.MAIL_USER,
     pass: process.env.MAIL_PASS,
