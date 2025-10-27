@@ -152,6 +152,32 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const saveSubscriptionsToDrive = useCallback(
+    async (subsArray) => {
+      if (!token || subsArray.length === 0) return;
+
+      try {
+        const res = await fetch(`${API_URL}/save-subs`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ subscriptions: subsArray }),
+        });
+
+        if (res.ok) {
+          console.log("💾 ✅ Состояние успешно сохранено в Google Drive.");
+        } else {
+          console.error("❌ Ошибка при сохранении в Drive:", await res.json());
+        }
+      } catch (err) {
+        console.error("❌ Ошибка fetch при сохранении в Drive:", err);
+      }
+    },
+    [token, API_URL]
+  ); // Зависимость от токена
+
   // --- Настройки ---
   const updateSettings = (patch) => {
     setSettings((prev) => ({

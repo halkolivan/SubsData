@@ -1,28 +1,21 @@
 import { Save } from "lucide-react";
 import { useState } from "react";
-import { useAuth } from "@/context/auth-context-export";;
+import { useAuth } from "@/context/auth-context-export"; // Убедитесь, что этот импорт правильный
 
 export default function SaveButton() {
-  const { token, subscriptions } = useAuth();
+  
+  // ✅ 1. ИМПОРТ: Добавляем новую функцию из контекста
+
+  const { subscriptions, saveSubscriptionsToDrive } = useAuth();
   const [status, setStatus] = useState("");
 
-  const handleSave = async () => {
-    console.log("TOKEN:", token);
-    console.log("SUBSCRIPTIONS (из state):", subscriptions);
+  const handleSave = async () => { 
 
-    // Получаем актуальные подписки из localStorage
-    const localSubs = JSON.parse(
-      localStorage.getItem("userSubscriptions") || "[]"
-    );
+    // ✅ ИСПОЛЬЗУЕМ: Актуальный state напрямую
+    const finalSubs = subscriptions;
+    console.log("📦 Отправляем в Drive:", finalSubs); // Для отладки
 
-    // Используем самые свежие данные
-    const finalSubs = subscriptions.length ? subscriptions : localSubs;
-    console.log("📦 Отправляем в Drive:", finalSubs);
-
-    if (!token) {
-      setStatus("Ошибка: не авторизован");
-      return;
-    }
+    // ❌ УДАЛЕНА: Проверка на token (она теперь внутри saveSubscriptionsToDrive)
 
     if (!finalSubs || finalSubs.length === 0) {
       setStatus("Нет данных для сохранения");
@@ -30,25 +23,13 @@ export default function SaveButton() {
     }
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/save-subs`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ subscriptions: finalSubs }),
-      });
-
-      const data = await res.json();
-      console.log("Ответ сервера:", data);
-
-      if (res.ok && !data.error) {
-        setStatus("✅ Успешно сохранено в Google Drive!");
-      } else {
-        setStatus(`Ошибка: ${data.error?.message || "Неизвестная ошибка"}`);
-      }
+      setStatus("Сохранение...");
+      // ✅ 2. ВЫЗОВ: Используем централизованный метод
+      await saveSubscriptionsToDrive(finalSubs);
+      setStatus("✅ Успешно сохранено в Google Drive!");
     } catch (err) {
-      console.error("Ошибка fetch:", err);
+      console.error("❌ Ошибка при сохранении:", err);
+      // Если saveSubscriptionsToDrive выбрасывает ошибку, она будет поймана
       setStatus("❌ Ошибка при сохранении");
     }
   };
@@ -56,11 +37,11 @@ export default function SaveButton() {
   return (
     <button
       onClick={handleSave}
-      className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition-all"
+      className="flex items-center space-x-2 px-3 py-1.5 !bg-gray-200 text-gray-700 rounded-full hover:!bg-gray-300 transition-colors"
+      title="Сохранить подписки в Google Drive"
     >
-      <Save className="w-4 h-4" />
-      Сохранить
-      {status && <span className="ml-3 text-sm text-gray-200">{status}</span>}
+      <Save size={18} />
+      <span className="font-semibold text-sm">{status || "Сохранить"}</span>
     </button>
   );
 }
