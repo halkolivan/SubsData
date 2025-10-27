@@ -354,39 +354,10 @@ const mailOptions = {
   headers: {
     "X-Mailer": "SubsData Node.js App", // Помогает почтовым серверам понять, кто отправляет
   },
-
-  // Используйте форматированный текст (text)
-  text: bodyText, // Ваш текущий простой текст
-
-  // ✅ ДОБАВЬТЕ HTML-ВЕРСИЮ ДЛЯ ЛУЧШЕЙ ДОСТАВЛЯЕМОСТИ
-  html: `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-            <h2>Здравствуйте!</h2>
-            <p>Ваш список подписок:</p>
-            <ul>
-                ${subscriptions
-                  .map(
-                    (sub) => `
-                    <li>
-                        <strong>${sub.name}</strong> &mdash; ${sub.price} ${sub.currency} 
-                        (${sub.status}), категория: ${sub.category}, 
-                        следующая оплата: ${sub.nextPayment}
-                    </li>
-                `
-                  )
-                  .join("")}
-            </ul>
-            <br>
-            <p>С уважением, команда SubsData.</p>
-            <hr>
-            <p style="font-size: 0.8em; color: #777;">Это автоматическое уведомление. Пожалуйста, не отвечайте на него.</p>
-        </div>
-    `,
 };
 
 // --- Новый маршрут для отправки писем (ДОБАВЛЕНО) ---
 app.post("/api/send-subs-email", authMiddleware, async (req, res) => {
-  
   // Получаем данные, которые прислал фронтенд
   const { subscriptions, userEmail } = req.body;
 
