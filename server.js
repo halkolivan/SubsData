@@ -344,18 +344,6 @@ const transporter = nodemailer.createTransport({
   socketTimeout: 20000,
 });
 
-// Создание сообщения . ПОпытка доставки писем не в спам.
-const mailOptions = {
-  from: `${process.env.MAIL_SENDER_NAME} <${process.env.MAIL_USER}>`,
-  to: userEmail,
-  subject: "Ваш список подписок SubsData",
-
-  // ✅ ДОБАВЬТЕ СПЕЦИАЛЬНЫЕ ЗАГОЛОВКИ
-  headers: {
-    "X-Mailer": "SubsData Node.js App", // Помогает почтовым серверам понять, кто отправляет
-  },
-};
-
 // --- Новый маршрут для отправки писем (ДОБАВЛЕНО) ---
 app.post("/api/send-subs-email", authMiddleware, async (req, res) => {
   // Получаем данные, которые прислал фронтенд
@@ -476,15 +464,11 @@ app.use((req, res, next) => {
 });
 
 // --- Раздача статики ---
-app.use(express.static(distPath, { index: false }));
+app.use(express.static(distPath));
 
 // --- Google site verification ---
 app.get("/googlea37d48efab48b1a5.html", (req, res) => {
   res.sendFile(path.join(__dirname, "dist", "googlea37d48efab48b1a5.html"));
-});
-
-app.get("*", (req, res) => {
-  res.sendFile(path.join(distPath, "index.html"));
 });
 
 // --- Перехват только "неизвестных" маршрутов и отдача index.html ---
