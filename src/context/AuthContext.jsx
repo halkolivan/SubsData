@@ -215,6 +215,7 @@ export const AuthProvider = ({ children }) => {
         setSubscriptions,
         settings,
         updateSettings,
+        saveSubscriptionsToDrive,
       }}
     >
       {children}
