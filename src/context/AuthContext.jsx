@@ -125,7 +125,7 @@ export const AuthProvider = ({ children }) => {
     }, 50 * 60 * 1000);
 
     return () => clearInterval(interval);
-  }, [GOOGLE_CLIENT_ID, token, subscriptions.length]);
+  }, [token]);
 
   // --- Добавление подписки ---
   const addSubscription = (newSub) => {
