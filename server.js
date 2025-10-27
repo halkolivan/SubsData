@@ -333,7 +333,7 @@ app.post("/save-subs", authMiddleware, async (req, res) => {
 // --- Nodemailer Setup ---
 const transporter = nodemailer.createTransport({
   host: process.env.MAIL_HOST,
-  port: 587,
+  port: 2525,
   secure: false,
   auth: {
     user: process.env.MAIL_USER,
