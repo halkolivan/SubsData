@@ -167,7 +167,7 @@ app.get("/get-subs", async (req, res) => {
 
     const searchData = await searchRes.json();
     const files = searchData.files;
-    
+
     // 4. ПРОВЕРКА НАЛИЧИЯ ФАЙЛА (Первое использование 'files')
     if (!files || files.length === 0) {
       console.log("⚠️ Файл подписок subscriptions.json не найден.");
