@@ -229,8 +229,8 @@ export default function Home() {
   }, [subscriptions]);
 
   return (
-    <main className="flex h-full w-full">
-      <div className="flex flex-col items-start w-full pr-4 pl-4 bg-gray-800">
+    <main className="flex h-auto w-full">
+      <div className="flex flex-col items-start w-full h-full pr-4 pl-4 bg-gray-800">
         {showDemoNotice && (
           <div className="flex items-center w-auto m-auto mt-5 justify-center gap-2 text-sky-500 p-3 mb-4 border-2 rounded-lg">
             <Info className="w-5 h-5" />
