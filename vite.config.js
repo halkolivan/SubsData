@@ -9,14 +9,18 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export default defineConfig({
+  root: "src",
+  base: "/",
+  publicDir: path.resolve(__dirname, "public"),
+
   plugins: [
     react(),
     tailwindcss(),
     VitePWA({
-      srcDir: "./", // указывает корень проекта
-      outDir: "dist", // папка для собранного сайта
+      srcDir: "./",
+      outDir: "dist",
       registerType: "autoUpdate",
-      devOptions: { enabled: true }, // временно отключил перед билдом проекта
+      devOptions: { enabled: true },
       includeAssets: [
         "favicon.ico",
         "robots.txt",
@@ -50,18 +54,21 @@ export default defineConfig({
         clientsClaim: true,
         skipWaiting: true,
         runtimeCaching: [
+          // HTML — network first
           {
             urlPattern: ({ request }) => request.destination === "document",
             handler: "NetworkFirst",
             options: { cacheName: "html-cache" },
           },
+          // JS & CSS — network first
           {
             urlPattern: ({ request }) =>
               request.destination === "script" ||
               request.destination === "style",
-            handler: "StaleWhileRevalidate",
+            handler: "NetworkFirst",
             options: { cacheName: "static-resources" },
           },
+          // Images — cache first
           {
             urlPattern: ({ request }) => request.destination === "image",
             handler: "CacheFirst",
@@ -74,19 +81,7 @@ export default defineConfig({
       },
     }),
   ],
-  root: "src",
-  // When root !== project root, set publicDir so top-level public/ is copied to dist
-  publicDir: path.resolve(__dirname, "public"),
 
-  base: "/",
-
-  // build: {
-  //   rollupOptions: {
-  //     input: path.resolve(__dirname, "index.html"), // только корневой index.html
-  //     // Можно игнорировать node_modules через external
-  //     external: (id) => id.includes("node_modules"),
-  //   },
-  // },
   build: {
     outDir: "../dist",
     emptyOutDir: true,
@@ -103,10 +98,7 @@ export default defineConfig({
     host: true,
     port: 5173,
     strictPort: true,
-    hmr: {
-      protocol: "ws",
-      host: "localhost",
-    },
+    hmr: { protocol: "ws", host: "localhost" },
     headers: {
       "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
       "Cross-Origin-Embedder-Policy": "unsafe-none",
