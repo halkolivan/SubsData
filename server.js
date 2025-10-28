@@ -22,14 +22,27 @@ app.use(express.json());
 // --- CORS настройка ---
 const FRONT_ORIGIN =
   process.env.FRONT_ORIGIN || "https://subsdata.onrender.com";
-app.use(
-  cors({
-    origin: FRONT_ORIGIN,
-    credentials: true, // чтобы работали куки / авторизация
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+"http://localhost:5173", // Локальная разработка
+  "https://subsdata-api.onrender.com", // Иногда API должен разрешать сам себя
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        // Разрешаем запросы без 'origin' (например, с мобильных приложений или localhost)
+        if (!origin) return callback(null, true);
+
+        // Проверяем, есть ли origin в списке разрешенных
+        if (FRONT_ORIGIN.includes(origin)) {
+          callback(null, true);
+        } else {
+          // Если домен не разрешен, генерируем ошибку
+          callback(new Error("Not allowed by CORS"));
+        }
+      },
+      credentials: true, // чтобы работали куки / авторизация
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization"],
+    })
+  );
 
 // --- Пример (если когда-то понадобится ставить куку) ---
 // res.cookie("sid", sessionId, {
