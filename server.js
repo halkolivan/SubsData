@@ -428,7 +428,26 @@ app.use((req, res, next) => {
 });
 
 // --- Раздача статики ---
-app.use(express.static(distPath, { index: false }));
+app.use(
+  express.static(distPath, {
+    index: false,
+    setHeaders: (res, path) => {
+      if (
+        path.endsWith(".html") ||
+        path.endsWith(".js") ||
+        path.endsWith(".css")
+      ) {
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.setHeader("Pragma", "no-cache");
+        res.setHeader("Expires", "0");
+      } else {
+        // изображения и иконки можно кэшировать
+        res.setHeader("Cache-Control", "public, max-age=604800"); // 7 дней
+      }
+    },
+  })
+);
+;
 
 // --- Google site verification ---
 app.get("/googlea37d48efab48b1a5.html", (req, res) => {
