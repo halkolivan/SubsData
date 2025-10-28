@@ -71,7 +71,6 @@ app.get("/sw.js", (req, res) => {
   }
 });
 
-
 // --- Иконки ---
 app.get(/^\/icons\/.*/, (req, res) => {
   const rel = req.path.replace(/^\//, "");
@@ -432,6 +431,7 @@ app.use(
   express.static(distPath, {
     index: false,
     setHeaders: (res, path) => {
+      console.log("Serving:", path);
       if (
         path.endsWith(".html") ||
         path.endsWith(".js") ||
@@ -447,8 +447,6 @@ app.use(
     },
   })
 );
-;
-
 // --- Google site verification ---
 app.get("/googlea37d48efab48b1a5.html", (req, res) => {
   res.sendFile(path.join(__dirname, "dist", "googlea37d48efab48b1a5.html"));
