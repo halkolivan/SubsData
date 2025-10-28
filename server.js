@@ -457,7 +457,9 @@ app.get(/.*/, (req, res) => {
   if (req.path.startsWith("/api") || req.path.startsWith("/auth")) {
     return res.status(404).json({ error: "API route not found" });
   }
-
+  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
   const indexFile = path.join(distPath, "index.html");
   res.sendFile(indexFile);
 });
