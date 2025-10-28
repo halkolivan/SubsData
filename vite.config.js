@@ -16,8 +16,13 @@ export default defineConfig({
       srcDir: "./", // указывает корень проекта
       outDir: "dist", // папка для собранного сайта
       registerType: "autoUpdate",
-      devOptions: { enabled: false }, // временно отключил перед билдом проекта
-      includeAssets: ["favicon.ico", "robots.txt", "apple-touch-icon.png"],
+      devOptions: { enabled: true }, // временно отключил перед билдом проекта
+      includeAssets: [
+        "favicon.ico",
+        "robots.txt",
+        "apple-touch-icon.png",
+        "auto",
+      ],
       manifest: {
         name: "SubsData",
         short_name: "SubsData",
