@@ -429,6 +429,7 @@ app.get(/.*/, (req, res) => {
   if (req.path.startsWith("/api") || req.path.startsWith("/auth")) {
     return res.status(404).json({ error: "API route not found" });
   }
+
   const indexFile = path.join(distPath, "index.html");
   res.sendFile(indexFile);
 });
