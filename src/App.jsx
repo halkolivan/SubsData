@@ -11,8 +11,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID ||
   "408629276793-90jf6aqt0lupftengqnodqd0dgnl2lck.apps.googleusercontent.com";
 
-function App() {
-  console.log("SW_CACHE_BUSTER_20251028_FINAL");
+function App() {  
   useEffect(() => {
     if (import.meta.env.PROD) {
       registerSW({
