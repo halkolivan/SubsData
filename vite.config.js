@@ -53,7 +53,7 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true,
-        exclude: ["index.html"],
+        globIgnores: ["index.html"],
         runtimeCaching: [
           // HTML — network first
           {
