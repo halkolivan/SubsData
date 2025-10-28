@@ -384,66 +384,6 @@ app.post("/api/send-subs-email", authMiddleware, async (req, res) => {
 });
 app.options("/api/send-subs-email", cors());
 
-// --- ВРЕМЕННО: проверить что реально отвечает Google Drive ---
-// app.get("/debug-drive", authMiddleware, async (req, res) => {
-//   const token = req.token;
-//   try {
-//     const listRes = await fetch(
-//       "https://www.googleapis.com/drive/v3/files?q=name='subscriptions.json'&spaces=drive&fields=files(id,name,parents)",
-//       { headers: { Authorization: `Bearer ${token}` } }
-//     );
-//     const listData = await listRes.text(); // читаем как текст, чтобы увидеть всё
-//     console.log("🔍 Ответ Google Drive /files:", listData);
-//     res.send(listData);
-//   } catch (err) {
-//     console.error("❌ Ошибка /debug-drive:", err);
-//     res.status(500).send("Ошибка при обращении к Drive");
-//   }
-// });
-
-// --- Загрузка из Google Drive ---
-// app.get("/api/mysubscriptions", async (req, res) => {
-//   const auth = req.headers.authorization;
-//   if (!auth) return res.status(401).json({ error: "Нет токена" });
-//   const token = auth.split(" ")[1];
-
-//   try {
-//     // 1️⃣ Ищем файл в My Drive
-//     const listRes = await fetch(
-//       "https://www.googleapis.com/drive/v3/files?q=name='subscriptions.json'&spaces=drive&fields=files(id,name,parents)",
-//       { headers: { Authorization: `Bearer ${token}` } }
-//     );
-
-//     const listData = await listRes.json();
-//     if (!listData.files || listData.files.length === 0) {
-//       console.log("⚠️ Файл subscriptions.json не найден");
-//       return res.json({ subscriptions: [] });
-//     }
-
-//     const fileId = listData.files[0].id;
-
-//     // 2️⃣ Читаем содержимое
-//     const fileRes = await fetch(
-//       `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
-//       { headers: { Authorization: `Bearer ${token}` } }
-//     );
-
-//     if (!fileRes.ok) {
-//       console.error("Ошибка чтения:", await fileRes.text());
-//       return res.json({ subscriptions: [] });
-//     }
-
-//     const content = await fileRes.text();
-//     const parsed = JSON.parse(content || "[]");
-//     console.log("📥 Прочитано из Drive:", parsed.length, "подписок");
-
-//     res.json({ subscriptions: parsed });
-//   } catch (err) {
-//     console.error("❌ Ошибка при получении подписок:", err);
-//     res.status(500).json({ error: "Ошибка при получении подписок" });
-//   }
-// });
-
 // --- Лог отсутствующих ассетов (только для диагностики) ---
 app.use((req, res, next) => {
   const urlPath = req.path || req.url || "";
@@ -464,15 +404,12 @@ app.use((req, res, next) => {
 });
 
 // --- Раздача статики ---
-app.use(express.static(distPath));
+app.use(express.static(distPath, { index: false }));
 
 // --- Google site verification ---
 app.get("/googlea37d48efab48b1a5.html", (req, res) => {
   res.sendFile(path.join(__dirname, "dist", "googlea37d48efab48b1a5.html"));
 });
-
-// --- Перехват только "неизвестных" маршрутов и отдача index.html ---
-// ⚠️ В Express 5 нельзя использовать "*" — только /.* регулярку
 
 app.get(/.*/, (req, res) => {
   // Игнорируем только API
