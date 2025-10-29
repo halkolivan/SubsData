@@ -52,24 +52,24 @@ const FRONT_ORIGIN =
 // });
 
 // --- Service Worker ---
-app.get("/sw.js", (req, res) => {
-  const swFile = path.join(distPath, "sw.js");
-  res.setHeader("Content-Type", "application/javascript");
-  // 👇 запрещаем кэширование
-  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  res.setHeader("Pragma", "no-cache");
-  res.setHeader("Expires", "0");
+// app.get("/sw.js", (req, res) => {
+//   const swFile = path.join(distPath, "sw.js");
+//   res.setHeader("Content-Type", "application/javascript");
+//   // 👇 запрещаем кэширование
+//   res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+//   res.setHeader("Pragma", "no-cache");
+//   res.setHeader("Expires", "0");
 
-  if (fs.existsSync(swFile)) {
-    res.sendFile(swFile);
-  } else {
-    res.send(
-      "// noop service worker\n" +
-        "self.addEventListener('install',()=>self.skipWaiting());\n" +
-        "self.addEventListener('activate',()=>self.clients.claim());\n"
-    );
-  }
-});
+//   if (fs.existsSync(swFile)) {
+//     res.sendFile(swFile);
+//   } else {
+//     res.send(
+//       "// noop service worker\n" +
+//         "self.addEventListener('install',()=>self.skipWaiting());\n" +
+//         "self.addEventListener('activate',()=>self.clients.claim());\n"
+//     );
+//   }
+// });
 
 // --- Иконки ---
 app.get(/^\/icons\/.*/, (req, res) => {
