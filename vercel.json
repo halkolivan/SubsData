@@ -23,5 +23,12 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
+  ],
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "destination": "https://new-domain.com/$1",
+      "permanent": true
+    }
   ]
 }
