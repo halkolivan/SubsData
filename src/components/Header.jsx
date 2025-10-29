@@ -182,7 +182,7 @@ export default function Header() {
           {/* 🔒 Кнопка приватности */}
           <button
             onClick={() => setShowPrivacy(true)}
-            className="flex items-center text-gray-600 hidden lg:flex hover:shadow-green-400 hover:!border-red-200/0
+            className="flex min-h-[48px] items-center text-gray-600 hidden lg:flex hover:shadow-green-400 hover:!border-red-200/0
             shadow-md shadow-sky-300 active:shadow-green-600 rounded-lg !bg-gray-50/0 hover:!text-gray-900"
           >
             <Lock className="!bg-gray-50/0" />
