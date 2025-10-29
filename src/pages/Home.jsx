@@ -12,7 +12,10 @@ export default function Home() {
   const { subscriptions, settings } = useAuth();
   const sourceSubs = subscriptions.length ? subscriptions : mockSubs;
   const totalSubs = sourceSubs.length;
-  const subSum = sourceSubs.reduce((acc, sub) => acc + sub.price, 0);
+  const subSum = sourceSubs.reduce(
+    (acc, sub) => acc + (Number(sub.price) || 0),
+    0
+  );
   const [showDemoNotice, setShowDemoNotice] = useState(
     subscriptions.length === 0
   );
