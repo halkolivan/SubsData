@@ -18,6 +18,22 @@ console.log("🗂 Serving static from:", distPath);
 
 // --- Разрешаем JSON для body ---
 app.use(express.json());
+app.use((req, res, next) => {
+  const oldHost = "subsdata.onrender.com";
+  const newDomain = "https://subsdata.vercel.app";
+
+  if (req.headers.host === oldHost) {
+    // Получаем полный путь, включая параметры запроса
+    const fullUrl = newDomain + req.originalUrl;
+
+    // Выполняем 301 редирект (Moved Permanently)
+    console.log(`➡️ 301 Redirecting ${req.originalUrl} to ${fullUrl}`);
+    return res.redirect(301, fullUrl);
+  }
+
+  // Если хост не старый домен, продолжаем обработку как обычно
+  next();
+});
 
 const allowedOrigins = [
   // 1. Основной домен Vercel (через переменную окружения или новый Vercel-домен)
@@ -56,22 +72,6 @@ const FRONT_ORIGIN =
     })
   );
 
-app.use((req, res, next) => {
-  const oldHost = "subsdata.onrender.com";
-  const newDomain = "https://subsdata.vercel.app";
-
-  if (req.headers.host === oldHost) {
-    // Получаем полный путь, включая параметры запроса
-    const fullUrl = newDomain + req.originalUrl;
-
-    // Выполняем 301 редирект (Moved Permanently)
-    console.log(`➡️ 301 Redirecting ${req.originalUrl} to ${fullUrl}`);
-    return res.redirect(301, fullUrl);
-  }
-
-  // Если хост не старый домен, продолжаем обработку как обычно
-  next();
-});
 
 // --- Пример (если когда-то понадобится ставить куку) ---
 // res.cookie("sid", sessionId, {
