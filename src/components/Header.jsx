@@ -232,7 +232,7 @@ export default function Header() {
           )}
 
           {/* Переключатель языков */}
-          <div className="flex items-center hidden lg:flex">
+          <div className="flex items-center hidden lg:flex min-h-[48px]">
             <select
               value={i18n.language}
               onChange={(e) => changeLanguage(e.target.value)}

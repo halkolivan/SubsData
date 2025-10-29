@@ -405,7 +405,7 @@ app.post("/api/send-subs-email", authMiddleware, async (req, res) => {
     res.status(500).json({ error: "Ошибка при отправке письма через сервер." });
   }
 });
-app.options("/api/send-subs-email", cors());
+// app.options("/api/send-subs-email", cors());
 
 // --- Лог отсутствующих ассетов (только для диагностики) ---
 app.use((req, res, next) => {
