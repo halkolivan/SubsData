@@ -207,7 +207,7 @@ export default function Header() {
                 {t("SignOut")} ({user.name})
               </h5>
               <User
-                size={33}
+                size={23}
                 className="text-yellow-700 cursor-pointer hover:text-yellow-600 transition-transform duration-150 hover:scale-110"
                 onClick={() => {
                   logout();
