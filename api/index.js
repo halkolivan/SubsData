@@ -1,23 +1,36 @@
-import fs from "fs";
-import path from "path";
+// imports
 import cors from "cors";
 import express from "express";
 import fetch from "node-fetch";
 import FormData from "form-data";
-import { fileURLToPath } from "url";
 import nodemailer from "nodemailer";
 
-// --- Инициализация приложения ---
 const app = express();
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// --- Путь к папке dist ---
-const distPath = path.join(__dirname, "dist");
-console.log("🗂 Serving static from:", distPath);
 
 // --- Разрешаем JSON для body ---
 app.use(express.json());
+
+// --- Раздача статики ---
+app.use(
+  express.static(distPath, {
+    index: false,
+    setHeaders: (res, path) => {
+      console.log("Serving:", path);
+      if (
+        path.endsWith(".html") ||
+        path.endsWith(".js") ||
+        path.endsWith(".css")
+      ) {
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.setHeader("Pragma", "no-cache");
+        res.setHeader("Expires", "0");
+      } else {
+        // изображения и иконки можно кэшировать
+        res.setHeader("Cache-Control", "public, max-age=604800"); // 7 дней
+      }
+    },
+  })
+);
 
 // --- CORS настройка ---
 const FRONT_ORIGIN =
@@ -43,68 +56,6 @@ const FRONT_ORIGIN =
       allowedHeaders: ["Content-Type", "Authorization"],
     })
   );
-
-// --- Пример (если когда-то понадобится ставить куку) ---
-// res.cookie("sid", sessionId, {
-//   httpOnly: true,
-//   secure: true,
-//   sameSite: "None",
-// });
-
-// --- Service Worker ---
-app.get("/sw.js", (req, res) => {
-  const swFile = path.join(distPath, "sw.js");
-  res.setHeader("Content-Type", "application/javascript");
-  // 👇 запрещаем кэширование
-  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  res.setHeader("Pragma", "no-cache");
-  res.setHeader("Expires", "0");
-
-  if (fs.existsSync(swFile)) {
-    res.sendFile(swFile);
-  } else {
-    res.send(
-      "// noop service worker\n" +
-        "self.addEventListener('install',()=>self.skipWaiting());\n" +
-        "self.addEventListener('activate',()=>self.clients.claim());\n"
-    );
-  }
-});
-
-// --- Иконки ---
-app.get(/^\/icons\/.*/, (req, res) => {
-  const rel = req.path.replace(/^\//, "");
-  const fileOnDisk = path.join(distPath, rel);
-  if (fs.existsSync(fileOnDisk)) return res.sendFile(fileOnDisk);
-  return res.status(404).send("Not found");
-});
-
-// --- Локализации ---
-app.get(/^\/locales\/.*/, (req, res) => {
-  const rel = req.path.replace(/^\//, "");
-  const fileOnDisk = path.join(distPath, rel);
-  if (fs.existsSync(fileOnDisk)) return res.sendFile(fileOnDisk);
-  return res.status(404).send("Not found");
-});
-
-// --- Диагностика ---
-app.get("/__assets", (req, res) => {
-  try {
-    const listDir = (p) => {
-      const full = path.join(distPath, p);
-      if (!fs.existsSync(full)) return null;
-      return fs.readdirSync(full);
-    };
-    res.json({
-      assets: listDir("assets"),
-      icons: listDir("icons"),
-      locales: listDir("locales"),
-    });
-  } catch (err) {
-    console.error("Error listing dist folders", err);
-    res.status(500).json({ error: "failed to list" });
-  }
-});
 
 // --- GitHub авторизация ---
 app.post("/auth/github", async (req, res) => {
@@ -406,65 +357,4 @@ app.post("/api/send-subs-email", authMiddleware, async (req, res) => {
   }
 });
 
-// app.options("/api/send-subs-email", cors());
-
-// --- Лог отсутствующих ассетов (только для диагностики) ---
-app.use((req, res, next) => {
-  const urlPath = req.path || req.url || "";
-  const staticExt = /\.(js|css|png|jpg|jpeg|svg|webmanifest|ico|json)$/i;
-
-  // если путь похож на статик-файл, но его нет — просто логируем
-  if (
-    staticExt.test(urlPath) ||
-    urlPath.startsWith("/assets/") ||
-    urlPath.startsWith("/icons/")
-  ) {
-    const fileOnDisk = path.join(distPath, urlPath.replace(/^\//, ""));
-    if (!fs.existsSync(fileOnDisk)) {
-      console.warn(`⚠️ 404 static asset not found: ${req.method} ${req.url}`);
-    }
-  }
-  next();
-});
-
-// --- Раздача статики ---
-app.use(
-  express.static(distPath, {
-    index: false,
-    setHeaders: (res, path) => {
-      console.log("Serving:", path);
-      if (
-        path.endsWith(".html") ||
-        path.endsWith(".js") ||
-        path.endsWith(".css")
-      ) {
-        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-        res.setHeader("Pragma", "no-cache");
-        res.setHeader("Expires", "0");
-      } else {
-        // изображения и иконки можно кэшировать
-        res.setHeader("Cache-Control", "public, max-age=604800"); // 7 дней
-      }
-    },
-  })
-);
-// --- Google site verification ---
-app.get("/googlea37d48efab48b1a5.html", (req, res) => {
-  res.sendFile(path.join(__dirname, "dist", "googlea37d48efab48b1a5.html"));
-});
-
-app.get(/.*/, (req, res) => {
-  // Игнорируем только API
-  if (req.path.startsWith("/api") || req.path.startsWith("/auth")) {
-    return res.status(404).json({ error: "API route not found" });
-  }
-  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  res.setHeader("Pragma", "no-cache");
-  res.setHeader("Expires", "0");
-  const indexFile = path.join(distPath, "index.html");
-  res.sendFile(indexFile);
-});
-
-// --- Запуск ---
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));
+export default app;
