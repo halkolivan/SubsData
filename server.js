@@ -19,6 +19,17 @@ console.log("🗂 Serving static from:", distPath);
 // --- Разрешаем JSON для body ---
 app.use(express.json());
 
+const allowedOrigins = [
+  // 1. Основной домен Vercel (через переменную окружения или новый Vercel-домен)
+  process.env.FRONT_ORIGIN || "https://subsdata.vercel.app",
+  // 2. Локальная разработка (если порт 5173)
+  "http://localhost:5173",
+  // 3. Дополнительный API (Render)
+  "https://subsdata-api.onrender.com",
+  // 4. Старый домен (если нужно для обратной совместимости)
+  "https://subsdata.onrender.com",
+];
+
 // --- CORS настройка ---
 const FRONT_ORIGIN =
   process.env.FRONT_ORIGIN || "https://subsdata.onrender.com";
@@ -31,7 +42,8 @@ const FRONT_ORIGIN =
         if (!origin) return callback(null, true);
 
         // Проверяем, есть ли origin в списке разрешенных
-        if (FRONT_ORIGIN.includes(origin)) {
+        if (allowedOrigins.includes(origin)) {
+          // 🎯 Используем массив.includes() для точного совпадения
           callback(null, true);
         } else {
           // Если домен не разрешен, генерируем ошибку
@@ -43,7 +55,7 @@ const FRONT_ORIGIN =
       allowedHeaders: ["Content-Type", "Authorization"],
     })
   );
-// переадресация на vercel
+
 app.use((req, res, next) => {
   const oldHost = "subsdata.onrender.com";
   const newDomain = "https://subsdata.vercel.app";
@@ -379,9 +391,6 @@ const transporter = nodemailer.createTransport({
     user: process.env.MAIL_USER,
     pass: process.env.MAIL_PASS,
   },
-  timeout: 20000,
-  connectionTimeout: 20000,
-  socketTimeout: 20000,
 });
 
 // --- Новый маршрут для отправки писем (ДОБАВЛЕНО) ---
