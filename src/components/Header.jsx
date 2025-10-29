@@ -69,7 +69,7 @@ export default function Header() {
 
   return (
     <header className="flex justify-center w-auto sticky top-0 z-50">
-      <nav className="flex flex-col sm:flex-row justify-between w-full min-h-[50px] items-center gap-3 p-2 bg-gradient-to-t from-gray-800 via-gray-300 to-gray-600">
+      <nav className="flex flex-col sm:flex-row justify-between w-full min-h-[50px] items-center gap-3 p-2 bg-gradient-to-t from-gray-800 via-gray-400 to-gray-300">
         <div className="flex w-auto items-center justify-center">
           <NavLink to="/" className={"h-auto min-w-[150px]"}>
             <div
@@ -110,7 +110,7 @@ export default function Header() {
           >
             <FileText
               size={33}
-              className={`${iconColor} flex lg:hidden cursor-pointer text-gray-700`}
+              className={`${iconColor} flex lg:hidden cursor-pointer text-gray-900`}
               onClick={(e) => {
                 if (!user) e.preventDefault(); // блокируем переход
               }}
@@ -142,7 +142,7 @@ export default function Header() {
           >
             <Settings
               size={33}
-              className={`${iconColor} flex lg:hidden cursor-pointer text-gray-700 `}
+              className={`${iconColor} flex lg:hidden cursor-pointer text-gray-900 `}
               onClick={(e) => {
                 if (!user) e.preventDefault(); // блокируем переход
               }}
@@ -169,7 +169,7 @@ export default function Header() {
 
           <CirclePlus
             size={33}
-            className={`${iconColor} flex lg:hidden cursor-pointer text-green-700`}
+            className={`${iconColor} flex lg:hidden cursor-pointer text-gray-900`}
             onClick={() => {
               if (user) {
                 setIsAddModalOpen(true); // открыть модалку добавления подписки
@@ -190,7 +190,7 @@ export default function Header() {
           </button>
           <Lock
             size={33}
-            className="text-gray-600 flex lg:hidden cursor-pointer"
+            className="text-gray-800 flex lg:hidden cursor-pointer"
             onClick={() => setShowPrivacy(true)}
           />
 
@@ -225,7 +225,7 @@ export default function Header() {
               </h5>
               <LogIn
                 size={33}
-                className="flex lg:hidden"
+                className="flex lg:hidden text-gray-800"
                 onClick={() => setIsModalOpen(true)}
               />
             </>
@@ -253,7 +253,7 @@ export default function Header() {
           <div className="flex lg:hidden relative">
             <Globe
               size={33}
-              className="text-gray-600 cursor-pointer"
+              className="text-gray-800 cursor-pointer"
               onClick={() => setShowLangMenu(!showLangMenu)}
             />
 

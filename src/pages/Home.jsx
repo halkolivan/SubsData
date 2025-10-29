@@ -63,7 +63,7 @@ export default function Home() {
       {
         type: "pie",
         radius: ["35%", "55%"],
-        top: 40,
+        top: 80,
         avoidLabelOverlap: false,
         data: Object.entries(categoryTotals).map(([cat, val], index) => ({
           name: t(cat),
