@@ -136,7 +136,7 @@ export default function Settings() {
         />
       </Helmet>
       <div
-        className="flex flex-col w-full bg-gray-100 bg-gray-200 pt-4 pb-4"
+        className="flex flex-col w-full h-full bg-gray-800 bg-gray-200 pt-4 pb-4"
         key={i18n.language}
       >
         <div className="flex w-full justify-center mb-4">

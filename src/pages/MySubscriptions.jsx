@@ -123,7 +123,7 @@ export default function MySubscriptions() {
           content="Измените параметры аккаунта и синхронизации в SubsData."
         />
       </Helmet>
-      <div className="flex flex-col gap-3 w-full bg-gray-200 p-4 justify-start h-full">
+      <div className="flex flex-col gap-3 w-full h-full bg-gray-800 p-4 justify-start">
         <span className="text-[20px]">{t("Mysubscriptions")}</span>
         <div className="flex gap-6 text-sm text-green-600 w-full justify-center ">
           <span>
