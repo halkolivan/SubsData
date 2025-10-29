@@ -196,7 +196,7 @@ export default function Header() {
 
           {/* Sign In / Sign Out */}
           {user ? (
-            <>
+            <div className="shadow-md shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg">
               <h5
                 className="cursor-pointer text-yellow-700 hover:text-yellow-600 hidden lg:flex"
                 onClick={() => {
@@ -214,7 +214,7 @@ export default function Header() {
                   navigate("/"); // возвращаем на главную
                 }}
               />
-            </>
+            </div>
           ) : (
             <>
               <h5
