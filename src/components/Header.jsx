@@ -222,12 +222,12 @@ export default function Header() {
                 onClick={() => setIsModalOpen(true)}
               >
                 {t("SignIn")}
+              </h5>
               <LogIn
                 size={33}
                 className="flex lg:hidden text-gray-800"
                 onClick={() => setIsModalOpen(true)}
               />
-              </h5>
             </>
           )}
 
