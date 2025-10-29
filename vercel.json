@@ -23,12 +23,5 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ],
-  "redirects": [
-    {
-      "source": "/(.*)",
-      "destination": "https://subsdata.vercel.app/$1",
-      "permanent": true
-    }
-  ]
+  ]  
 }
