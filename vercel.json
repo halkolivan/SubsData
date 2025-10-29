@@ -27,7 +27,7 @@
   "redirects": [
     {
       "source": "/(.*)",
-      "destination": "https://new-domain.com/$1",
+      "destination": "https://subsdata.vercel.app/$1",
       "permanent": true
     }
   ]
