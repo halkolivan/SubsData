@@ -22,7 +22,7 @@ app.use((req, res, next) => {
   const oldHost = "subsdata.onrender.com";
   const newDomain = "https://subsdata.vercel.app";
 
-  if (req.headers.host === oldHost) {
+  if (req.headers.host?.startsWith(oldHost)) {
     // Получаем полный путь, включая параметры запроса
     const fullUrl = newDomain + req.originalUrl;
 
