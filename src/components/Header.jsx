@@ -33,7 +33,7 @@ export default function Header() {
     addSubscription,
   } = useAuth();
   const navigate = useNavigate();
-  const iconColor = user ? "text-gray-700" : "text-gray-400 opacity-70";
+
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
   };
@@ -91,9 +91,9 @@ export default function Header() {
               <h5
                 className={
                   user
-                    ? (isActive ? "text-blue-500" : "text-gray-700") +
-                      " hover:text-blue-500 font-bold shadow-md shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg whitespace-nowrap"
-                    : "text-gray-500 cursor-not-allowed font-bold"
+                    ? (isActive ? "text-blue-600" : "text-gray-700") +
+                      " font-bold shadow-md shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg whitespace-nowrap"
+                    : " text-gray-500 cursor-not-allowed font-bold"
                 }
                 onClick={(e) => {
                   if (!user) e.preventDefault(); // блокируем переход
@@ -108,13 +108,21 @@ export default function Header() {
             to={user ? "/mysubscriptions" : "#"}
             className="flex lg:hidden"
           >
-            <FileText
-              size={33}
-              className={`${iconColor} flex lg:hidden cursor-pointer text-gray-900`}
-              onClick={(e) => {
-                if (!user) e.preventDefault(); // блокируем переход
-              }}
-            />
+            {({ isActive }) => (
+              <FileText
+                size={33}
+                className={
+                  user
+                    ? isActive
+                      ? "text-blue-700/90 cursor-pointer"
+                      : "text-gray-900 cursor-pointer"
+                    : "text-gray-500 cursor-not-allowed"
+                }
+                onClick={(e) => {
+                  if (!user) e.preventDefault(); // блокируем переход
+                }}
+              />
+            )}
           </NavLink>
 
           {/* Настройки — отключаем, если нет user */}
@@ -123,9 +131,9 @@ export default function Header() {
               <h5
                 className={
                   user
-                    ? (isActive ? "text-blue-500" : "text-gray-700") +
-                      " hover:text-blue-500 font-bold shadow-md shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg whitespace-nowrap"
-                    : "text-gray-500 cursor-not-allowed font-bold"
+                    ? (isActive ? "text-blue-600" : "text-gray-700") +
+                      " font-bold shadow-md shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg whitespace-nowrap"
+                    : " text-gray-500 cursor-not-allowed font-bold"
                 }
                 onClick={(e) => {
                   if (!user) e.preventDefault(); // блокируем переход
@@ -140,20 +148,28 @@ export default function Header() {
             to={user ? "/settings" : "#"}
             className="flex lg:hidden whitespace-nowrap "
           >
-            <Settings
-              size={33}
-              className={`${iconColor} flex lg:hidden cursor-pointer text-gray-900 `}
-              onClick={(e) => {
-                if (!user) e.preventDefault(); // блокируем переход
-              }}
-            />
+            {({ isActive }) => (
+              <Settings
+                size={33}
+                className={
+                  user
+                    ? isActive
+                      ? "text-blue-700/90 cursor-pointer"
+                      : "text-gray-900 cursor-pointer"
+                    : "text-gray-500 cursor-not-allowed"
+                }
+                onClick={(e) => {
+                  if (!user) e.preventDefault(); // блокируем переход
+                }}
+              />
+            )}
           </NavLink>
 
           {/* Добавление подписки */}
           <h5
             className={
               user
-                ? "cursor-pointer hover:text-green-600 font-bold text-green-700 hidden lg:flex shadow-md shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg whitespace-nowrap"
+                ? "cursor-pointer text-green-800 hover:text-green-900 font-bold  hidden lg:flex shadow-md shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg whitespace-nowrap"
                 : "text-gray-500 cursor-not-allowed font-bold hidden lg:flex"
             }
             onClick={() => {
@@ -169,7 +185,7 @@ export default function Header() {
 
           <CirclePlus
             size={33}
-            className={`${iconColor} flex lg:hidden cursor-pointer text-gray-900`}
+            className="text-gray-800 flex lg:hidden cursor-pointer active:text-green-700 hover:text-green-900"
             onClick={() => {
               if (user) {
                 setIsAddModalOpen(true); // открыть модалку добавления подписки
@@ -182,8 +198,8 @@ export default function Header() {
           {/* 🔒 Кнопка приватности */}
           <button
             onClick={() => setShowPrivacy(true)}
-            className="flex min-h-[48px] items-center text-gray-600 hidden lg:flex hover:shadow-green-400 hover:!border-red-200/0
-            shadow-md shadow-sky-300 active:shadow-green-600 rounded-lg !bg-gray-50/0 hover:!text-gray-900"
+            className="flex min-h-[48px] items-center text-gray-700 hover:!text-gray-900 !font-bold hidden lg:flex hover:shadow-green-400 hover:!border-red-200/0
+            shadow-md shadow-sky-300 active:shadow-green-600 rounded-lg !bg-gray-50/0 "
           >
             <Lock className="!bg-gray-50/0" />
             {t("Privacy")}
@@ -198,10 +214,10 @@ export default function Header() {
           {user ? (
             <div className="flex flex-nowrap shadow-md shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg">
               <h5
-                className="cursor-pointer text-yellow-700 hover:text-yellow-600 hidden lg:flex"
+                className="cursor-pointer text-gray-800 hover:text-gray-900 font-semibold hidden lg:flex"
                 onClick={() => {
                   logout();
-                  navigate("/"); // возвращаем на главную
+                  navigate("/");
                 }}
               >
                 {t("SignOut")} ({user.name})
@@ -211,7 +227,7 @@ export default function Header() {
                 className="text-yellow-700 cursor-pointer hover:text-yellow-600 transition-transform duration-150 hover:scale-110"
                 onClick={() => {
                   logout();
-                  navigate("/"); // возвращаем на главную
+                  navigate("/");
                 }}
               />
             </div>
@@ -236,7 +252,7 @@ export default function Header() {
             <select
               value={i18n.language}
               onChange={(e) => changeLanguage(e.target.value)}
-              className="min-h-[48px] border rounded px-2 py-1 text-sm bg-gray-50/0 shadow-md shadow-sky-300 text-gray-700 
+              className="min-h-[48px] border rounded px-2 py-1 text-sm bg-gray-50/0 shadow-md shadow-sky-300 text-gray-700 !font-bold
               hover:border-blue-50/0 border-blue-50/0 hover:shadow-green-400 cursor-pointer"
             >
               <option value="en">English</option>
@@ -253,7 +269,7 @@ export default function Header() {
           <div className="flex lg:hidden relative">
             <Globe
               size={33}
-              className="text-gray-800 cursor-pointer"
+              className="text-gray-800 cursor-pointer active:text-blue-700/70"
               onClick={() => setShowLangMenu(!showLangMenu)}
             />
 
