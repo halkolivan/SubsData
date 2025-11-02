@@ -2,9 +2,7 @@ import {
   useState,
   useEffect,
   useCallback,
-  useRef, // ✅ Добавлен useRef для хранения Google Token Client
-  // createContext, // Исключено по вашему требованию
-  // useContext,    // Исключено, поскольку useAuth экспортируется из другого файла
+  useRef,
 } from "react";
 import { notifySubscriptions } from "@/hooks/useNotifyDataSub";
 // ✅ Импортируем AuthContext из отдельного файла, как вы просили

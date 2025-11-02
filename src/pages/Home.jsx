@@ -11,6 +11,7 @@ export default function Home() {
   const { t } = useTranslation();
   const { subscriptions, settings } = useAuth();
   const sourceSubs = subscriptions.length ? subscriptions : mockSubs;
+  console.log("📊 Используемые подписки:", sourceSubs); // Для отладки
   const totalSubs = sourceSubs.length;
   const subSum = sourceSubs.reduce(
     (acc, sub) => acc + (Number(sub.price) || 0),
@@ -301,7 +302,7 @@ export default function Home() {
           theme="futurism"/>
           <ReactECharts
             option={serviceOption}
-            // className="max-h-[400px] border-b-1"
+            // className="max-h-[400px] "
           theme="futurism"/>
           <div className="col-span-2">
             <ReactECharts

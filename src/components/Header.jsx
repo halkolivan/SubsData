@@ -22,7 +22,7 @@ export default function Header() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showLangMenu, setShowLangMenu] = useState(false);
-  // const { isAddModalOpen, setIsAddModalOpen, addSubscription } = useAuth();
+  
   const {
     user,
     login,
@@ -343,7 +343,7 @@ export default function Header() {
 
                   const newSub = {
                     name: form[0].value,
-                    price: form[1].value,
+                    price: parseFloat(form[1].value) || 0,
                     category: form[2].value,
                     nextPayment: form[3].value,
                     status: form[4].value,
