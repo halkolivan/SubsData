@@ -3,14 +3,12 @@ import { useState } from "react";
 import { useAuth } from "@/context/auth-context-export"; // Убедитесь, что этот импорт правильный
 
 export default function SaveButton() {
-  
   // ✅ 1. ИМПОРТ: Добавляем новую функцию из контекста
 
   const { subscriptions, saveSubscriptionsToDrive } = useAuth();
   const [status, setStatus] = useState("");
 
-  const handleSave = async () => { 
-
+  const handleSave = async () => {
     // ✅ ИСПОЛЬЗУЕМ: Актуальный state напрямую
     const finalSubs = subscriptions;
     console.log("📦 Отправляем в Drive:", finalSubs); // Для отладки
@@ -37,7 +35,7 @@ export default function SaveButton() {
   return (
     <button
       onClick={handleSave}
-      className="flex items-center space-x-2 px-3 py-1.5 !bg-gray-200 text-gray-700 rounded-full hover:!bg-gray-300 transition-colors"
+      className="flex items-center space-x-2 px-3 py-1.5 !bg-blue-600 hover:!bg-blue-500 text-gray-50 rounded-full transition-colors"
       title="Сохранить подписки в Google Drive"
     >
       <Save size={18} />

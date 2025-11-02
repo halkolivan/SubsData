@@ -326,10 +326,10 @@ export default function Header() {
               className="absolute inset-0 bg-black/50"
               onClick={() => setIsAddModalOpen(false)}
             />
-            <div className="relative !bg-white rounded-lg shadow-lg p-6 w-[400px]">
+            <div className="relative bg-gradient-to-t from-gray-800 via-gray-500 to-gray-800 rounded-lg shadow-lg p-6 w-[400px]">
               <button
                 onClick={() => setIsAddModalOpen(false)}
-                className="absolute top-2 right-2 !text-black !bg-white hover:!text-red-500 hover:!border-white"
+                className="absolute top-2 right-2 !text-black !bg-gray-700/0 hover:!text-red-500 hover:!border-white"
               >
                 ✖
               </button>
@@ -364,7 +364,7 @@ export default function Header() {
                   placeholder={t("Price")}
                   className="border p-2 rounded"
                 />
-                <select className="border p-2 rounded">
+                <select className="border p-2 rounded bg-gray-500">
                   <option>{t("Software")}</option>
                   <option>{t("Music")}</option>
                   <option>{t("Education")}</option>
@@ -372,7 +372,7 @@ export default function Header() {
                   <option>{t("Games")}</option>
                 </select>
                 <input type="date" className="border p-2 rounded" />
-                <select className="border p-2 rounded">
+                <select className="border p-2 rounded bg-gray-500">
                   <option value="active">{t("ActiveSubs")}</option>
                   <option value="inactive">{t("InactiveSubs")}</option>
                 </select>
@@ -381,17 +381,11 @@ export default function Header() {
                   <button
                     type="button"
                     onClick={() => setIsAddModalOpen(false)}
-                    className="px-4 py-2 !bg-gray-300 rounded hover:!bg-gray-400"
+                    className="px-4 py-2 !bg-gray-800 rounded hover:!bg-gray-700"
                   >
                     {t("Cancel")}
                   </button>
-                  {/* <button
-                    type="submit"
-                    className="px-4 py-2 !bg-blue-500 text-white rounded hover:!bg-blue-600"
-                  >
-                    {t("Save")}
-                  </button> */}
-                  <SaveButton className="px-4 py-2 !bg-blue-500 text-white rounded hover:!bg-blue-600" />
+                  <SaveButton />
                 </div>
               </form>
             </div>
