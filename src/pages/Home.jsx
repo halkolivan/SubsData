@@ -10,8 +10,7 @@ import { formatDate, formatPrice } from "@/utils/formatUtils";
 export default function Home() {
   const { t } = useTranslation();
   const { subscriptions, settings } = useAuth();
-  const sourceSubs = subscriptions.length ? subscriptions : mockSubs;
-  console.log("📊 Используемые подписки:", sourceSubs); // Для отладки
+  const sourceSubs = subscriptions.length ? subscriptions : mockSubs;  
   const totalSubs = sourceSubs.length;
   const subSum = sourceSubs.reduce(
     (acc, sub) => acc + (Number(sub.price) || 0),
@@ -220,11 +219,8 @@ export default function Home() {
   axisLabel: { color: "#c2f8ff" },
   splitLine: { lineStyle: { color: "rgba(0, 234, 255, 0.15)" } },
 });
-
-
-  //Убрать/показать сообщение
-  useEffect(() => {
-    // если подписки появились — убираем уведомление
+  
+  useEffect(() => {    
     if (subscriptions.length > 0) {
       setShowDemoNotice(false);
     } else {
@@ -234,7 +230,7 @@ export default function Home() {
 
   return (
     <main className="flex h-auto w-full">
-      <div className="flex flex-col items-start w-full h-full pr-4 pl-4 bg-gray-800">
+      <div className="flex flex-col items-start w-full h-full pr-4 pl-4 pt-10 bg-gray-800">
         {showDemoNotice && (
           <div className="flex items-center w-auto m-auto mt-5 justify-center gap-2 text-sky-500 p-3 mb-4 border-2 rounded-lg">
             <Info className="w-5 h-5" />

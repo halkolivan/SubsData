@@ -11,8 +11,7 @@ export default function Settings() {
   const { settings, updateSettings } = useAuth();
 
   // список пунктов меню
-  const menuItems = [
-    // { key: "notification", label: t("NotificationTime") },
+  const menuItems = [    
     { key: "currency", label: t("Currency") },
     { key: "dateformat", label: t("DateFormat") },
   ];
@@ -149,15 +148,16 @@ export default function Settings() {
               <button
                 key={item.key}
                 onClick={() => setActive(item.key)}
-                className={`pl-4 text-center rounded-md w-full transition-colors duration-200 !border-gray-200 !bg-gray-200 hover:!border-gray-200
-                ${active === item.key ? "text-black" : "text-gray-400"}`}
+                className={`pl-4 text-center rounded-md w-full transition-colors duration-200 !border-gray-200/0 !bg-gray-200/0 hover:!border-gray-200/0
+                ${active === item.key ? "text-gray-200" : "text-gray-400"}`}
               >
                 {item.label}
               </button>
             ))}
           </div>
+
           {/* Правая панель */}
-          <div className="flex w-auto sm:w-2/3 bg-gray-200 items-center justify-center rounded-md p-4">
+          <div className="flex w-auto sm:w-2/3 bg-gray-200/0 items-center justify-center rounded-md p-4 sm:mr-4">
             {/* ВАЛЮТА */}
             {active === "currency" && (
               <form
@@ -177,7 +177,7 @@ export default function Settings() {
                   <select
                     value={defaultCurrency}
                     onChange={(e) => setDefaultCurrency(e.target.value)}
-                    className="w-48 p-2 rounded-md border border-gray-300 dark:border-gray-600"
+                    className="w-48 p-2 rounded-md border border-gray-300 dark:border-gray-600 bg-gray-500"
                   >
                     {currencyList.map((c) => (
                       <option
@@ -214,10 +214,10 @@ export default function Settings() {
                 </div>
 
                 <div>
-                  <p className="text-sm font-medium text-gray-700">
+                  <p className="text-sm font-medium text-gray-300">
                     {t("ExampleOfConversion")}
                   </p>
-                  <p className="text-sm text-gray-700">
+                  <p className="text-sm text-gray-300">
                     10 USD → {defaultCurrency}:{" "}
                     {convert(10, "USD", defaultCurrency)} {defaultCurrency}
                   </p>
@@ -242,7 +242,7 @@ export default function Settings() {
                       setCustomCurrency("");
                       setCurrencyMsg("");
                     }}
-                    className=" text-white  py-2 px-4 rounded-md hover:!text-gray-200 transition"
+                    className=" text-white  py-2 px-4 rounded-md hover:!text-gray-200 transition !bg-gray-800 hover:!bg-gray-700"
                   >
                     {t("Reset")}
                   </button>
@@ -269,7 +269,7 @@ export default function Settings() {
                   <select
                     value={dateFormat}
                     onChange={(e) => setDateFormat(e.target.value)}
-                    className="w-60 p-2 rounded-md border border-gray-300 dark:border-gray-600"
+                    className="w-60 p-2 rounded-md border border-gray-300 dark:border-gray-600 bg-gray-500"
                   >
                     <option value="DD.MM.YYYY">30.09.2025</option>
                     <option value="MM/DD/YYYY">09/30/2025</option>
@@ -283,7 +283,7 @@ export default function Settings() {
                   </select>
                 </div>
 
-                <div className="text-sm text-gray-700 ">
+                <div className="text-sm text-gray-300 ">
                   {t("Example")}:{" "}
                   <span className="font-medium">
                     {formatPreview("2025-09-30", dateFormat)}

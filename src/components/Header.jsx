@@ -35,6 +35,7 @@ export default function Header() {
   const navigate = useNavigate();
 
   const changeLanguage = (lng) => {
+    localStorage.setItem("i18nextLng", lng);
     i18n.changeLanguage(lng);
   };
 
@@ -214,7 +215,7 @@ export default function Header() {
           {user ? (
             <div className="flex flex-nowrap shadow-md shadow-sky-300 hover:shadow-green-400 p-3 rounded-lg">
               <h5
-                className="cursor-pointer text-gray-800 hover:text-gray-900 font-semibold hidden lg:flex"
+                className="cursor-pointer text-gray-800 hover:text-gray-900 font-semibold hidden lg:flex whitespace-nowrap"
                 onClick={() => {
                   logout();
                   navigate("/");
@@ -302,16 +303,18 @@ export default function Header() {
         {/* Модалка приватности */}
         {showPrivacy && (
           <div className="fixed flex items-center justify-center bg-black/50 inset-0 !z-50">
-            <div className="bg-white rounded-xl shadow-lg p-6 max-w-md w-full text-gray-700 !z-50">
-              <h2 className="text-lg font-semibold mb-3">{t("Privacy")}</h2>
-              <ul className="list-disc list-inside space-y-2 text-sm">
+            <div className="bg-white rounded-xl shadow-lg p-6 max-w-md w-full text-gray-700 !z-50 bg-gradient-to-t from-gray-800 via-gray-500 to-gray-800">
+              <h2 className="text-lg font-semibold mb-3 text-gray-300">
+                {t("Privacy")}
+              </h2>
+              <ul className="list-disc list-inside space-y-2 text-sm text-gray-300">
                 <li>{t("PrivacyLocal")}</li>
                 <li>{t("PrivacyNoServer")}</li>
                 <li>{t("PrivacyGDPR")}</li>
               </ul>
               <button
                 onClick={() => setShowPrivacy(false)}
-                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                className="mt-4 px-4 py-2 text-white rounded !bg-gray-800 hover:!bg-gray-700"
               >
                 {t("Close")}
               </button>
@@ -381,7 +384,7 @@ export default function Header() {
                   <button
                     type="button"
                     onClick={() => setIsAddModalOpen(false)}
-                    className="px-4 py-2 !bg-gray-800 rounded hover:!bg-gray-700"
+                    className="px-4 py-2 rounded !bg-gray-800 hover:!bg-gray-700"
                   >
                     {t("Cancel")}
                   </button>

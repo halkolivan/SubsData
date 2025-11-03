@@ -246,8 +246,8 @@ export default function MySubscriptions() {
 
         {/* Модалка подтверждения удаления */}
         {isConfirmOpen && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-            <div className="bg-gray-600 p-6 rounded-xl shadow-xl max-w-sm w-full">
+          <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50 ">
+            <div className="bg-gray-600 p-6 rounded-xl shadow-xl max-w-sm w-full bg-gradient-to-t from-gray-800 via-gray-500 to-gray-800">
               <p className="mb-4">{t("ConfirmDeleteMessage")}</p>
               <div className="flex justify-end gap-3">
                 <button
@@ -270,7 +270,7 @@ export default function MySubscriptions() {
         {/* Модалка редактирования */}
         {isEditOpen && editData && (
           <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-            <div className="bg-white p-6 rounded-xl shadow-xl max-w-sm w-full flex flex-col gap-4">
+            <div className="bg-white p-6 rounded-xl shadow-xl max-w-sm w-full flex flex-col gap-4 bg-gradient-to-t from-gray-800 via-gray-500 to-gray-800">
               <h3 className="text-lg font-semibold">{t("EditSubscription")}</h3>
               <input
                 className="border p-2 rounded"
@@ -300,7 +300,7 @@ export default function MySubscriptions() {
                 }
               />
               <select
-                className="border p-2 rounded"
+                className="border p-2 rounded bg-gray-500"
                 value={editData.status}
                 onChange={(e) => handleEditChange("status", e.target.value)}
               >
@@ -311,7 +311,7 @@ export default function MySubscriptions() {
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => setIsEditOpen(false)}
-                  className="px-4 py-2 !bg-gray-300 rounded hover:!bg-gray-400"
+                  className="px-4 py-2 !bg-gray-800 rounded hover:!bg-gray-700"
                 >
                   {t("Cancel")}
                 </button>

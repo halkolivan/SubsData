@@ -1,10 +1,10 @@
 import { Save } from "lucide-react";
 import { useState } from "react";
-import { useAuth } from "@/context/auth-context-export"; // Убедитесь, что этот импорт правильный
+import { useAuth } from "@/context/auth-context-export";
+import { useTranslation } from "react-i18next";
 
 export default function SaveButton() {
-  // ✅ 1. ИМПОРТ: Добавляем новую функцию из контекста
-
+  const { t } = useTranslation();
   const { subscriptions, saveSubscriptionsToDrive } = useAuth();
   const [status, setStatus] = useState("");
 
@@ -39,7 +39,7 @@ export default function SaveButton() {
       title="Сохранить подписки в Google Drive"
     >
       <Save size={18} />
-      <span className="font-semibold text-sm">{status || "Сохранить"}</span>
+      <span className="font-semibold text-sm">{status || t("Save")}</span>
     </button>
   );
 }
