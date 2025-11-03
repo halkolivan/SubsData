@@ -397,15 +397,15 @@ export default function Header() {
       </nav>
       {/* Модальное окно авторизации */}
       {isModalOpen && (
-        <div className="fixed inset-0 flex justify-center items-center z-50">
+        <div className="fixed inset-0 flex justify-center items-center z-50 ">
           <div
             className="absolute inset-0 bg-black/50"
             onClick={() => setIsModalOpen(false)}
           />
-          <div className="relative bg-white rounded-lg shadow-lg p-6 w-[400px]">
+          <div className="relative bg-white rounded-lg shadow-lg p-6 w-[400px] bg-gradient-to-t from-gray-800 via-gray-500 to-gray-800">
             <button
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-2 right-2 text-red-700 hover:text-red-500 !bg-white hover:!border-white"
+              className="absolute top-2 right-2 !text-black hover:!text-red-500 !bg-white/0 hover:!border-white/0"
             >
               ✖
             </button>
@@ -415,7 +415,7 @@ export default function Header() {
             {/* Google Auth */}
             <button
               onClick={() => loginWithGoogle()}
-              className="w-full px-4 py-2 !bg-white text-gray-800 rounded-sm hover:!bg-blue-100 mt-3 border !border-gray-300 hover:!border-blue-100"
+              className="w-full px-4 py-2 !bg-gray-800 hover:!bg-gray-700 text-white rounded-sm mt-3 border !border-gray-400"
             >
               {t("SignInWithGoogle")}
             </button>
@@ -430,7 +430,7 @@ export default function Header() {
                 setIsModalOpen(false);
                 window.location.href = url;
               }}
-              className="w-full px-4 py-2 !bg-white text-gray-800 !rounded-sm hover:!bg-blue-100 mt-3 border-1 !border-gray-300 hover:!border-blue-100"
+              className="w-full px-4 py-2 !bg-gray-800 hover:!bg-gray-700 text-white !rounded-sm mt-3 border-1 !border-gray-400"
             >
               {t("SignInWithGitHub")}
             </button>

@@ -10,7 +10,9 @@ export default function Terms() {
       </p>
       <p>
         SubsData interacts only with your Google Drive files created by the
-        application itself and does not share or distribute your information.
+        application itself and does not share or distribute your information.Any
+        optional function, such as sending data by e-mail, is an action
+        initiated and controlled by the user.
       </p>
       <p>
         We may update these terms occasionally. Continued use of the app means
