@@ -6,8 +6,8 @@ import { RouterProvider, createBrowserRouter } from "react-router-dom";
 
 //import pages
 const Home = lazy(() => import("./pages/Home"));
-const Privacy = lazy(() => import("./pages/Privacy"))
-const Terms = lazy(() => import("./pages/Terms"))
+const Privacy = lazy(() => import("@pages/Privacy.jsx"))
+const Terms = lazy(() => import("./pages/Terms.jsx"))
 const Settings = lazy(() => import("./pages/Settings"));
 const MySubscriptions = lazy(() => import("./pages/MySubscriptions"));
 export default function Router() {

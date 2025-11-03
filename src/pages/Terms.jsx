@@ -1,8 +1,8 @@
 export default function Terms() {
   return (
-    <div className="flex flex-col m-3">
+    <div className="flex flex-col m-3 max-w-[1200px] h-full">
       <h1>Terms of Service</h1>
-      <p>Last updated: October 2025</p>
+      <p className="mt-5">Last updated: October 2025</p>
       <p>
         By using SubsData, you agree to these terms. The app is provided “as is”
         without warranty of any kind. You are responsible for maintaining

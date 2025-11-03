@@ -253,7 +253,7 @@ export default function Header() {
             <select
               value={i18n.language}
               onChange={(e) => changeLanguage(e.target.value)}
-              className="min-h-[48px] border rounded px-2 py-1 text-sm bg-gray-50/0 shadow-md shadow-sky-300 text-gray-700 !font-bold
+              className="min-h-[48px] border rounded px-2 py-1 text-sm !bg-gray-400/20 shadow-md shadow-sky-300 text-gray-700 !font-bold
               hover:border-blue-50/0 border-blue-50/0 hover:shadow-green-400 cursor-pointer"
             >
               <option value="en">English</option>

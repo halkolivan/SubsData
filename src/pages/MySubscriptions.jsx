@@ -150,7 +150,7 @@ export default function MySubscriptions() {
         ) : (
           <>
             <SendByEmailButton subscriptions={subscriptions} />
-            <div className="overflow-x-auto flex flex-col w-auto justify-center">
+            <div className="overflow-x-auto flex flex-col w-full justify-center">
               <table className="w-full">
                 <thead className="border-b-2">
                   <tr>

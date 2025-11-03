@@ -1,8 +1,8 @@
 export default function Privacy() {
   return (
-    <div className="flex flex-col m-3">
+    <div className="flex flex-col m-3 max-w-1200 h-full">
       <h1>Privacy Policy</h1>
-      <p>Last updated: October 2025</p>
+      <p className="mt-5">Last updated: October 2025</p>
       <p>
         SubsData respects your privacy. This app uses your Google account only
         to access and store your subscription data in your own Google Drive.
