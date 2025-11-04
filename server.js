@@ -65,13 +65,6 @@ const FRONT_ORIGIN = process.env.FRONT_ORIGIN || "https://subsdata.vercel.app";
     })
   );
 
-// --- Пример (если когда-то понадобится ставить куку) ---
-// res.cookie("sid", sessionId, {
-//   httpOnly: true,
-//   secure: true,
-//   sameSite: "None",
-// });
-
 // --- Service Worker ---
 app.get("/sw.js", (req, res) => {
   const swFile = path.join(distPath, "sw.js");
@@ -132,7 +125,10 @@ app.post("/auth/github", async (req, res) => {
   const { code } = req.body || {};
   if (!code) return res.status(400).json({ error: "missing_code" });
 
-  const { GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET } = process.env;
+  // Переменные окружения для ID и Секрета
+  const GITHUB_CLIENT_ID = process.env.VITE_GITHUB_CLIENT_ID;
+  const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
+
   if (!GITHUB_CLIENT_ID || !GITHUB_CLIENT_SECRET)
     return res.status(500).json({ error: "missing_github_client_env" });
 
@@ -150,6 +146,7 @@ app.post("/auth/github", async (req, res) => {
           client_id: GITHUB_CLIENT_ID,
           client_secret: GITHUB_CLIENT_SECRET,
           code,
+          redirect_uri: redirect_uri,
         }),
       }
     );
@@ -265,8 +262,6 @@ app.post("/api/send-subs-email", authMiddleware, async (req, res) => {
     res.status(500).json({ error: "Ошибка при отправке письма через сервер." });
   }
 });
-
-// app.options("/api/send-subs-email", cors());
 
 // --- Лог отсутствующих ассетов (только для диагностики) ---
 app.use((req, res, next) => {
