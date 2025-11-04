@@ -22,10 +22,12 @@ export const AuthProvider = ({ children }) => {
     () => localStorage.getItem("authToken") || null
   );
 
-  const [subscriptions, setSubscriptions] = useState(() => {
-    const saved = localStorage.getItem("userSubscriptions");
-    return localStorage.getItem("authToken") && saved ? JSON.parse(saved) : [];
-  });
+  const [subscriptions, setSubscriptions] = useState([]);
+
+  // const [subscriptions, setSubscriptions] = useState(() => {
+  //   const saved = localStorage.getItem("userSubscriptions");
+  //   return localStorage.getItem("authToken") && saved ? JSON.parse(saved) : [];
+  // });
 
   const [settings, setSettings] = useState(() => {
     const saved = localStorage.getItem("userSettings");
@@ -85,6 +87,11 @@ export const AuthProvider = ({ children }) => {
   // --- Add Subscription ---
   const addSubscription = useCallback(
     (newSub) => {
+      if (!user?.id) {
+        console.warn("⚠️ Невозможно сохранить: пользователь не авторизован.");
+        return;
+      }
+
       const subToAdd = {
         ...newSub,
         id: Date.now(),
@@ -127,22 +134,27 @@ export const AuthProvider = ({ children }) => {
     });
 
     useEffect(() => {
-      if (user?.id && subscriptions.length === 0) {
+      if (user?.id) {
         const userSubKey = getUserSubscriptionKey(user.id);
-        if (userSubKey) {
-          const savedSubs = localStorage.getItem(userSubKey);
-          if (savedSubs) {
-            try {
-              const subs = JSON.parse(savedSubs);
-              setSubscriptions(subs);
-              console.log(`✅ Восстановление подписок для ID: ${user.id}`);
-            } catch (e) {
-              console.error("❌ Ошибка восстановления локальных подписок:", e);
-            }
+        const savedSubs = localStorage.getItem(userSubKey);
+
+        if (savedSubs) {
+          try {
+            const subs = JSON.parse(savedSubs);
+            setSubscriptions(subs);
+            console.log(`✅ Восстановление подписок для ID: ${user.id}`);
+          } catch (e) {
+            console.error("❌ Ошибка восстановления локальных подписок:", e);
+            setSubscriptions([]);
           }
+        } else {
+          // Если пользователь есть, но данных нет по уникальному ключу
+          setSubscriptions([]);
         }
+      } else {
+        // Если пользователь не авторизован, очищаем состояние
+        setSubscriptions([]);
       }
-      // Этот useEffect должен выполняться только при первом монтировании или изменении user
     }, [user]);
 
     // Периодическая проверка и обновление токена (каждые 50 минут)
