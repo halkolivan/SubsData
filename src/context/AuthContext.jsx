@@ -122,39 +122,7 @@ export const AuthProvider = ({ children }) => {
       }
     },
     [subscriptions]
-  );
-
-  // --- Save State to Drive ---
-  const saveStateToDrive = useCallback(
-    async (currentSubs) => {
-      if (!token || !API_URL) {
-        console.warn("⚠️ Отмена сохранения: нет токена или API_URL.");
-        return;
-      }
-
-      const payload = { subscriptions: currentSubs };
-
-      try {
-        const res = await fetch(`${API_URL}/save-subs`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(payload),
-        });
-
-        if (res.ok) {
-          console.log("💾 ✅ Состояние успешно сохранено в Google Drive.");
-        } else {
-          console.error("❌ Ошибка при сохранении в Drive:", await res.json());
-        }
-      } catch (err) {
-        console.error("❌ Ошибка fetch при сохранении в Drive:", err);
-      }
-    },
-    [token, API_URL]
-  );
+  );  
 
   // --- Обновление access_token (Инициализация клиента) ---
   useEffect(() => {
@@ -164,7 +132,7 @@ export const AuthProvider = ({ children }) => {
     // Инициализируем объект и сохраняем его в Ref
     tokenClientRef.current = window.google.accounts.oauth2.initTokenClient({
       client_id: GOOGLE_CLIENT_ID,
-      scope: "https://www.googleapis.com/auth/drive.file email profile",
+      scope: "email profile",
       callback: (resp) => {
         if (resp?.access_token) {
           console.log("🔄 Автоматически обновлён Google access_token (Авто)");
@@ -251,9 +219,8 @@ export const AuthProvider = ({ children }) => {
         subscriptions,
         setSubscriptions,
         settings,
-        updateSettings,
-        saveStateToDrive,
-        refreshAccessToken, // ✅ ЭКСПОРТИРУЕМ ИСПРАВЛЕННУЮ ФУНКЦИЮ
+        updateSettings,        
+        refreshAccessToken,
       }}
     >
       {children}

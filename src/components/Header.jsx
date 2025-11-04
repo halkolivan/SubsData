@@ -42,7 +42,7 @@ export default function Header() {
   // Google Login с полными правами для Drive
   const loginWithGoogle = useGoogleLogin({
     scope:
-      "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.metadata.readonly email profile openid",
+      "email profile openid",
     onSuccess: async (tokenResponse) => {
       try {
         const userInfo = await fetch(
