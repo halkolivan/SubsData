@@ -1,50 +1,10 @@
-import {
-  useState,
-  useEffect,
-  useCallback,
-  useRef,
-} from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { notifySubscriptions } from "@/hooks/useNotifyDataSub";
 // ✅ Импортируем AuthContext из отдельного файла, как вы просили
 import { AuthContext } from "./auth-context-export.js";
 
 // --- Константы ENV ---
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-const API_URL = import.meta.env.VITE_API_URL;
-
-// --- Асинхронная функция загрузки подписок ---
-const loadSubscriptions = async (token, setSubscriptions) => {
-  if (!token || !API_URL) return;
-
-  try {
-    const res = await fetch(`${API_URL}/get-subs`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    const data = await res.json();
-
-    if (res.ok && data.subscriptions && Array.isArray(data.subscriptions)) {
-      console.log("✅ Подписки успешно загружены с Google Drive");
-      setSubscriptions(data.subscriptions);
-      localStorage.setItem(
-        "userSubscriptions",
-        JSON.stringify(data.subscriptions)
-      );
-    } else if (res.status === 404 || res.status === 403) {
-      console.log(
-        "⚠️ Файл подписок не найден или нет доступа. Начинаем с пустого списка."
-      );
-      setSubscriptions([]);
-    } else {
-      console.error("❌ Ошибка при загрузке подписок:", data.error);
-    }
-  } catch (err) {
-    console.error("❌ Ошибка fetch при загрузке подписок:", err);
-  }
-};
 
 export const AuthProvider = ({ children }) => {
   // --- Состояния ---
@@ -82,9 +42,22 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("authToken", authToken);
     setIsAuthModalOpen(false);
     setJustLoggedIn(true);
-
-    loadSubscriptions(authToken, setSubscriptions);
   };
+
+  // 2. ✅ КОРРЕКТНАЯ ЗАГРУЗКА ИЗ LOCAL STORAGE ПОСЛЕ ЛОГИНА
+  const savedSubs = localStorage.getItem("userSubscriptions");
+  if (savedSubs) {
+    try {
+      const subs = JSON.parse(savedSubs);
+      setSubscriptions(subs);
+      console.log("✅ Подписки успешно загружены из Local Storage при логине.");
+    } catch (e) {
+      console.error("❌ Ошибка парсинга локальных подписок:", e);
+      setSubscriptions([]); // Если локальные данные повреждены
+    }
+  } else {
+    setSubscriptions([]); // Нет данных, начинаем с пустого списка
+  }
 
   const logout = () => {
     setUser(null);
@@ -122,7 +95,7 @@ export const AuthProvider = ({ children }) => {
       }
     },
     [subscriptions]
-  );  
+  );
 
   // --- Обновление access_token (Инициализация клиента) ---
   useEffect(() => {
@@ -219,7 +192,7 @@ export const AuthProvider = ({ children }) => {
         subscriptions,
         setSubscriptions,
         settings,
-        updateSettings,        
+        updateSettings,
         refreshAccessToken,
       }}
     >

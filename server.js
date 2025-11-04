@@ -19,7 +19,7 @@ console.log("🗂 Serving static from:", distPath);
 // --- Разрешаем JSON для body ---
 app.use(express.json());
 app.use((req, res, next) => {
-  const oldHost = "subsdata.onrender.com";
+  const oldHost = "subsdata.vercel.app";
   const newDomain = "https://subsdata.vercel.app";
 
   if (req.headers.host?.startsWith(oldHost)) {
@@ -41,16 +41,14 @@ const allowedOrigins = [
   // 2. Основной домен Vercel (через переменную окружения или новый Vercel-домен)
   process.env.FRONT_ORIGIN || "https://subsdata.vercel.app",
   // 3. Старый домен (если нужно для обратной совместимости)
-  "https://subsdata.onrender.com",
+  "https://subsdata.vercel.app",
   // 4. Дополнительный API (Render)
-  "https://subsdata-api.onrender.com",
+  "https://subsdata-api.vercel.app",
 ];
 
 // --- CORS настройка ---
-const FRONT_ORIGIN =
-  process.env.FRONT_ORIGIN || "https://subsdata.onrender.com";
+const FRONT_ORIGIN = process.env.FRONT_ORIGIN || "https://subsdata.vercel.app";
 "http://localhost:5173", // Локальная разработка
-  "https://subsdata-api.onrender.com", // Иногда API должен разрешать сам себя
   app.use(
     cors({
       origin: (origin, callback) => {
@@ -66,7 +64,6 @@ const FRONT_ORIGIN =
       allowedHeaders: ["Content-Type", "Authorization"],
     })
   );
-
 
 // --- Пример (если когда-то понадобится ставить куку) ---
 // res.cookie("sid", sessionId, {
@@ -179,7 +176,6 @@ app.post("/auth/github", async (req, res) => {
     res.status(500).json({ error: "github_exchange_failed" });
   }
 });
-
 
 // --- Проверка Google access_token ---
 async function authMiddleware(req, res, next) {
