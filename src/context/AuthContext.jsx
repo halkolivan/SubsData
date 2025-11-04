@@ -92,10 +92,10 @@ export const AuthProvider = ({ children }) => {
   const addSubscription = useCallback(
     (newSub) => {
       // Проверка, что пользователь авторизован и имеет ID
-      if (!user?.id) {
-        console.warn("⚠️ Невозможно сохранить: пользователь не авторизован.");
-        return;
-      }
+      // if (!user?.id) {
+      //   console.warn("⚠️ Невозможно сохранить: пользователь не авторизован.");
+      //   return;
+      // }
 
       const subToAdd = {
         ...newSub,
