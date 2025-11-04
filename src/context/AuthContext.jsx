@@ -6,6 +6,11 @@ import { AuthContext } from "./auth-context-export.js";
 // --- Константы ENV ---
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
+// 🔑 Функция для получения уникального ключа подписок
+const getUserSubscriptionKey = (userId) => {
+  return userId ? `userSubscriptions_${userId}` : null;
+};
+
 export const AuthProvider = ({ children }) => {
   // --- Состояния ---
   const [user, setUser] = useState(() => {
@@ -44,24 +49,23 @@ export const AuthProvider = ({ children }) => {
     setJustLoggedIn(true);
 
     // 2. ✅ КОРРЕКТНАЯ ЗАГРУЗКА ИЗ LOCAL STORAGE ПОСЛЕ ЛОГИНА
-    const savedSubs = localStorage.getItem("userSubscriptions");
-    if (savedSubs) {
-      try {
-        const subs = JSON.parse(savedSubs);
-        setSubscriptions(subs);
-        console.log(
-          "✅ Подписки успешно загружены из Local Storage при логине."
-        );
-      } catch (e) {
-        console.error("❌ Ошибка парсинга локальных подписок:", e);
-        setSubscriptions([]); // Если локальные данные повреждены
+    const userSubKey = getUserSubscriptionKey(userData.id);
+    if (userSubKey) {
+      const savedSubs = localStorage.getItem(userSubKey);
+      if (savedSubs) {
+        try {
+          const subs = JSON.parse(savedSubs);
+          setSubscriptions(subs);
+          console.log(`✅ Подписки загружены для ID: ${userData.id}`);
+        } catch (e) {
+          console.error("❌ Ошибка парсинга локальных подписок:", e);
+          setSubscriptions([]);
+        }
+      } else {
+        setSubscriptions([]); // Нет данных для этого ID
       }
-    } else {
-      setSubscriptions([]); // Нет данных, начинаем с пустого списка
     }
   };
-
-  
 
   const logout = () => {
     setUser(null);
@@ -91,14 +95,17 @@ export const AuthProvider = ({ children }) => {
 
       try {
         const updated = [...subscriptions, subToAdd];
-        localStorage.setItem("userSubscriptions", JSON.stringify(updated));
+
+        // 🔑 СОХРАНЕНИЕ ПО УНИКАЛЬНОМУ КЛЮЧУ
+        const userSubKey = getUserSubscriptionKey(user.id);
+        localStorage.setItem(userSubKey, JSON.stringify(updated));
         setSubscriptions(updated);
         console.log("🆕 Добавлена подписка:", subToAdd);
       } catch (err) {
         console.error("Ошибка при добавлении подписки:", err);
       }
     },
-    [subscriptions]
+    [subscriptions, user]
   );
 
   // --- Обновление access_token (Инициализация клиента) ---
@@ -118,6 +125,25 @@ export const AuthProvider = ({ children }) => {
         }
       },
     });
+
+    useEffect(() => {
+      if (user?.id && subscriptions.length === 0) {
+        const userSubKey = getUserSubscriptionKey(user.id);
+        if (userSubKey) {
+          const savedSubs = localStorage.getItem(userSubKey);
+          if (savedSubs) {
+            try {
+              const subs = JSON.parse(savedSubs);
+              setSubscriptions(subs);
+              console.log(`✅ Восстановление подписок для ID: ${user.id}`);
+            } catch (e) {
+              console.error("❌ Ошибка восстановления локальных подписок:", e);
+            }
+          }
+        }
+      }
+      // Этот useEffect должен выполняться только при первом монтировании или изменении user
+    }, [user]);
 
     // Периодическая проверка и обновление токена (каждые 50 минут)
     const interval = setInterval(() => {
