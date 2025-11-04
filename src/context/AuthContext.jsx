@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { notifySubscriptions } from "@/hooks/useNotifyDataSub";
-// ✅ Импортируем AuthContext из отдельного файла, как вы просили
 import { AuthContext } from "./auth-context-export.js";
 
 // --- Константы ENV ---
@@ -22,12 +21,9 @@ export const AuthProvider = ({ children }) => {
     () => localStorage.getItem("authToken") || null
   );
 
+  // ✅ ИСПРАВЛЕНО: Инициализируем пустым массивом.
+  // Загрузка будет происходить в useEffect (ниже)
   const [subscriptions, setSubscriptions] = useState([]);
-
-  // const [subscriptions, setSubscriptions] = useState(() => {
-  //   const saved = localStorage.getItem("userSubscriptions");
-  //   return localStorage.getItem("authToken") && saved ? JSON.parse(saved) : [];
-  // });
 
   const [settings, setSettings] = useState(() => {
     const saved = localStorage.getItem("userSettings");
@@ -50,7 +46,7 @@ export const AuthProvider = ({ children }) => {
     setIsAuthModalOpen(false);
     setJustLoggedIn(true);
 
-    // 2. ✅ КОРРЕКТНАЯ ЗАГРУЗКА ИЗ LOCAL STORAGE ПОСЛЕ ЛОГИНА
+    // ✅ ЗАГРУЗКА ИЗ LOCAL STORAGE ПО УНИКАЛЬНОМУ ID
     const userSubKey = getUserSubscriptionKey(userData.id);
     if (userSubKey) {
       const savedSubs = localStorage.getItem(userSubKey);
@@ -75,7 +71,8 @@ export const AuthProvider = ({ children }) => {
     setSubscriptions([]);
     localStorage.removeItem("user");
     localStorage.removeItem("authToken");
-    // localStorage.removeItem("userSubscriptions");
+    // ✅ Данные подписок остаются, привязанные к ID.
+
     // Отзыв токена Google
     if (tokenClientRef.current && window.google?.accounts?.oauth2?.revoke) {
       window.google.accounts.oauth2.revoke(token, () =>
@@ -87,6 +84,7 @@ export const AuthProvider = ({ children }) => {
   // --- Add Subscription ---
   const addSubscription = useCallback(
     (newSub) => {
+      // Проверка, что пользователь авторизован и имеет ID
       if (!user?.id) {
         console.warn("⚠️ Невозможно сохранить: пользователь не авторизован.");
         return;
@@ -105,7 +103,11 @@ export const AuthProvider = ({ children }) => {
 
         // 🔑 СОХРАНЕНИЕ ПО УНИКАЛЬНОМУ КЛЮЧУ
         const userSubKey = getUserSubscriptionKey(user.id);
-        localStorage.setItem(userSubKey, JSON.stringify(updated));
+
+        if (userSubKey) {
+          localStorage.setItem(userSubKey, JSON.stringify(updated));
+        }
+
         setSubscriptions(updated);
         console.log("🆕 Добавлена подписка:", subToAdd);
       } catch (err) {
@@ -115,7 +117,32 @@ export const AuthProvider = ({ children }) => {
     [subscriptions, user]
   );
 
-  // --- Обновление access_token (Инициализация клиента) ---
+  // 1. ✅ ИСПРАВЛЕНО: ОТДЕЛЬНЫЙ useEffect для загрузки подписок при перезагрузке.
+  // Запускается при изменении объекта user.
+  useEffect(() => {
+    if (user?.id) {
+      const userSubKey = getUserSubscriptionKey(user.id);
+      const savedSubs = localStorage.getItem(userSubKey);
+
+      if (savedSubs) {
+        try {
+          const subs = JSON.parse(savedSubs);
+          setSubscriptions(subs);
+          console.log(`✅ Восстановление подписок для ID: ${user.id}`);
+        } catch (e) {
+          console.error("❌ Ошибка восстановления локальных подписок:", e);
+          setSubscriptions([]);
+        }
+      } else {
+        setSubscriptions([]);
+      }
+    } else {
+      // Если пользователь не авторизован, очищаем состояние
+      setSubscriptions([]);
+    }
+  }, [user]);
+
+  // 2. ✅ ИСПРАВЛЕНО: ОТДЕЛЬНЫЙ useEffect для инициализации Google-клиента.
   useEffect(() => {
     // Выполняется один раз при монтировании компонента.
     if (!window.google?.accounts?.oauth2 || !GOOGLE_CLIENT_ID) return;
@@ -133,30 +160,6 @@ export const AuthProvider = ({ children }) => {
       },
     });
 
-    useEffect(() => {
-      if (user?.id) {
-        const userSubKey = getUserSubscriptionKey(user.id);
-        const savedSubs = localStorage.getItem(userSubKey);
-
-        if (savedSubs) {
-          try {
-            const subs = JSON.parse(savedSubs);
-            setSubscriptions(subs);
-            console.log(`✅ Восстановление подписок для ID: ${user.id}`);
-          } catch (e) {
-            console.error("❌ Ошибка восстановления локальных подписок:", e);
-            setSubscriptions([]);
-          }
-        } else {
-          // Если пользователь есть, но данных нет по уникальному ключу
-          setSubscriptions([]);
-        }
-      } else {
-        // Если пользователь не авторизован, очищаем состояние
-        setSubscriptions([]);
-      }
-    }, [user]);
-
     // Периодическая проверка и обновление токена (каждые 50 минут)
     const interval = setInterval(() => {
       if (tokenClientRef.current) {
@@ -165,18 +168,15 @@ export const AuthProvider = ({ children }) => {
     }, 50 * 60 * 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, []); // Зависимости нет, работает как componentDidMount
 
-  // ✅ ИСПРАВЛЕННАЯ АСИНХРОННАЯ ФУНКЦИЯ ОБНОВЛЕНИЯ ТОКЕНА
-  // Возвращает Promise, который разрешается с новым токеном или null.
+  // ✅ АСИНХРОННАЯ ФУНКЦИЯ ОБНОВЛЕНИЯ ТОКЕНА
   const refreshAccessToken = useCallback(() => {
-    // Проверка, которая предотвращает ошибку "Google Token Client не инициализирован"
     if (!tokenClientRef.current) {
       console.error("Google Token Client не инициализирован.");
-      return Promise.resolve(null); // Безопасный выход
+      return Promise.resolve(null);
     }
 
-    // Оборачиваем вызов в Promise для использования с await
     return new Promise((resolve) => {
       tokenClientRef.current.requestAccessToken({
         prompt: "",
@@ -185,10 +185,10 @@ export const AuthProvider = ({ children }) => {
             console.log("🔄 Обновлён Google access_token (Принудительно)");
             setToken(resp.access_token);
             localStorage.setItem("authToken", resp.access_token);
-            resolve(resp.access_token); // ВОЗВРАЩАЕМ НОВЫЙ ТОКЕН
+            resolve(resp.access_token);
           } else {
             console.error("❌ Не удалось обновить токен:", resp);
-            resolve(null); // Разрешаем с null в случае ошибки
+            resolve(null);
           }
         },
       });
@@ -204,7 +204,6 @@ export const AuthProvider = ({ children }) => {
         notif: { ...(prev.notif || {}), ...(patch.notif || {}) },
         currency: { ...(prev.currency || {}), ...(patch.currency || {}) },
       };
-      // ✅ Исправлено: Сохраняем НОВОЕ состояние в localStorage
       localStorage.setItem("userSettings", JSON.stringify(newSettings));
       return newSettings;
     });
