@@ -42,22 +42,26 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("authToken", authToken);
     setIsAuthModalOpen(false);
     setJustLoggedIn(true);
+
+    // 2. ✅ КОРРЕКТНАЯ ЗАГРУЗКА ИЗ LOCAL STORAGE ПОСЛЕ ЛОГИНА
+    const savedSubs = localStorage.getItem("userSubscriptions");
+    if (savedSubs) {
+      try {
+        const subs = JSON.parse(savedSubs);
+        setSubscriptions(subs);
+        console.log(
+          "✅ Подписки успешно загружены из Local Storage при логине."
+        );
+      } catch (e) {
+        console.error("❌ Ошибка парсинга локальных подписок:", e);
+        setSubscriptions([]); // Если локальные данные повреждены
+      }
+    } else {
+      setSubscriptions([]); // Нет данных, начинаем с пустого списка
+    }
   };
 
-  // 2. ✅ КОРРЕКТНАЯ ЗАГРУЗКА ИЗ LOCAL STORAGE ПОСЛЕ ЛОГИНА
-  const savedSubs = localStorage.getItem("userSubscriptions");
-  if (savedSubs) {
-    try {
-      const subs = JSON.parse(savedSubs);
-      setSubscriptions(subs);
-      console.log("✅ Подписки успешно загружены из Local Storage при логине.");
-    } catch (e) {
-      console.error("❌ Ошибка парсинга локальных подписок:", e);
-      setSubscriptions([]); // Если локальные данные повреждены
-    }
-  } else {
-    setSubscriptions([]); // Нет данных, начинаем с пустого списка
-  }
+  
 
   const logout = () => {
     setUser(null);
