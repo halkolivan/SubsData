@@ -32,7 +32,7 @@ export default function AuthCallback() {
           // login из AuthContext (у тебя уже есть login)
           login(
             {
-              id: data.user.id,
+              id: data.user.id || data.user.login,
               name: data.user.name || data.user.login,
               email: data.user.email || data.user.html_url,
             },
