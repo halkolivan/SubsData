@@ -39,28 +39,35 @@ export const AuthProvider = ({ children }) => {
 
   // --- Login / Logout ---
   const login = (userData, authToken) => {
+    // 1. Установка состояний React
     setUser(userData);
     setToken(authToken);
+
+    // 2. Сохранение данных в локальном хранилище
     localStorage.setItem("user", JSON.stringify(userData));
     localStorage.setItem("authToken", authToken);
+
+    // 3. Управление модальными окнами и флагами
     setIsAuthModalOpen(false);
     setJustLoggedIn(true);
 
-    // ✅ ЗАГРУЗКА ИЗ LOCAL STORAGE ПО УНИКАЛЬНОМУ ID
+    // 4. Загрузка подписок по уникальному ID
     const userSubKey = getUserSubscriptionKey(userData.id);
+
     if (userSubKey) {
       const savedSubs = localStorage.getItem(userSubKey);
+
       if (savedSubs) {
         try {
-          const subs = JSON.parse(savedSubs);
-          setSubscriptions(subs);
-          console.log(`✅ Подписки загружены для ID: ${userData.id}`);
-        } catch (e) {
-          console.error("❌ Ошибка парсинга локальных подписок:", e);
+          const subscriptionsFromStorage = JSON.parse(savedSubs);
+          setSubscriptions(subscriptionsFromStorage);
+          console.log(`Subscriptions loaded for ID: ${userData.id}`);
+        } catch (error) {
+          console.error("Error parsing local subscriptions:", error);
           setSubscriptions([]);
         }
       } else {
-        setSubscriptions([]); // Нет данных для этого ID
+        setSubscriptions([]);
       }
     }
   };

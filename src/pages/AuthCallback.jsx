@@ -17,8 +17,9 @@ export default function AuthCallback() {
       return;
     }
 
-  // адрес твоего auth-сервера — по умолчанию используем тот же origin, если VITE_AUTH_SERVER не задан
-  const AUTH_SERVER = import.meta.env.VITE_AUTH_SERVER || window.location.origin;
+    // адрес твоего auth-сервера — по умолчанию используем тот же origin, если VITE_AUTH_SERVER не задан
+    const AUTH_SERVER =
+      import.meta.env.VITE_AUTH_SERVER || window.location.origin;
 
     fetch(`${AUTH_SERVER}/auth/github`, {
       method: "POST",
@@ -31,6 +32,7 @@ export default function AuthCallback() {
           // login из AuthContext (у тебя уже есть login)
           login(
             {
+              id: data.user.id,
               name: data.user.name || data.user.login,
               email: data.user.email || data.user.html_url,
             },
