@@ -22,7 +22,7 @@ export default function Header() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showLangMenu, setShowLangMenu] = useState(false);
-  
+
   const {
     user,
     login,
@@ -40,9 +40,9 @@ export default function Header() {
   };
 
   // Google Login с полными правами для Drive
+  // Header.jsx
   const loginWithGoogle = useGoogleLogin({
-    scope:
-      "email profile openid",
+    scope: "email profile openid",
     onSuccess: async (tokenResponse) => {
       try {
         const userInfo = await fetch(
@@ -52,8 +52,11 @@ export default function Header() {
           }
         ).then((res) => res.json());
 
+        // ✅ ИСПРАВЛЕНО: Добавлен обязательный уникальный ID
         login(
           {
+            // 🔑 КЛЮЧЕВОЙ МОМЕНТ: Используем ID для уникального сохранения
+            id: userInfo.id,
             name: userInfo.name,
             email: userInfo.email,
             picture: userInfo.picture,
