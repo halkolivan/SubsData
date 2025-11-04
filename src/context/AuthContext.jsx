@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }) => {
     setSubscriptions([]);
     localStorage.removeItem("user");
     localStorage.removeItem("authToken");
-    localStorage.removeItem("userSubscriptions");
+    // localStorage.removeItem("userSubscriptions");
     // Отзыв токена Google
     if (tokenClientRef.current && window.google?.accounts?.oauth2?.revoke) {
       window.google.accounts.oauth2.revoke(token, () =>
