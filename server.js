@@ -35,8 +35,8 @@ app.use((req, res, next) => {
   next();
 });
 
-const VITE_CLIENT_URL = process.env.VITE_CLIENT_URL || "http://localhost:5173";
-const FRONT_ORIGIN = VITE_CLIENT_URL;
+const GITHUB_SECRET = process.env.GITHUB_CLIENT_SECRET;
+const FRONT_ORIGIN = process.env.VITE_CLIENT_URL || "http://localhost:5173";
 
 const allowedOrigins = [
   "http://localhost:5173",
@@ -327,7 +327,7 @@ app.use(
 );
 // --- Google site verification ---
 app.get("/googlea37d48efab48b1a5.html", (req, res) => {
-  res.sendFile(path.join(__dirname, "dist", "googlea37d48efab48b1a5.html"));
+  res.sendFile(path.join(distPath, "googlea37d48efab48b1a5.html"));
 });
 
 app.get(/.*/, (req, res) => {
