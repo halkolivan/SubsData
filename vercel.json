@@ -14,16 +14,21 @@
     }
   ],
   "routes": [
-    
+    {
+      "src": "/gh-login",
+      "methods": ["POST"],
+      "dest": "server.js"
+    },
+
     {
       "src": "/api/(.*)",
       "dest": "server.js"
     },
     {
-      "src": "/auth/github", 
+      "src": "/auth/github",
       "dest": "server.js"
     },
-    
+
     {
       "src": "/(sw.js|favicon.ico)",
       "dest": "dist/$1"
@@ -32,7 +37,7 @@
       "src": "/(locales|icons|assets)/(.*)",
       "dest": "dist/$1/$2"
     },
-    
+
     {
       "src": "/(.*)",
       "dest": "dist/index.html"
