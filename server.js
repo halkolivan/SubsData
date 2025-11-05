@@ -127,6 +127,24 @@ app.get("/__assets", (req, res) => {
   }
 });
 
+app.get("/auth/callback", (req, res) => {
+  const distPath = path.join(__dirname, "dist");
+  console.log(
+    "🛠️ Vercel Workaround: Serving index.html for GET /auth/callback"
+  );
+  // Отправляем главный файл SPA
+  res.sendFile(path.join(distPath, "index.html"), (err) => {
+    if (err) {
+      // Если файл не найден (что маловероятно), отвечаем 500
+      console.error(
+        "❌ Vercel Workaround Error: Failed to send index.html:",
+        err
+      );
+      res.status(500).send("Internal Server Error during SPA fallback.");
+    }
+  });
+});
+
 // --- GitHub авторизация ---
 app.post("/auth/github", async (req, res) => {
   const { code } = req.body || {};
