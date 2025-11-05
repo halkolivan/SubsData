@@ -137,42 +137,44 @@ app.use((req, res, next) => {
 
 // --- GitHub авторизация ---
 app.post("/auth/github", async (req, res) => {
-  const { code } = req.body || {};
-  if (!code) return res.status(400).json({ error: "missing_code" });
-
-  // 2. ⚠️ ПРОВЕРКА ПЕРЕМЕННЫХ ОКРУЖЕНИЯ: убедитесь, что они доступны на Vercel!
-  const GITHUB_CLIENT_ID = process.env.VITE_GITHUB_CLIENT_ID;
-  const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
-
-  if (!GITHUB_CLIENT_SECRET) {
-    console.error("❌ CRITICAL: GITHUB_CLIENT_SECRET is not set.");
-    return res
-      .status(500)
-      .json({ error: "Server configuration error: GitHub Secret missing." });
-  }
-
-  // 3. Запрос на получение токена
-  const tokenResponse = await fetch(
-    "https://github.com/login/oauth/access_token",
-    {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        client_id: GITHUB_CLIENT_ID,
-        client_secret: GITHUB_CLIENT_SECRET,
-        code: code,
-        redirect_uri: redirect_uri, // ❌ Если его нет, GitHub вернет ошибку, которую мы обработаем ниже.
-      }),
-    }
-  );
-
-  const tokenData = await tokenResponse.json();
-
+  // 1. Оборачиваем весь критический код в try...catch для предотвращения краха Serverless-функции
   try {
-    // Обмен кода на токен
+    const { code, redirect_uri } = req.body || {}; // ✅ Извлекаем code И redirect_uri
+
+    // 2. Проверка входных данных
+    if (!code) {
+      return res
+        .status(400)
+        .json({
+          error: "missing_code",
+          message: "Authorization code not provided.",
+        });
+    }
+
+    if (!redirect_uri) {
+      return res
+        .status(400)
+        .json({
+          error: "missing_redirect_uri",
+          message: "Redirect URI is missing from the request body.",
+        });
+    }
+
+    // 3. ПРОВЕРКА ПЕРЕМЕННЫХ ОКРУЖЕНИЯ
+    const GITHUB_CLIENT_ID = process.env.VITE_GITHUB_CLIENT_ID;
+    const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
+
+    if (!GITHUB_CLIENT_SECRET) {
+      console.error("❌ CRITICAL: GITHUB_CLIENT_SECRET is not set.");
+      return res
+        .status(500)
+        .json({
+          error: "server_config_error",
+          message: "GitHub Secret is missing from server configuration.",
+        });
+    }
+
+    // 4. Запрос на получение токена (Обмен кода на токен)
     const tokenResp = await fetch(
       "https://github.com/login/oauth/access_token",
       {
@@ -184,32 +186,69 @@ app.post("/auth/github", async (req, res) => {
         body: JSON.stringify({
           client_id: GITHUB_CLIENT_ID,
           client_secret: GITHUB_CLIENT_SECRET,
-          code,
-          redirect_uri: redirect_uri,
+          code: code,
+          redirect_uri: redirect_uri, // ✅ Используем извлеченную переменную
         }),
       }
     );
+
     const tokenJson = await tokenResp.json();
-    if (tokenJson.error)
-      return res.status(500).json({
-        error: tokenJson.error_description || tokenJson.error,
+
+    // Обработка ошибок от GitHub (например, неверный redirect_uri)
+    if (tokenJson.error) {
+      console.error(
+        "❌ GitHub Token Exchange Error:",
+        tokenJson.error_description || tokenJson.error
+      );
+      return res.status(401).json({
+        error: "github_auth_failed",
+        message: tokenJson.error_description || tokenJson.error,
       });
+    }
 
     const access_token = tokenJson.access_token;
 
-    // Получение профиля пользователя
+    // 5. Получение профиля пользователя
     const userResp = await fetch("https://api.github.com/user", {
       headers: {
         Authorization: `token ${access_token}`,
         Accept: "application/vnd.github.v3+json",
       },
     });
+
     const user = await userResp.json();
 
-    res.json({ user, token: access_token });
+    if (user.message === "Bad credentials") {
+      console.error("❌ GitHub User Info Error: Bad credentials");
+      return res
+        .status(401)
+        .json({
+          error: "invalid_token",
+          message: "Failed to retrieve user info with the provided token.",
+        });
+    }
+
+    // 6. Успешный ответ
+    res.json({
+      user: {
+        id: user.id, // Добавлено: id пользователя
+        login: user.login, // Добавлено: логин
+        name: user.name || user.login,
+        email: user.email, // GitHub может не дать email, если он приватный
+        avatar_url: user.avatar_url,
+      },
+      token: access_token,
+    });
   } catch (err) {
-    console.error("GitHub exchange error", err);
-    res.status(500).json({ error: "github_exchange_failed" });
+    // 7. Обработка всех неожиданных ошибок
+    console.error("❌ FATAL GitHub exchange error:", err.message);
+    res
+      .status(500)
+      .json({
+        error: "github_exchange_failed",
+        message:
+          "An unexpected error occurred during the GitHub authentication process.",
+      });
   }
 });
 
