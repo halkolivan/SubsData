@@ -129,22 +129,23 @@ app.get("/__assets", (req, res) => {
 
 // --- GitHub авторизация ---
 app.post("/gh-login", async (req, res) => {
-  const { code } = req.body || {};
-  if (!code) return res.status(400).json({ error: "missing_code" });
+  const { code } = req.body;
 
-  const { GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET } = process.env;
-  if (!GITHUB_CLIENT_ID || !GITHUB_CLIENT_SECRET)
-    return res.status(500).json({ error: "missing_github_client_env" });
+  if (!code) {
+    return res
+      .status(400)
+      .json({ success: false, error: "Missing code parameter" });
+  }
 
+  // 1. Обмен кода на access token
   try {
-    // Обмен кода на токен
-    const tokenResp = await fetch(
+    const tokenResponse = await fetch(
       "https://github.com/login/oauth/access_token",
       {
         method: "POST",
         headers: {
-          Accept: "application/json",
           "Content-Type": "application/json",
+          Accept: "application/json", // Запрашиваем JSON ответ
         },
         body: JSON.stringify({
           client_id: GITHUB_CLIENT_ID,
@@ -153,27 +154,92 @@ app.post("/gh-login", async (req, res) => {
         }),
       }
     );
-    const tokenJson = await tokenResp.json();
-    if (tokenJson.error)
-      return res.status(500).json({
-        error: tokenJson.error_description || tokenJson.error,
-      });
 
-    const access_token = tokenJson.access_token;
+    if (!tokenResponse.ok) {
+      const errorText = await tokenResponse.text();
+      console.error("❌ GitHub Token Exchange Error:", errorText);
+      return res
+        .status(400)
+        .json({ success: false, error: "Failed to exchange code for token" });
+    }
 
-    // Получение профиля пользователя
-    const userResp = await fetch("https://api.github.com/user", {
+    const tokenData = await tokenResponse.json();
+    const accessToken = tokenData.access_token;
+
+    if (!accessToken) {
+      console.error("❌ No access_token received from GitHub:", tokenData);
+      return res
+        .status(400)
+        .json({ success: false, error: "No access token received" });
+    }
+
+    // 2. Используем access token для получения данных пользователя
+    const userResponse = await fetch("https://api.github.com/user", {
       headers: {
-        Authorization: `token ${access_token}`,
-        Accept: "application/vnd.github.v3+json",
+        Authorization: `Bearer ${accessToken}`,
+        "User-Agent": "SubsData-App", // GitHub требует User-Agent
       },
     });
-    const user = await userResp.json();
 
-    res.json({ user, token: access_token });
-  } catch (err) {
-    console.error("GitHub exchange error", err);
-    res.status(500).json({ error: "github_exchange_failed" });
+    if (!userResponse.ok) {
+      const errorText = await userResponse.text();
+      console.error("❌ GitHub User Fetch Error:", errorText);
+      return res
+        .status(500)
+        .json({ success: false, error: "Failed to fetch user data" });
+    }
+
+    const githubUser = await userResponse.json();
+
+    // 3. Получаем email пользователя (если не был получен на шаге 2)
+    let userEmail = githubUser.email;
+    if (!userEmail) {
+      const emailsResponse = await fetch("https://api.github.com/user/emails", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "User-Agent": "SubsData-App",
+        },
+      });
+
+      if (emailsResponse.ok) {
+        const emailsData = await emailsResponse.json();
+        // Находим основной и подтвержденный email
+        const primaryEmail = emailsData.find(
+          (email) => email.primary && email.verified
+        );
+        userEmail = primaryEmail ? primaryEmail.email : null;
+      }
+    }
+
+    // 4. Локальная сессия (в реальном приложении здесь была бы работа с базой данных и генерация JWT)
+    const finalUser = {
+      id: `github-${githubUser.id}`, // Уникальный ID
+      login: githubUser.login,
+      name: githubUser.name || githubUser.login,
+      email: userEmail || `no-email-${githubUser.id}@github.com`, // Используем заглушку, если email не найден
+      avatarUrl: githubUser.avatar_url,
+    };
+
+    // В реальном приложении здесь генерируется безопасный JWT
+    const authToken = "PLACEHOLDER_JWT_TOKEN_FOR_GITHUB_USER";
+
+    console.log(`✅ GitHub Login Success for user: ${finalUser.login}`);
+
+    // 5. Отправляем данные обратно на фронтенд
+    res.json({
+      success: true,
+      user: finalUser,
+      token: authToken,
+      message: "GitHub authentication successful",
+    });
+  } catch (error) {
+    console.error("❌ GitHub Login Server Error:", error);
+    res
+      .status(500)
+      .json({
+        success: false,
+        error: "Internal Server Error during GitHub login",
+      });
   }
 });
 
@@ -266,8 +332,6 @@ app.post("/api/send-subs-email", authMiddleware, async (req, res) => {
   }
 });
 
-// app.options("/api/send-subs-email", cors());
-
 // --- Лог отсутствующих ассетов (только для диагностики) ---
 app.use((req, res, next) => {
   const urlPath = req.path || req.url || "";
@@ -287,44 +351,5 @@ app.use((req, res, next) => {
   next();
 });
 
-// --- Раздача статики ---
-// app.use(
-//   express.static(distPath, {
-//     index: false,
-//     setHeaders: (res, path) => {
-//       console.log("Serving:", path);
-//       if (
-//         path.endsWith(".html") ||
-//         path.endsWith(".js") ||
-//         path.endsWith(".css")
-//       ) {
-//         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-//         res.setHeader("Pragma", "no-cache");
-//         res.setHeader("Expires", "0");
-//       } else {
-//         // изображения и иконки можно кэшировать
-//         res.setHeader("Cache-Control", "public, max-age=604800"); // 7 дней
-//       }
-//     },
-//   })
-// );
-// --- Google site verification ---
-// app.get("/googlea37d48efab48b1a5.html", (req, res) => {
-//   res.sendFile(path.join(__dirname, "dist", "googlea37d48efab48b1a5.html"));
-// });
-
-// app.get(/.*/, (req, res) => {
-//   // Игнорируем только API
-//   if (req.path.startsWith("/api") || req.path.startsWith("/auth")) {
-//     return res.status(404).json({ error: "API route not found" });
-//   }
-//   res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-//   res.setHeader("Pragma", "no-cache");
-//   res.setHeader("Expires", "0");
-//   const indexFile = path.join(distPath, "index.html");
-//   res.sendFile(indexFile);
-// });
-
-// --- Запуск ---
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));
