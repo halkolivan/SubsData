@@ -7,16 +7,17 @@
     },
     {
       "src": "dist/**",
-      "use": "@vercel/static"
+      "use": "@vercel/static-build",
+      "config": { "distDir": "dist" }
     }
   ],
   "routes": [
     {
-      "src": "/auth/.*",
+      "src": "/api/(.*)",
       "dest": "server.js"
     },
     {
-      "src": "/api/.*",
+      "src": "/auth/(.*)",
       "dest": "server.js"
     },
     {
@@ -24,11 +25,11 @@
       "dest": "server.js"
     },
     {
-      "src": "/locales/.*",
+      "src": "/locales/(.*)",
       "dest": "server.js"
     },
     {
-      "src": "/icons/.*",
+      "src": "/icons/(.*)",
       "dest": "server.js"
     },
     {
