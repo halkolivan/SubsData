@@ -70,15 +70,15 @@ app.get("/sw.js", (req, res) => {
   res.setHeader("Pragma", "no-cache");
   res.setHeader("Expires", "0");
 
-  if (fs.existsSync(swFile)) {
-    res.sendFile(swFile);
-  } else {
-    res.send(
-      "// noop service worker\n" +
-        "self.addEventListener('install',()=>self.skipWaiting());\n" +
-        "self.addEventListener('activate',()=>self.clients.claim());\n"
-    );
-  }
+  // if (fs.existsSync(swFile)) {
+  //   res.sendFile(swFile);
+  // } else {
+  //   res.send(
+  //     "// noop service worker\n" +
+  //       "self.addEventListener('install',()=>self.skipWaiting());\n" +
+  //       "self.addEventListener('activate',()=>self.clients.claim());\n"
+  //   );
+  // }
 });
 
 // --- Иконки ---
@@ -102,7 +102,7 @@ app.get("/__assets", (req, res) => {
   try {
     const listDir = (p) => {
       const full = path.join(distPath, p);
-      if (!fs.existsSync(full)) return null;
+      // if (!fs.existsSync(full)) return null;
       return fs.readdirSync(full);
     };
     res.json({
