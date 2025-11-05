@@ -7,7 +7,7 @@ import fetch from "node-fetch";
 
 // import FormData from "form-data";
 // import { fileURLToPath } from "url";
-// import nodemailer from "nodemailer";
+import nodemailer from "nodemailer";
 
 // --- Инициализация приложения ---
 const app = express();
@@ -36,6 +36,8 @@ app.use((req, res, next) => {
   // Если хост не старый домен, продолжаем обработку как обычно
   next();
 });
+
+const FRONT_ORIGIN = process.env.VITE_CLIENT_URL || "http://localhost:5173";
 
 const allowedOrigins = [
   "http://localhost:5173",
@@ -283,7 +285,7 @@ async function authMiddleware(req, res, next) {
 // --- Nodemailer Setup ---
 const transporter = nodemailer.createTransport({
   host: process.env.MAIL_HOST,
-  port: 2525,
+  port: process.env.MAIL_PORT,
   secure: false,
   auth: {
     user: process.env.MAIL_USER,
