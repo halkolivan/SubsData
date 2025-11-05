@@ -152,6 +152,26 @@ app.post("/auth/github", async (req, res) => {
       .json({ error: "Server configuration error: GitHub Secret missing." });
   }
 
+  // 3. Запрос на получение токена
+  const tokenResponse = await fetch(
+    "https://github.com/login/oauth/access_token",
+    {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        client_id: GITHUB_CLIENT_ID,
+        client_secret: GITHUB_CLIENT_SECRET,
+        code: code,
+        redirect_uri: redirect_uri, // ❌ Если его нет, GitHub вернет ошибку, которую мы обработаем ниже.
+      }),
+    }
+  );
+
+  const tokenData = await tokenResponse.json();
+
   try {
     // Обмен кода на токен
     const tokenResp = await fetch(
