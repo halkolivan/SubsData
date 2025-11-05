@@ -20,25 +20,16 @@
     },
 
     {
-      "src": "/auth/github",
       "dest": "server.js"
     },
 
     {
-      "src": "/sw.js",
-      "dest": "dist/sw.js"
+      "src": "/(sw.js|favicon.ico)",
+      "dest": "dist/$1"
     },
     {
-      "src": "/locales/(.*)",
-      "dest": "dist/locales/$1"
-    },
-    {
-      "src": "/icons/(.*)",
-      "dest": "dist/icons/$1"
-    },
-    {
-      "src": "/assets/(.*)",
-      "dest": "dist/assets/$1"
+      "src": "/(locales|icons|assets)/(.*)",
+      "dest": "dist/$1/$2"
     },
 
     {
