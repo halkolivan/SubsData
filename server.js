@@ -129,17 +129,12 @@ app.get("/__assets", (req, res) => {
 
 app.get("/auth/callback", (req, res) => {
   // distPath уже определен в начале файла: const distPath = path.join(__dirname, "dist");
-  console.log(
-    "🛠️ Vercel Workaround: Serving index.html for GET /auth/callback"
-  );
-
+  console.log("🛠️ Vercel Workaround: Serving index.html for GET /auth/callback");
+  
   // Отправляем главный файл SPA
   res.sendFile(path.join(distPath, "index.html"), (err) => {
     if (err) {
-      console.error(
-        "❌ Vercel Workaround Error: Failed to send index.html:",
-        err
-      );
+      console.error("❌ Vercel Workaround Error: Failed to send index.html:", err);
       // Если файл index.html не найден (что маловероятно), возвращаем ошибку
       res.status(500).send("Internal Server Error during SPA fallback.");
     }
