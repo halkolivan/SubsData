@@ -426,7 +426,7 @@ export default function Header() {
             {/* GitHub Auth */}
             <button
               onClick={() => {
-                const redirectUri = `${window.location.origin}/github-callback`;
+                const redirectUri = `${window.location.origin}/gh-callback`;
                 const url = `https://github.com/login/oauth/authorize?client_id=${clientId}&scope=user&redirect_uri=${encodeURIComponent(
                   redirectUri
                 )}`;

@@ -23,7 +23,7 @@
       "dest": "server.js"
     },
     {
-      "src": "/sw.js",
+      "src": "/sw.js",      
       "dest": "dist/sw.js"
     },
     {
@@ -39,7 +39,7 @@
       "dest": "dist/assets/$1"
     },
     {
-      "src": "/(.*)", 
+      "src": "/(.*)",
       "dest": "dist/index.html"
     }
   ]

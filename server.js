@@ -128,7 +128,7 @@ app.get("/__assets", (req, res) => {
 });
 
 // --- GitHub авторизация ---
-app.post("/auth/github", async (req, res) => {
+app.post("/gh-login", async (req, res) => {
   const { code } = req.body || {};
   if (!code) return res.status(400).json({ error: "missing_code" });
 
