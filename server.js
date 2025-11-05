@@ -1,21 +1,19 @@
-// import fs from "fs";
-import "dotenv/config";
+import fs from "fs";
 import path from "path";
 import cors from "cors";
 import express from "express";
 import fetch from "node-fetch";
-
-// import FormData from "form-data";
-// import { fileURLToPath } from "url";
-// import nodemailer from "nodemailer";
+import FormData from "form-data";
+import { fileURLToPath } from "url";
+import nodemailer from "nodemailer";
 
 // --- Инициализация приложения ---
 const app = express();
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = path.dirname(__filename);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // --- Путь к папке dist ---
-const distPath = path.resolve(process.cwd(), "dist");
+const distPath = path.join(__dirname, "dist");
 console.log("🗂 Serving static from:", distPath);
 
 // --- Разрешаем JSON для body ---
@@ -37,30 +35,42 @@ app.use((req, res, next) => {
   next();
 });
 
-const FRONT_ORIGIN = process.env.VITE_CLIENT_URL || "http://localhost:5173";
-
 const allowedOrigins = [
+  // 1. Локальная разработка (если порт 5173)
   "http://localhost:5173",
-  FRONT_ORIGIN || "https://subsdata.vercel.app",
+  // 2. Основной домен Vercel (через переменную окружения или новый Vercel-домен)
+  process.env.FRONT_ORIGIN || "https://subsdata.vercel.app",
+  // 3. Старый домен (если нужно для обратной совместимости)
   "https://subsdata.vercel.app",
-  "https://www.subsdata.vercel.app",
+  // 4. Дополнительный API (Render)
+  "https://subsdata-api.vercel.app",
 ];
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      if (allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      }
-    },
-    credentials: true, // чтобы работали куки / авторизация
-    methods: ["GET, HEAD, PUT, PATCH, POST, DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+// --- CORS настройка ---
+const FRONT_ORIGIN = process.env.FRONT_ORIGIN || "https://subsdata.vercel.app";
+"http://localhost:5173", // Локальная разработка
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        // Разрешаем запросы без 'origin' (например, с localhost)
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error("Not allowed by CORS"));
+        }
+      },
+      credentials: true, // чтобы работали куки / авторизация
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization"],
+    })
+  );
+
+// --- Пример (если когда-то понадобится ставить куку) ---
+// res.cookie("sid", sessionId, {
+//   httpOnly: true,
+//   secure: true,
+//   sameSite: "None",
+// });
 
 // --- Service Worker ---
 app.get("/sw.js", (req, res) => {
@@ -71,30 +81,30 @@ app.get("/sw.js", (req, res) => {
   res.setHeader("Pragma", "no-cache");
   res.setHeader("Expires", "0");
 
-  // if (fs.existsSync(swFile)) {
-  //   res.sendFile(swFile);
-  // } else {
-  //   res.send(
-  //     "// noop service worker\n" +
-  //       "self.addEventListener('install',()=>self.skipWaiting());\n" +
-  //       "self.addEventListener('activate',()=>self.clients.claim());\n"
-  //   );
-  // }
+  if (fs.existsSync(swFile)) {
+    res.sendFile(swFile);
+  } else {
+    res.send(
+      "// noop service worker\n" +
+        "self.addEventListener('install',()=>self.skipWaiting());\n" +
+        "self.addEventListener('activate',()=>self.clients.claim());\n"
+    );
+  }
 });
 
 // --- Иконки ---
 app.get(/^\/icons\/.*/, (req, res) => {
   const rel = req.path.replace(/^\//, "");
-  // const fileOnDisk = path.join(distPath, rel);
-  // if (fs.existsSync(fileOnDisk)) return res.sendFile(fileOnDisk);
+  const fileOnDisk = path.join(distPath, rel);
+  if (fs.existsSync(fileOnDisk)) return res.sendFile(fileOnDisk);
   return res.status(404).send("Not found");
 });
 
 // --- Локализации ---
 app.get(/^\/locales\/.*/, (req, res) => {
   const rel = req.path.replace(/^\//, "");
-  // const fileOnDisk = path.join(distPath, rel);
-  // if (fs.existsSync(fileOnDisk)) return res.sendFile(fileOnDisk);
+  const fileOnDisk = path.join(distPath, rel);
+  if (fs.existsSync(fileOnDisk)) return res.sendFile(fileOnDisk);
   return res.status(404).send("Not found");
 });
 
@@ -103,7 +113,7 @@ app.get("/__assets", (req, res) => {
   try {
     const listDir = (p) => {
       const full = path.join(distPath, p);
-      // if (!fs.existsSync(full)) return null;
+      if (!fs.existsSync(full)) return null;
       return fs.readdirSync(full);
     };
     res.json({
@@ -117,59 +127,17 @@ app.get("/__assets", (req, res) => {
   }
 });
 
-// --- Лог отсутствующих ассетов (только для диагностики) ---
-app.use((req, res, next) => {
-  const urlPath = req.path || req.url || "";
-  const staticExt = /\.(js|css|png|jpg|jpeg|svg|webmanifest|ico|json)$/i;
-
-  // если путь похож на статик-файл, но его нет — просто логируем
-  if (
-    staticExt.test(urlPath) ||
-    urlPath.startsWith("/assets/") ||
-    urlPath.startsWith("/icons/")
-  ) {
-    // const fileOnDisk = path.join(distPath, urlPath.replace(/^\//, ""));
-    // if (!fs.existsSync(fileOnDisk)) {
-    //   console.warn(`⚠️ 404 static asset not found: ${req.method} ${req.url}`);
-    // }
-  }
-  next();
-});
-
 // --- GitHub авторизация ---
 app.post("/auth/github", async (req, res) => {
-  // 1. Оборачиваем весь критический код в try...catch для предотвращения краха Serverless-функции
+  const { code } = req.body || {};
+  if (!code) return res.status(400).json({ error: "missing_code" });
+
+  const { GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET } = process.env;
+  if (!GITHUB_CLIENT_ID || !GITHUB_CLIENT_SECRET)
+    return res.status(500).json({ error: "missing_github_client_env" });
+
   try {
-    const { code, redirect_uri } = req.body || {}; // ✅ Извлекаем code И redirect_uri
-
-    // 2. Проверка входных данных
-    if (!code) {
-      return res.status(400).json({
-        error: "missing_code",
-        message: "Authorization code not provided.",
-      });
-    }
-
-    if (!redirect_uri) {
-      return res.status(400).json({
-        error: "missing_redirect_uri",
-        message: "Redirect URI is missing from the request body.",
-      });
-    }
-
-    // 3. ПРОВЕРКА ПЕРЕМЕННЫХ ОКРУЖЕНИЯ
-    const GITHUB_CLIENT_ID = process.env.VITE_GITHUB_CLIENT_ID;
-    const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
-
-    if (!GITHUB_CLIENT_SECRET) {
-      console.error("❌ CRITICAL: GITHUB_CLIENT_SECRET is not set.");
-      return res.status(500).json({
-        error: "server_config_error",
-        message: "GitHub Secret is missing from server configuration.",
-      });
-    }
-
-    // 4. Запрос на получение токена (Обмен кода на токен)
+    // Обмен кода на токен
     const tokenResp = await fetch(
       "https://github.com/login/oauth/access_token",
       {
@@ -181,78 +149,31 @@ app.post("/auth/github", async (req, res) => {
         body: JSON.stringify({
           client_id: GITHUB_CLIENT_ID,
           client_secret: GITHUB_CLIENT_SECRET,
-          code: code,
-          redirect_uri: redirect_uri, // ✅ Используем извлеченную переменную
+          code,
         }),
       }
     );
-    if (!tokenResp.ok) {
-      const errorText = await tokenResp.text();
-      console.error(
-        `❌ ОШИБКА GITHUB API! Статус: ${
-          tokenResp.status
-        }. Тело: ${errorText.substring(0, 200)}`
-      );
-      // Отправляем ошибку обратно на клиент с деталями
-      return res.status(400).json({
-        error: "Ошибка при обмене кодом GitHub. Проверьте логи Vercel.",
-        details: `GitHub вернул статус ${tokenResp.status}`,
-      });
-    }
-
     const tokenJson = await tokenResp.json();
-
-    // Обработка ошибок от GitHub (например, неверный redirect_uri)
-    if (tokenJson.error) {
-      console.error(
-        "❌ GitHub Token Exchange Error:",
-        tokenJson.error_description || tokenJson.error
-      );
-      return res.status(401).json({
-        error: "github_auth_failed",
-        message: tokenJson.error_description || tokenJson.error,
+    if (tokenJson.error)
+      return res.status(500).json({
+        error: tokenJson.error_description || tokenJson.error,
       });
-    }
 
     const access_token = tokenJson.access_token;
 
-    // 5. Получение профиля пользователя
+    // Получение профиля пользователя
     const userResp = await fetch("https://api.github.com/user", {
       headers: {
         Authorization: `token ${access_token}`,
         Accept: "application/vnd.github.v3+json",
       },
     });
-
     const user = await userResp.json();
 
-    if (user.message === "Bad credentials") {
-      console.error("❌ GitHub User Info Error: Bad credentials");
-      return res.status(401).json({
-        error: "invalid_token",
-        message: "Failed to retrieve user info with the provided token.",
-      });
-    }
-
-    // 6. Успешный ответ
-    res.json({
-      user: {
-        id: user.id, // Добавлено: id пользователя
-        login: user.login, // Добавлено: логин
-        name: user.name || user.login,
-        email: user.email, // GitHub может не дать email, если он приватный
-        avatar_url: user.avatar_url,
-      },
-      token: access_token,
-    });
+    res.json({ user, token: access_token });
   } catch (err) {
-    // 7. Обработка всех неожиданных ошибок
-    console.error("❌ FATAL GitHub exchange error:", err.message);
-    res.status(500).json({
-      error: "github_exchange_failed",
-      message:
-        "An unexpected error occurred during the GitHub authentication process.",
-    });
+    console.error("GitHub exchange error", err);
+    res.status(500).json({ error: "github_exchange_failed" });
   }
 });
 
@@ -296,79 +217,100 @@ async function authMiddleware(req, res, next) {
 }
 
 // --- Nodemailer Setup ---
-// const transporter = nodemailer.createTransport({
-//   host: process.env.MAIL_HOST,
-//   port: process.env.MAIL_PORT,
-//   secure: false,
-//   auth: {
-//     user: process.env.MAIL_USER,
-//     pass: process.env.MAIL_PASS,
-//   },
-// });
+const transporter = nodemailer.createTransport({
+  host: process.env.MAIL_HOST,
+  port: 2525,
+  secure: false,
+  auth: {
+    user: process.env.MAIL_USER,
+    pass: process.env.MAIL_PASS,
+  },
+});
 
 // --- Новый маршрут для отправки писем (ДОБАВЛЕНО) ---
-// app.post("/api/send-subs-email", authMiddleware, async (req, res) => {
-//   // Получаем данные, которые прислал фронтенд
-//   const { subscriptions, userEmail } = req.body;
+app.post("/api/send-subs-email", authMiddleware, async (req, res) => {
+  // Получаем данные, которые прислал фронтенд
+  const { subscriptions, userEmail } = req.body;
 
-//   if (!subscriptions || !userEmail) {
-//     return res
-//       .status(400)
-//       .json({ error: "Отсутствуют данные подписок или email получателя." });
-//   }
+  if (!subscriptions || !userEmail) {
+    return res
+      .status(400)
+      .json({ error: "Отсутствуют данные подписок или email получателя." });
+  }
 
-//   // Формируем тело письма
-//   const emailBody = subscriptions
-//     .map(
-//       (sub, i) =>
-//         `${i + 1}. ${sub.name} — ${sub.price} ${sub.currency || ""} (${
-//           sub.status
-//         }), категория: ${sub.category}, следующая оплата: ${sub.nextPayment}`
-//     )
-//     .join("\n");
+  // Формируем тело письма
+  const emailBody = subscriptions
+    .map(
+      (sub, i) =>
+        `${i + 1}. ${sub.name} — ${sub.price} ${sub.currency || ""} (${
+          sub.status
+        }), категория: ${sub.category}, следующая оплата: ${sub.nextPayment}`
+    )
+    .join("\n");
 
-//   const mailOptions = {
-//     // ОТПРАВИТЕЛЬ: Имя "Web Service SubsData" и ваш подтвержденный адрес
-//     from: `"Web Service SubsData" <${process.env.FROM_EMAIL}>`,
-//     // ПОЛУЧАТЕЛЬ: Email пользователя, полученный с фронтенда
-//     to: userEmail,
-//     subject: `Список ваших подписок из SubsData`,
-//     text: `Здравствуйте!\n\nВаш список подписок:\n\n${emailBody}\n\nС уважением, команда SubsData.`,
-//   };
+  const mailOptions = {
+    // ОТПРАВИТЕЛЬ: Имя "Web Service SubsData" и ваш подтвержденный адрес
+    from: `"Web Service SubsData" <${process.env.FROM_EMAIL}>`,
+    // ПОЛУЧАТЕЛЬ: Email пользователя, полученный с фронтенда
+    to: userEmail,
+    subject: `Список ваших подписок из SubsData`,
+    text: `Здравствуйте!\n\nВаш список подписок:\n\n${emailBody}\n\nС уважением, команда SubsData.`,
+  };
 
-//   try {
-//     await transporter.sendMail(mailOptions);
-//     res.status(200).json({ message: "Письмо успешно отправлено!" });
-//   } catch (error) {
-//     console.error("❌ Ошибка Nodemailer (SendGrid):", error);
-//     res.status(500).json({ error: "Ошибка при отправке письма через сервер." });
-//   }
-// });
+  try {
+    await transporter.sendMail(mailOptions);
+    res.status(200).json({ message: "Письмо успешно отправлено!" });
+  } catch (error) {
+    console.error("❌ Ошибка Nodemailer (SendGrid):", error);
+    res.status(500).json({ error: "Ошибка при отправке письма через сервер." });
+  }
+});
+
+// app.options("/api/send-subs-email", cors());
+
+// --- Лог отсутствующих ассетов (только для диагностики) ---
+app.use((req, res, next) => {
+  const urlPath = req.path || req.url || "";
+  const staticExt = /\.(js|css|png|jpg|jpeg|svg|webmanifest|ico|json)$/i;
+
+  // если путь похож на статик-файл, но его нет — просто логируем
+  if (
+    staticExt.test(urlPath) ||
+    urlPath.startsWith("/assets/") ||
+    urlPath.startsWith("/icons/")
+  ) {
+    const fileOnDisk = path.join(distPath, urlPath.replace(/^\//, ""));
+    if (!fs.existsSync(fileOnDisk)) {
+      console.warn(`⚠️ 404 static asset not found: ${req.method} ${req.url}`);
+    }
+  }
+  next();
+});
 
 // --- Раздача статики ---
 app.use(
   express.static(distPath, {
     index: false,
-    // setHeaders: (res, path) => {
-    //   console.log("Serving:", path);
-    //   if (
-    //     path.endsWith(".html") ||
-    //     path.endsWith(".js") ||
-    //     path.endsWith(".css")
-    //   ) {
-    //     res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-    //     res.setHeader("Pragma", "no-cache");
-    //     res.setHeader("Expires", "0");
-    //   } else {
-    //     // изображения и иконки можно кэшировать
-    //     res.setHeader("Cache-Control", "public, max-age=604800"); // 7 дней
-    //   }
-    // },
+    setHeaders: (res, path) => {
+      console.log("Serving:", path);
+      if (
+        path.endsWith(".html") ||
+        path.endsWith(".js") ||
+        path.endsWith(".css")
+      ) {
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.setHeader("Pragma", "no-cache");
+        res.setHeader("Expires", "0");
+      } else {
+        // изображения и иконки можно кэшировать
+        res.setHeader("Cache-Control", "public, max-age=604800"); // 7 дней
+      }
+    },
   })
 );
 // --- Google site verification ---
 app.get("/googlea37d48efab48b1a5.html", (req, res) => {
-  res.sendFile(path.join(distPath, "googlea37d48efab48b1a5.html"));
+  res.sendFile(path.join(__dirname, "dist", "googlea37d48efab48b1a5.html"));
 });
 
 app.get(/.*/, (req, res) => {

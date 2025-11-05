@@ -9,22 +9,19 @@
       }
     },
     {
-      "src": "server.js",
+      "src": "api/index.js",
       "use": "@vercel/node"
     }
   ],
   "rewrites": [
     {
-      "source": "/auth/:path*",
-      "destination": "/server.js"
+      "source": "/api/(.*)",
+      "destination": "/api"
     },
-    {
-      "source": "/api/:path*",
-      "destination": "/server.js"
-    },
+
     {
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ]
+  ]  
 }
