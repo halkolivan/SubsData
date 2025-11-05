@@ -122,12 +122,16 @@ app.post("/auth/github", async (req, res) => {
   const { code } = req.body || {};
   if (!code) return res.status(400).json({ error: "missing_code" });
 
-  // Переменные окружения для ID и Секрета
+  // 2. ⚠️ ПРОВЕРКА ПЕРЕМЕННЫХ ОКРУЖЕНИЯ: убедитесь, что они доступны на Vercel!
   const GITHUB_CLIENT_ID = process.env.VITE_GITHUB_CLIENT_ID;
   const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
 
-  if (!GITHUB_CLIENT_ID || !GITHUB_CLIENT_SECRET)
-    return res.status(500).json({ error: "missing_github_client_env" });
+  if (!GITHUB_CLIENT_SECRET) {
+    console.error("❌ CRITICAL: GITHUB_CLIENT_SECRET is not set.");
+    return res
+      .status(500)
+      .json({ error: "Server configuration error: GitHub Secret missing." });
+  }
 
   try {
     // Обмен кода на токен
