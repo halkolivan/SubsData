@@ -72,60 +72,7 @@ const FRONT_ORIGIN = process.env.FRONT_ORIGIN || "https://subsdata.vercel.app";
 //   sameSite: "None",
 // });
 
-// --- Service Worker ---
-app.get("/sw.js", (req, res) => {
-  const swFile = path.join(distPath, "sw.js");
-  res.setHeader("Content-Type", "application/javascript");
-  // 👇 запрещаем кэширование
-  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  res.setHeader("Pragma", "no-cache");
-  res.setHeader("Expires", "0");
 
-  if (fs.existsSync(swFile)) {
-    res.sendFile(swFile);
-  } else {
-    res.send(
-      "// noop service worker\n" +
-        "self.addEventListener('install',()=>self.skipWaiting());\n" +
-        "self.addEventListener('activate',()=>self.clients.claim());\n"
-    );
-  }
-});
-
-// --- Иконки ---
-app.get(/^\/icons\/.*/, (req, res) => {
-  const rel = req.path.replace(/^\//, "");
-  const fileOnDisk = path.join(distPath, rel);
-  if (fs.existsSync(fileOnDisk)) return res.sendFile(fileOnDisk);
-  return res.status(404).send("Not found");
-});
-
-// --- Локализации ---
-app.get(/^\/locales\/.*/, (req, res) => {
-  const rel = req.path.replace(/^\//, "");
-  const fileOnDisk = path.join(distPath, rel);
-  if (fs.existsSync(fileOnDisk)) return res.sendFile(fileOnDisk);
-  return res.status(404).send("Not found");
-});
-
-// --- Диагностика ---
-app.get("/__assets", (req, res) => {
-  try {
-    const listDir = (p) => {
-      const full = path.join(distPath, p);
-      if (!fs.existsSync(full)) return null;
-      return fs.readdirSync(full);
-    };
-    res.json({
-      assets: listDir("assets"),
-      icons: listDir("icons"),
-      locales: listDir("locales"),
-    });
-  } catch (err) {
-    console.error("Error listing dist folders", err);
-    res.status(500).json({ error: "failed to list" });
-  }
-});
 
 // --- GitHub авторизация ---
 app.post("/auth/github", async (req, res) => {
@@ -280,9 +227,6 @@ app.post("/api/send-subs-email", authMiddleware, async (req, res) => {
     res.status(500).json({ error: "Ошибка при отправке письма через сервер." });
   }
 });
-
-// app.options("/api/send-subs-email", cors());
-
 // --- Лог отсутствующих ассетов (только для диагностики) ---
 app.use((req, res, next) => {
   const urlPath = req.path || req.url || "";
@@ -323,6 +267,61 @@ app.use(
     },
   })
 );
+
+// --- Service Worker ---
+app.get("/sw.js", (req, res) => {
+  const swFile = path.join(distPath, "sw.js");
+  res.setHeader("Content-Type", "application/javascript");
+  // 👇 запрещаем кэширование
+  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+
+  if (fs.existsSync(swFile)) {
+    res.sendFile(swFile);
+  } else {
+    res.send(
+      "// noop service worker\n" +
+        "self.addEventListener('install',()=>self.skipWaiting());\n" +
+        "self.addEventListener('activate',()=>self.clients.claim());\n"
+    );
+  }
+});
+
+// --- Иконки ---
+app.get(/^\/icons\/.*/, (req, res) => {
+  const rel = req.path.replace(/^\//, "");
+  const fileOnDisk = path.join(distPath, rel);
+  if (fs.existsSync(fileOnDisk)) return res.sendFile(fileOnDisk);
+  return res.status(404).send("Not found");
+});
+
+// --- Локализации ---
+app.get(/^\/locales\/.*/, (req, res) => {
+  const rel = req.path.replace(/^\//, "");
+  const fileOnDisk = path.join(distPath, rel);
+  if (fs.existsSync(fileOnDisk)) return res.sendFile(fileOnDisk);
+  return res.status(404).send("Not found");
+});
+
+// --- Диагностика ---
+app.get("/__assets", (req, res) => {
+  try {
+    const listDir = (p) => {
+      const full = path.join(distPath, p);
+      if (!fs.existsSync(full)) return null;
+      return fs.readdirSync(full);
+    };
+    res.json({
+      assets: listDir("assets"),
+      icons: listDir("icons"),
+      locales: listDir("locales"),
+    });
+  } catch (err) {
+    console.error("Error listing dist folders", err);
+    res.status(500).json({ error: "failed to list" });
+  }
+});
 // --- Google site verification ---
 app.get("/googlea37d48efab48b1a5.html", (req, res) => {
   res.sendFile(path.join(__dirname, "dist", "googlea37d48efab48b1a5.html"));
