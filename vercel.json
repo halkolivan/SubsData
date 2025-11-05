@@ -14,17 +14,15 @@
     }
   ],
   "routes": [
-    
     {
       "src": "/api/(.*)",
       "dest": "server.js"
     },
-    
     {
       "src": "/auth/github",
       "dest": "server.js"
     },
-   
+
     {
       "src": "/sw.js",
       "dest": "dist/sw.js"
@@ -41,7 +39,7 @@
       "src": "/assets/(.*)",
       "dest": "dist/assets/$1"
     },
-    
+
     {
       "src": "/(.*)",
       "dest": "dist/index.html"
