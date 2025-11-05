@@ -14,14 +14,12 @@
     }
   ],
   "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api"
-    },
+    { "source": "/auth/(.*)", "destination": "/server.js" },
+    { "source": "/api/(.*)", "destination": "/server.js" },
+    { "source": "/(.*)", "destination": "/dist/$1" },
 
-    {
-      "source": "/(.*)",
+    {      
       "destination": "/index.html"
     }
-  ]  
+  ]
 }
