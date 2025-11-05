@@ -18,6 +18,7 @@
       "src": "/api/(.*)",
       "dest": "server.js"
     },
+
     {
       "src": "/auth/github",
       "dest": "server.js"
