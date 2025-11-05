@@ -132,8 +132,8 @@ app.post("/auth/github", async (req, res) => {
   const { code } = req.body || {};
   if (!code) return res.status(400).json({ error: "missing_code" });
 
-  const { GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET } = process.env;
-  if (!GITHUB_CLIENT_ID || !GITHUB_CLIENT_SECRET)
+  const { VITE_GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET } = process.env;
+  if (!VITE_GITHUB_CLIENT_ID || !GITHUB_CLIENT_SECRET)
     return res.status(500).json({ error: "missing_github_client_env" });
 
   try {
@@ -147,12 +147,27 @@ app.post("/auth/github", async (req, res) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          client_id: GITHUB_CLIENT_ID,
+          client_id: VITE_GITHUB_CLIENT_ID,
           client_secret: GITHUB_CLIENT_SECRET,
           code,
         }),
       }
     );
+    if (!tokenResp.ok) {
+      const errorText = await tokenResp.text();
+      // Эту строку вы увидите в логах Vercel!
+      console.error(
+        `❌ ОШИБКА GITHUB: Статус: ${
+          tokenResp.status
+        }. Тело: ${errorText.substring(0, 200)}`
+      );
+
+      return res.status(tokenResp.status).json({
+        // Возвращаем статус ошибки, полученный от GitHub
+        error: "Ошибка при обмене кодом с GitHub.",
+        details: `GitHub вернул статус ${tokenResp.status}`,
+      });
+    }
     const tokenJson = await tokenResp.json();
     if (tokenJson.error)
       return res.status(500).json({
