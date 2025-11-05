@@ -19,11 +19,12 @@
       "src": "/api/(.*)",
       "dest": "server.js"
     },
+    
     {
-      "src": "/auth/(.*)",
+      "src": "/auth/github",
       "dest": "server.js"
     },
-    
+   
     {
       "src": "/sw.js",
       "dest": "dist/sw.js"
