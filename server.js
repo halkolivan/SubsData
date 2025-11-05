@@ -75,7 +75,7 @@ const FRONT_ORIGIN = process.env.FRONT_ORIGIN || "https://subsdata.vercel.app";
 
 
 // --- GitHub авторизация ---
-app.post("/auth/github", async (req, res) => {
+app.all("/auth/github", async (req, res) => {
   const { code } = req.body || {};
   if (!code) return res.status(400).json({ error: "missing_code" });
 
