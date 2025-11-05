@@ -7,7 +7,7 @@ import fetch from "node-fetch";
 
 // import FormData from "form-data";
 // import { fileURLToPath } from "url";
-import nodemailer from "nodemailer";
+// import nodemailer from "nodemailer";
 
 // --- Инициализация приложения ---
 const app = express();
@@ -283,54 +283,54 @@ async function authMiddleware(req, res, next) {
 }
 
 // --- Nodemailer Setup ---
-const transporter = nodemailer.createTransport({
-  host: process.env.MAIL_HOST,
-  port: process.env.MAIL_PORT,
-  secure: false,
-  auth: {
-    user: process.env.MAIL_USER,
-    pass: process.env.MAIL_PASS,
-  },
-});
+// const transporter = nodemailer.createTransport({
+//   host: process.env.MAIL_HOST,
+//   port: process.env.MAIL_PORT,
+//   secure: false,
+//   auth: {
+//     user: process.env.MAIL_USER,
+//     pass: process.env.MAIL_PASS,
+//   },
+// });
 
 // --- Новый маршрут для отправки писем (ДОБАВЛЕНО) ---
-app.post("/api/send-subs-email", authMiddleware, async (req, res) => {
-  // Получаем данные, которые прислал фронтенд
-  const { subscriptions, userEmail } = req.body;
+// app.post("/api/send-subs-email", authMiddleware, async (req, res) => {
+//   // Получаем данные, которые прислал фронтенд
+//   const { subscriptions, userEmail } = req.body;
 
-  if (!subscriptions || !userEmail) {
-    return res
-      .status(400)
-      .json({ error: "Отсутствуют данные подписок или email получателя." });
-  }
+//   if (!subscriptions || !userEmail) {
+//     return res
+//       .status(400)
+//       .json({ error: "Отсутствуют данные подписок или email получателя." });
+//   }
 
-  // Формируем тело письма
-  const emailBody = subscriptions
-    .map(
-      (sub, i) =>
-        `${i + 1}. ${sub.name} — ${sub.price} ${sub.currency || ""} (${
-          sub.status
-        }), категория: ${sub.category}, следующая оплата: ${sub.nextPayment}`
-    )
-    .join("\n");
+//   // Формируем тело письма
+//   const emailBody = subscriptions
+//     .map(
+//       (sub, i) =>
+//         `${i + 1}. ${sub.name} — ${sub.price} ${sub.currency || ""} (${
+//           sub.status
+//         }), категория: ${sub.category}, следующая оплата: ${sub.nextPayment}`
+//     )
+//     .join("\n");
 
-  const mailOptions = {
-    // ОТПРАВИТЕЛЬ: Имя "Web Service SubsData" и ваш подтвержденный адрес
-    from: `"Web Service SubsData" <${process.env.FROM_EMAIL}>`,
-    // ПОЛУЧАТЕЛЬ: Email пользователя, полученный с фронтенда
-    to: userEmail,
-    subject: `Список ваших подписок из SubsData`,
-    text: `Здравствуйте!\n\nВаш список подписок:\n\n${emailBody}\n\nС уважением, команда SubsData.`,
-  };
+//   const mailOptions = {
+//     // ОТПРАВИТЕЛЬ: Имя "Web Service SubsData" и ваш подтвержденный адрес
+//     from: `"Web Service SubsData" <${process.env.FROM_EMAIL}>`,
+//     // ПОЛУЧАТЕЛЬ: Email пользователя, полученный с фронтенда
+//     to: userEmail,
+//     subject: `Список ваших подписок из SubsData`,
+//     text: `Здравствуйте!\n\nВаш список подписок:\n\n${emailBody}\n\nС уважением, команда SubsData.`,
+//   };
 
-  try {
-    await transporter.sendMail(mailOptions);
-    res.status(200).json({ message: "Письмо успешно отправлено!" });
-  } catch (error) {
-    console.error("❌ Ошибка Nodemailer (SendGrid):", error);
-    res.status(500).json({ error: "Ошибка при отправке письма через сервер." });
-  }
-});
+//   try {
+//     await transporter.sendMail(mailOptions);
+//     res.status(200).json({ message: "Письмо успешно отправлено!" });
+//   } catch (error) {
+//     console.error("❌ Ошибка Nodemailer (SendGrid):", error);
+//     res.status(500).json({ error: "Ошибка при отправке письма через сервер." });
+//   }
+// });
 
 // --- Раздача статики ---
 app.use(
