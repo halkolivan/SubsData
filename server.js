@@ -18,22 +18,22 @@ console.log("🗂 Serving static from:", distPath);
 
 // --- Разрешаем JSON для body ---------//
 app.use(express.json());
-app.use((req, res, next) => {
-  const oldHost = "subsdata.vercel.app";
-  const newDomain = "https://subsdata.vercel.app";
+// app.use((req, res, next) => {
+//   const oldHost = "subsdata.vercel.app";
+//   const newDomain = "https://subsdata.vercel.app";
 
-  if (req.headers.host?.startsWith(oldHost)) {
-    // Получаем полный путь, включая параметры запроса
-    const fullUrl = newDomain + req.originalUrl;
+//   if (req.headers.host?.startsWith(oldHost)) {
+//     // Получаем полный путь, включая параметры запроса
+//     const fullUrl = newDomain + req.originalUrl;
 
-    // Выполняем 301 редирект (Moved Permanently)
-    console.log(`➡️ 301 Redirecting ${req.originalUrl} to ${fullUrl}`);
-    return res.redirect(301, fullUrl);
-  }
+//     // Выполняем 301 редирект (Moved Permanently)
+//     console.log(`➡️ 301 Redirecting ${req.originalUrl} to ${fullUrl}`);
+//     return res.redirect(301, fullUrl);
+//   }
 
-  // Если хост не старый домен, продолжаем обработку как обычно
-  next();
-});
+//   // Если хост не старый домен, продолжаем обработку как обычно
+//   next();
+// });
 
 const allowedOrigins = [
   // 1. Локальная разработка (если порт 5173)
@@ -288,42 +288,42 @@ app.use((req, res, next) => {
 });
 
 // --- Раздача статики ---
-app.use(
-  express.static(distPath, {
-    index: false,
-    setHeaders: (res, path) => {
-      console.log("Serving:", path);
-      if (
-        path.endsWith(".html") ||
-        path.endsWith(".js") ||
-        path.endsWith(".css")
-      ) {
-        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-        res.setHeader("Pragma", "no-cache");
-        res.setHeader("Expires", "0");
-      } else {
-        // изображения и иконки можно кэшировать
-        res.setHeader("Cache-Control", "public, max-age=604800"); // 7 дней
-      }
-    },
-  })
-);
+// app.use(
+//   express.static(distPath, {
+//     index: false,
+//     setHeaders: (res, path) => {
+//       console.log("Serving:", path);
+//       if (
+//         path.endsWith(".html") ||
+//         path.endsWith(".js") ||
+//         path.endsWith(".css")
+//       ) {
+//         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+//         res.setHeader("Pragma", "no-cache");
+//         res.setHeader("Expires", "0");
+//       } else {
+//         // изображения и иконки можно кэшировать
+//         res.setHeader("Cache-Control", "public, max-age=604800"); // 7 дней
+//       }
+//     },
+//   })
+// );
 // --- Google site verification ---
-app.get("/googlea37d48efab48b1a5.html", (req, res) => {
-  res.sendFile(path.join(__dirname, "dist", "googlea37d48efab48b1a5.html"));
-});
+// app.get("/googlea37d48efab48b1a5.html", (req, res) => {
+//   res.sendFile(path.join(__dirname, "dist", "googlea37d48efab48b1a5.html"));
+// });
 
-app.get(/.*/, (req, res) => {
-  // Игнорируем только API
-  if (req.path.startsWith("/api") || req.path.startsWith("/auth")) {
-    return res.status(404).json({ error: "API route not found" });
-  }
-  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  res.setHeader("Pragma", "no-cache");
-  res.setHeader("Expires", "0");
-  const indexFile = path.join(distPath, "index.html");
-  res.sendFile(indexFile);
-});
+// app.get(/.*/, (req, res) => {
+//   // Игнорируем только API
+//   if (req.path.startsWith("/api") || req.path.startsWith("/auth")) {
+//     return res.status(404).json({ error: "API route not found" });
+//   }
+//   res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+//   res.setHeader("Pragma", "no-cache");
+//   res.setHeader("Expires", "0");
+//   const indexFile = path.join(distPath, "index.html");
+//   res.sendFile(indexFile);
+// });
 
 // --- Запуск ---
 const PORT = process.env.PORT || 10000;
