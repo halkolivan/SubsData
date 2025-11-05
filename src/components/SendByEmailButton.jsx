@@ -1,7 +1,7 @@
 import { useAuth } from "@/context/auth-context-export";
 import { Mail } from "lucide-react";
 
-// Импортируем VITE_API_URL, который указывает на ваш бэкенд на Render
+// Импортируем VITE_API_URL, который указывает на ваш бэкенд
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function SendByEmailButton({ subscriptions }) {
