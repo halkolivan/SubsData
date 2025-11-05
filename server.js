@@ -1,10 +1,11 @@
 // import fs from "fs";
+import "dotenv/config";
 import path from "path";
 import cors from "cors";
 import express from "express";
 import fetch from "node-fetch";
 // import FormData from "form-data";
-import { fileURLToPath } from "url";
+// import { fileURLToPath } from "url";
 // import nodemailer from "nodemailer";
 
 // --- Инициализация приложения ---
@@ -34,9 +35,6 @@ app.use((req, res, next) => {
   // Если хост не старый домен, продолжаем обработку как обычно
   next();
 });
-
-const GITHUB_SECRET = process.env.GITHUB_CLIENT_SECRET;
-const FRONT_ORIGIN = process.env.VITE_CLIENT_URL || "http://localhost:5173";
 
 const allowedOrigins = [
   "http://localhost:5173",
