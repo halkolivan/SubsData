@@ -1,19 +1,19 @@
-import fs from "fs";
+// import fs from "fs";
 import path from "path";
 import cors from "cors";
 import express from "express";
 import fetch from "node-fetch";
-import FormData from "form-data";
+// import FormData from "form-data";
 import { fileURLToPath } from "url";
-import nodemailer from "nodemailer";
+// import nodemailer from "nodemailer";
 
 // --- Инициализация приложения ---
 const app = express();
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
 
 // --- Путь к папке dist ---
-const distPath = path.join(__dirname, "dist");
+const distPath = path.resolve(process.cwd(), "dist");
 console.log("🗂 Serving static from:", distPath);
 
 // --- Разрешаем JSON для body ---
@@ -309,21 +309,21 @@ app.post("/api/send-subs-email", authMiddleware, async (req, res) => {
 app.use(
   express.static(distPath, {
     index: false,
-    setHeaders: (res, path) => {
-      console.log("Serving:", path);
-      if (
-        path.endsWith(".html") ||
-        path.endsWith(".js") ||
-        path.endsWith(".css")
-      ) {
-        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-        res.setHeader("Pragma", "no-cache");
-        res.setHeader("Expires", "0");
-      } else {
-        // изображения и иконки можно кэшировать
-        res.setHeader("Cache-Control", "public, max-age=604800"); // 7 дней
-      }
-    },
+    // setHeaders: (res, path) => {
+    //   console.log("Serving:", path);
+    //   if (
+    //     path.endsWith(".html") ||
+    //     path.endsWith(".js") ||
+    //     path.endsWith(".css")
+    //   ) {
+    //     res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    //     res.setHeader("Pragma", "no-cache");
+    //     res.setHeader("Expires", "0");
+    //   } else {
+    //     // изображения и иконки можно кэшировать
+    //     res.setHeader("Cache-Control", "public, max-age=604800"); // 7 дней
+    //   }
+    // },
   })
 );
 // --- Google site verification ---
