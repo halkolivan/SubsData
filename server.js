@@ -4,6 +4,7 @@ import path from "path";
 import cors from "cors";
 import express from "express";
 import fetch from "node-fetch";
+
 // import FormData from "form-data";
 // import { fileURLToPath } from "url";
 // import nodemailer from "nodemailer";
@@ -43,21 +44,21 @@ const allowedOrigins = [
   "https://www.subsdata.vercel.app",
 ];
 
-  app.use(
-    cors({
-      origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
-          return callback(null, true);
-        }
-        if (allowedOrigins.indexOf(origin) !== -1) {
-          callback(null, true);
-        }
-      },
-      credentials: true, // чтобы работали куки / авторизация
-      methods: ["GET, HEAD, PUT, PATCH, POST, DELETE"],
-      allowedHeaders: ["Content-Type", "Authorization"],
-    })
-  );
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      }
+    },
+    credentials: true, // чтобы работали куки / авторизация
+    methods: ["GET, HEAD, PUT, PATCH, POST, DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 // --- Service Worker ---
 app.get("/sw.js", (req, res) => {
@@ -141,21 +142,17 @@ app.post("/auth/github", async (req, res) => {
 
     // 2. Проверка входных данных
     if (!code) {
-      return res
-        .status(400)
-        .json({
-          error: "missing_code",
-          message: "Authorization code not provided.",
-        });
+      return res.status(400).json({
+        error: "missing_code",
+        message: "Authorization code not provided.",
+      });
     }
 
     if (!redirect_uri) {
-      return res
-        .status(400)
-        .json({
-          error: "missing_redirect_uri",
-          message: "Redirect URI is missing from the request body.",
-        });
+      return res.status(400).json({
+        error: "missing_redirect_uri",
+        message: "Redirect URI is missing from the request body.",
+      });
     }
 
     // 3. ПРОВЕРКА ПЕРЕМЕННЫХ ОКРУЖЕНИЯ
@@ -164,12 +161,10 @@ app.post("/auth/github", async (req, res) => {
 
     if (!GITHUB_CLIENT_SECRET) {
       console.error("❌ CRITICAL: GITHUB_CLIENT_SECRET is not set.");
-      return res
-        .status(500)
-        .json({
-          error: "server_config_error",
-          message: "GitHub Secret is missing from server configuration.",
-        });
+      return res.status(500).json({
+        error: "server_config_error",
+        message: "GitHub Secret is missing from server configuration.",
+      });
     }
 
     // 4. Запрос на получение токена (Обмен кода на токен)
@@ -218,12 +213,10 @@ app.post("/auth/github", async (req, res) => {
 
     if (user.message === "Bad credentials") {
       console.error("❌ GitHub User Info Error: Bad credentials");
-      return res
-        .status(401)
-        .json({
-          error: "invalid_token",
-          message: "Failed to retrieve user info with the provided token.",
-        });
+      return res.status(401).json({
+        error: "invalid_token",
+        message: "Failed to retrieve user info with the provided token.",
+      });
     }
 
     // 6. Успешный ответ
@@ -240,13 +233,11 @@ app.post("/auth/github", async (req, res) => {
   } catch (err) {
     // 7. Обработка всех неожиданных ошибок
     console.error("❌ FATAL GitHub exchange error:", err.message);
-    res
-      .status(500)
-      .json({
-        error: "github_exchange_failed",
-        message:
-          "An unexpected error occurred during the GitHub authentication process.",
-      });
+    res.status(500).json({
+      error: "github_exchange_failed",
+      message:
+        "An unexpected error occurred during the GitHub authentication process.",
+    });
   }
 });
 
@@ -338,8 +329,6 @@ app.post("/api/send-subs-email", authMiddleware, async (req, res) => {
     res.status(500).json({ error: "Ошибка при отправке письма через сервер." });
   }
 });
-
-
 
 // --- Раздача статики ---
 app.use(
