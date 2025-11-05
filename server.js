@@ -85,16 +85,16 @@ app.get("/sw.js", (req, res) => {
 // --- Иконки ---
 app.get(/^\/icons\/.*/, (req, res) => {
   const rel = req.path.replace(/^\//, "");
-  const fileOnDisk = path.join(distPath, rel);
-  if (fs.existsSync(fileOnDisk)) return res.sendFile(fileOnDisk);
+  // const fileOnDisk = path.join(distPath, rel);
+  // if (fs.existsSync(fileOnDisk)) return res.sendFile(fileOnDisk);
   return res.status(404).send("Not found");
 });
 
 // --- Локализации ---
 app.get(/^\/locales\/.*/, (req, res) => {
   const rel = req.path.replace(/^\//, "");
-  const fileOnDisk = path.join(distPath, rel);
-  if (fs.existsSync(fileOnDisk)) return res.sendFile(fileOnDisk);
+  // const fileOnDisk = path.join(distPath, rel);
+  // if (fs.existsSync(fileOnDisk)) return res.sendFile(fileOnDisk);
   return res.status(404).send("Not found");
 });
 
@@ -128,10 +128,10 @@ app.use((req, res, next) => {
     urlPath.startsWith("/assets/") ||
     urlPath.startsWith("/icons/")
   ) {
-    const fileOnDisk = path.join(distPath, urlPath.replace(/^\//, ""));
-    if (!fs.existsSync(fileOnDisk)) {
-      console.warn(`⚠️ 404 static asset not found: ${req.method} ${req.url}`);
-    }
+    // const fileOnDisk = path.join(distPath, urlPath.replace(/^\//, ""));
+    // if (!fs.existsSync(fileOnDisk)) {
+    //   console.warn(`⚠️ 404 static asset not found: ${req.method} ${req.url}`);
+    // }
   }
   next();
 });
