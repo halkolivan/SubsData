@@ -17,12 +17,13 @@ export default function AuthCallback() {
       return;
     }
 
-    const AUTH_SERVER = window.location.origin;
+    const AUTH_SERVER =
+      import.meta.env.VITE_AUTH_SERVER || window.location.origin;
     const clientRedirectUri = `${window.location.origin}/auth/callback`;
 
-    fetch(`${AUTH_SERVER}/auth/github`, {      
+    fetch(`${AUTH_SERVER}/auth/github`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },      
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ code, redirect_uri: clientRedirectUri }),
     })
       .then((res) => res.json())

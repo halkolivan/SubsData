@@ -35,6 +35,9 @@ app.use((req, res, next) => {
   next();
 });
 
+const VITE_CLIENT_URL = process.env.VITE_CLIENT_URL || "http://localhost:5173";
+const FRONT_ORIGIN = VITE_CLIENT_URL;
+
 const allowedOrigins = [
   "http://localhost:5173",
   FRONT_ORIGIN || "https://subsdata.vercel.app",
@@ -42,10 +45,6 @@ const allowedOrigins = [
   "https://www.subsdata.vercel.app",
 ];
 
-// --- CORS настройка ---
-const FRONT_ORIGIN =
-  process.env.VITE_CLIENT_URL || "https://subsdata.vercel.app";
-"http://localhost:5173", // Локальная разработка
   app.use(
     cors({
       origin: (origin, callback) => {
