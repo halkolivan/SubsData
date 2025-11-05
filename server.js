@@ -186,6 +186,19 @@ app.post("/auth/github", async (req, res) => {
         }),
       }
     );
+    if (!tokenResp.ok) {
+      const errorText = await tokenResp.text();
+      console.error(
+        `❌ ОШИБКА GITHUB API! Статус: ${
+          tokenResp.status
+        }. Тело: ${errorText.substring(0, 200)}`
+      );
+      // Отправляем ошибку обратно на клиент с деталями
+      return res.status(400).json({
+        error: "Ошибка при обмене кодом GitHub. Проверьте логи Vercel.",
+        details: `GitHub вернул статус ${tokenResp.status}`,
+      });
+    }
 
     const tokenJson = await tokenResp.json();
 
