@@ -16,7 +16,7 @@ const __dirname = path.dirname(__filename);
 const distPath = path.join(__dirname, "dist");
 console.log("🗂 Serving static from:", distPath);
 
-// --- Разрешаем JSON для body ---
+// --- Разрешаем JSON для body ---------//
 app.use(express.json());
 app.use((req, res, next) => {
   const oldHost = "subsdata.vercel.app";
