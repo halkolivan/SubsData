@@ -1,27 +1,39 @@
 {
+  "version": 2,
   "builds": [
     {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "installCommand": "npm install",
-        "buildCommand": "npm run build"
-      }
+      "src": "server.js",
+      "use": "@vercel/node"
     },
     {
-      "src": "api/index.js",
-      "use": "@vercel/node"
+      "src": "dist/**",
+      "use": "@vercel/static"
     }
   ],
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api"
+      "src": "/auth/.*",
+      "dest": "server.js"
     },
-
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "src": "/api/.*",
+      "dest": "server.js"
+    },
+    {
+      "src": "/sw.js",
+      "dest": "server.js"
+    },
+    {
+      "src": "/locales/.*",
+      "dest": "server.js"
+    },
+    {
+      "src": "/icons/.*",
+      "dest": "server.js"
+    },
+    {
+      "src": "/.*",
+      "dest": "server.js"
     }
-  ]  
+  ]
 }
