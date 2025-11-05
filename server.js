@@ -117,6 +117,25 @@ app.get("/__assets", (req, res) => {
   }
 });
 
+// --- Лог отсутствующих ассетов (только для диагностики) ---
+app.use((req, res, next) => {
+  const urlPath = req.path || req.url || "";
+  const staticExt = /\.(js|css|png|jpg|jpeg|svg|webmanifest|ico|json)$/i;
+
+  // если путь похож на статик-файл, но его нет — просто логируем
+  if (
+    staticExt.test(urlPath) ||
+    urlPath.startsWith("/assets/") ||
+    urlPath.startsWith("/icons/")
+  ) {
+    const fileOnDisk = path.join(distPath, urlPath.replace(/^\//, ""));
+    if (!fs.existsSync(fileOnDisk)) {
+      console.warn(`⚠️ 404 static asset not found: ${req.method} ${req.url}`);
+    }
+  }
+  next();
+});
+
 // --- GitHub авторизация ---
 app.post("/auth/github", async (req, res) => {
   const { code } = req.body || {};
@@ -264,24 +283,7 @@ app.post("/api/send-subs-email", authMiddleware, async (req, res) => {
   }
 });
 
-// --- Лог отсутствующих ассетов (только для диагностики) ---
-app.use((req, res, next) => {
-  const urlPath = req.path || req.url || "";
-  const staticExt = /\.(js|css|png|jpg|jpeg|svg|webmanifest|ico|json)$/i;
 
-  // если путь похож на статик-файл, но его нет — просто логируем
-  if (
-    staticExt.test(urlPath) ||
-    urlPath.startsWith("/assets/") ||
-    urlPath.startsWith("/icons/")
-  ) {
-    const fileOnDisk = path.join(distPath, urlPath.replace(/^\//, ""));
-    if (!fs.existsSync(fileOnDisk)) {
-      console.warn(`⚠️ 404 static asset not found: ${req.method} ${req.url}`);
-    }
-  }
-  next();
-});
 
 // --- Раздача статики ---
 app.use(
