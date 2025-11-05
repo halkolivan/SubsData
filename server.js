@@ -36,31 +36,28 @@ app.use((req, res, next) => {
 });
 
 const allowedOrigins = [
-  // 1. Локальная разработка (если порт 5173)
   "http://localhost:5173",
-  // 2. Основной домен Vercel (через переменную окружения или новый Vercel-домен)
-  process.env.FRONT_ORIGIN || "https://subsdata.vercel.app",
-  // 3. Старый домен (если нужно для обратной совместимости)
+  FRONT_ORIGIN || "https://subsdata.vercel.app",
   "https://subsdata.vercel.app",
-  // 4. Дополнительный API (Render)
-  "https://subsdata-api.vercel.app",
+  "https://www.subsdata.vercel.app",
 ];
 
 // --- CORS настройка ---
-const FRONT_ORIGIN = process.env.FRONT_ORIGIN || "https://subsdata.vercel.app";
+const FRONT_ORIGIN =
+  process.env.VITE_CLIENT_URL || "https://subsdata.vercel.app";
 "http://localhost:5173", // Локальная разработка
   app.use(
     cors({
       origin: (origin, callback) => {
-        // Разрешаем запросы без 'origin' (например, с localhost)
         if (!origin || allowedOrigins.includes(origin)) {
+          return callback(null, true);
+        }
+        if (allowedOrigins.indexOf(origin) !== -1) {
           callback(null, true);
-        } else {
-          callback(new Error("Not allowed by CORS"));
         }
       },
       credentials: true, // чтобы работали куки / авторизация
-      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      methods: ["GET, HEAD, PUT, PATCH, POST, DELETE"],
       allowedHeaders: ["Content-Type", "Authorization"],
     })
   );
