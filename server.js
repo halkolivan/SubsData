@@ -31,24 +31,17 @@ const allowedOrigins = [
 
 // --- CORS настройка ---
 const FRONT_ORIGIN = process.env.FRONT_ORIGIN || "https://subsdata.vercel.app";
-"http://localhost:5173",
-  app.use(
-    cors({
-      origin: (origin, callback) => {
-        // Разрешаем запросы без 'origin' (например, с localhost)
-        if (!origin || allowedOrigins.includes(origin)) {
-          callback(null, true);
-        } else {
-          callback(new Error("Not allowed by CORS"));
-        }
-      },
-      credentials: true, // чтобы работали куки / авторизация
-      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-      allowedHeaders: ["Content-Type", "Authorization"],
-    })
-  );
-
-
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+  })
+);
 
 // --- Service Worker ---
 app.get("/sw.js", (req, res) => {
@@ -103,15 +96,6 @@ app.get("/__assets", (req, res) => {
     console.error("Error listing dist folders", err);
     res.status(500).json({ error: "failed to list" });
   }
-});
-
-app.get("*", (req, res) => {
-  const indexFile = path.join(distPath, "index.html");
-  if (fs.existsSync(indexFile)) {
-    return res.sendFile(indexFile);
-  }
-  // на случай, если сборка отсутствует
-  return res.status(404).send("Not found");
 });
 
 // --- GitHub авторизация ---
@@ -337,6 +321,12 @@ app.use((req, res, next) => {
   }
   next();
 });
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(distPath, "index.html"));
+});
+
+
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));

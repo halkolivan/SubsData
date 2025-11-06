@@ -35,7 +35,7 @@ function App() {
             </div>
           }
         >
-          <Router />
+          <Router path="/gh-callback" element={<GitHubCallback />} />
         </Suspense>
       </AuthProvider>
     </GoogleOAuthProvider>
