@@ -5,14 +5,9 @@ import { Mail } from "lucide-react";
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function SendByEmailButton({ subscriptions }) {
-  // Получаем токен, userEmail и функцию обновления токена
-  // ✅ refreshAccessToken — это Promise-функция, возвращающая новый токен
+  
   const { user, token, refreshAccessToken } = useAuth();
   const userEmail = user?.email;
-
-  // === СЕКЦИЯ ДЛЯ ПРИНУДИТЕЛЬНОГО ОБНОВЛЕНИЯ ХЕША ===
-  console.log("SEND_EMAIL_V3_FIXED_20251026");
-  // ===================================================
 
   /**
    * Отправляет подписки на почту.
