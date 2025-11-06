@@ -129,27 +129,6 @@ app.post("/api/send-subs-email", authMiddleware, async (req, res) => {
   }
 });
 
-// --- Раздача статики ---
-app.use(
-  express.static(distPath, {
-    index: false,
-    setHeaders: (res, path) => {
-      console.log("Serving:", path);
-      if (
-        path.endsWith(".html") ||
-        path.endsWith(".js") ||
-        path.endsWith(".css")
-      ) {
-        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-        res.setHeader("Pragma", "no-cache");
-        res.setHeader("Expires", "0");
-      } else {
-        // изображения и иконки можно кэшировать
-        res.setHeader("Cache-Control", "public, max-age=604800"); // 7 дней
-      }
-    },
-  })
-);
 // --- Google site verification ---
 app.get("/googlea37d48efab48b1a5.html", (req, res) => {
   res.sendFile(path.join(__dirname, "dist", "googlea37d48efab48b1a5.html"));
@@ -167,7 +146,4 @@ app.get(/.*/, (req, res) => {
   res.sendFile(indexFile);
 });
 
-// --- Запуск ---
-// const PORT = process.env.PORT || 10000;
-// app.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));
 export default app;
