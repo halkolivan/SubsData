@@ -43,7 +43,7 @@ export default function Router() {
         },
       ],
     },
-    { path: "/auth/callback", element: <AuthCallback /> },    
+    { path: "/auth/callback", element: <AuthCallback /> },
   ]);
   return <RouterProvider router={router} />;
 }

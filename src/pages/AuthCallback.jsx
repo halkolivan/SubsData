@@ -21,7 +21,7 @@ export default function AuthCallback() {
     const AUTH_SERVER =
       import.meta.env.VITE_AUTH_SERVER || window.location.origin;
 
-    fetch(`${AUTH_SERVER}/gh-login`, {
+    fetch(`${AUTH_SERVER}/auth/github`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ code }),

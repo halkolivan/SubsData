@@ -1,55 +1,27 @@
 {
-  "version": 2,
   "builds": [
-    {
-      "src": "server.js",
-      "use": "@vercel/node"
-    },
     {
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist"
+        "installCommand": "npm install",
+        "buildCommand": "npm run build"
       }
+    },
+    {
+      "src": "api/index.js",
+      "use": "@vercel/node"
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/gh-login",
-      "methods": ["POST"],
-      "dest": "server.js"
-    },   
-
-    {
-      "src": "/auth/(.*)",
-      "dest": "server.js"
+      "source": "/api/(.*)",
+      "destination": "/api"
     },
 
     {
-      "src": "/api/(.*)",
-      "dest": "server.js"
-    },
-
-    {
-      "src": "/sw.js",
-      "dest": "dist/sw.js"
-    },
-    {
-      "src": "/locales/(.*)",
-      "dest": "dist/locales/$1"
-    },
-    {
-      "src": "/icons/(.*)",
-      "dest": "dist/icons/$1"
-    },
-    {
-      "src": "/assets/(.*)",
-      "dest": "dist/assets/$1"
-    },
-
-    {
-      "src": "/(.*)",
-      "dest": "dist/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
-  ]
+  ]  
 }
