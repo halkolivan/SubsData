@@ -5,8 +5,10 @@ export default function GitHubCallback() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get("code");
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+
+    console.log("✅ GitHub OAuth code:", code);
 
     if (code) {
       fetch(
@@ -21,13 +23,13 @@ export default function GitHubCallback() {
       )
         .then((res) => res.json())
         .then((data) => {
+          console.log("GitHub login response:", data);
+          // Простейшее поведение (можно заменить на Context)
           if (data.success) {
-            console.log("✅ GitHub user:", data.user);
-            // Сохраняем в localStorage / context
             localStorage.setItem("githubUser", JSON.stringify(data.user));
-            navigate("/mysubscriptions"); // или куда нужно
+            navigate("/mysubscriptions");
           } else {
-            console.error("GitHub login failed:", data.error);
+            navigate("/");
           }
         });
     }
