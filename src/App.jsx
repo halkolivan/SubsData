@@ -7,6 +7,7 @@ import React, { Suspense, useEffect } from "react";
 import { AuthProvider } from "@/context/AuthContext";
 import Loader from "@assets/loaders/loaderBlack.svg";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import GitHubCallback from "@pages/GitHubCallback";
 
 const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID ||
   "408629276793-90jf6aqt0lupftengqnodqd0dgnl2lck.apps.googleusercontent.com";
