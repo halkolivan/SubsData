@@ -53,7 +53,7 @@ export default function SendByEmailButton({ subscriptions }) {
 
     try {
       // 4. Отправка данных на ваш API-сервер
-      const res = await fetch(`${API_URL}/api/send-subs-email`, {
+      const res = await fetch(`${API_URL}/send-subs-email`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
