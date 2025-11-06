@@ -227,7 +227,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // --- Новый маршрут для отправки писем (ДОБАВЛЕНО) ---
-app.post("/send-subs-email", authMiddleware, async (req, res) => {
+app.post("/api/send-subs-email", authMiddleware, async (req, res) => {
   // Получаем данные, которые прислал фронтенд
   const { subscriptions, userEmail } = req.body;
 
@@ -322,5 +322,6 @@ app.get(/.*/, (req, res) => {
 });
 
 // --- Запуск ---
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));
+// const PORT = process.env.PORT || 10000;
+// app.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));
+export default app;
