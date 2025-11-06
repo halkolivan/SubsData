@@ -427,9 +427,9 @@ export default function Header() {
             <button
               onClick={() => {
                 const redirectUri = `${window.location.origin}/gh-callback`;
-                const url = `https://github.com/login/oauth/authorize?client_id=${clientId}&scope=user&redirect_uri=${encodeURIComponent(
+                const url = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
                   redirectUri
-                )}`;
+                )}&scope=user`;
                 setIsModalOpen(false);
                 window.location.href = url;
               }}

@@ -18,22 +18,6 @@ console.log("🗂 Serving static from:", distPath);
 
 // --- Разрешаем JSON для body ---------//
 app.use(express.json());
-// app.use((req, res, next) => {
-//   const oldHost = "subsdata.vercel.app";
-//   const newDomain = "https://subsdata.vercel.app";
-
-//   if (req.headers.host?.startsWith(oldHost)) {
-//     // Получаем полный путь, включая параметры запроса
-//     const fullUrl = newDomain + req.originalUrl;
-
-//     // Выполняем 301 редирект (Moved Permanently)
-//     console.log(`➡️ 301 Redirecting ${req.originalUrl} to ${fullUrl}`);
-//     return res.redirect(301, fullUrl);
-//   }
-
-//   // Если хост не старый домен, продолжаем обработку как обычно
-//   next();
-// });
 
 const allowedOrigins = [
   // 1. Локальная разработка (если порт 5173)
@@ -42,13 +26,12 @@ const allowedOrigins = [
   process.env.FRONT_ORIGIN || "https://subsdata.vercel.app",
   // 3. Старый домен (если нужно для обратной совместимости)
   "https://subsdata.vercel.app",
-  // 4. Дополнительный API (Render)
-  "https://subsdata-api.vercel.app",
 ];
+
 
 // --- CORS настройка ---
 const FRONT_ORIGIN = process.env.FRONT_ORIGIN || "https://subsdata.vercel.app";
-"http://localhost:5173", // Локальная разработка
+"http://localhost:5173",
   app.use(
     cors({
       origin: (origin, callback) => {
@@ -65,12 +48,7 @@ const FRONT_ORIGIN = process.env.FRONT_ORIGIN || "https://subsdata.vercel.app";
     })
   );
 
-// --- Пример (если когда-то понадобится ставить куку) ---
-// res.cookie("sid", sessionId, {
-//   httpOnly: true,
-//   secure: true,
-//   sameSite: "None",
-// });
+
 
 // --- Service Worker ---
 app.get("/sw.js", (req, res) => {
@@ -125,6 +103,15 @@ app.get("/__assets", (req, res) => {
     console.error("Error listing dist folders", err);
     res.status(500).json({ error: "failed to list" });
   }
+});
+
+app.get("*", (req, res) => {
+  const indexFile = path.join(distPath, "index.html");
+  if (fs.existsSync(indexFile)) {
+    return res.sendFile(indexFile);
+  }
+  // на случай, если сборка отсутствует
+  return res.status(404).send("Not found");
 });
 
 // --- GitHub авторизация ---
