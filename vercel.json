@@ -8,11 +8,16 @@
         "buildCommand": "npm run build"
       }
     },
-    {      
+    {
+      "src": "api/index.js",
       "use": "@vercel/node"
     }
   ],
-  "rewrites": [   
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api"
+    },
 
     {
       "source": "/(.*)",
