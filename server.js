@@ -227,7 +227,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // --- Новый маршрут для отправки писем (ДОБАВЛЕНО) ---
-app.post("/api/send-subs-email", authMiddleware, async (req, res) => {
+app.post("/send-subs-email", authMiddleware, async (req, res) => {
   // Получаем данные, которые прислал фронтенд
   const { subscriptions, userEmail } = req.body;
 
@@ -264,9 +264,6 @@ app.post("/api/send-subs-email", authMiddleware, async (req, res) => {
     res.status(500).json({ error: "Ошибка при отправке письма через сервер." });
   }
 });
-
-// app.options("/api/send-subs-email", cors());
-
 // --- Лог отсутствующих ассетов (только для диагностики) ---
 app.use((req, res, next) => {
   const urlPath = req.path || req.url || "";
