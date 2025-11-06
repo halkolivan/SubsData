@@ -1,18 +1,11 @@
-import fs from "fs";
-import path from "path";
 import cors from "cors";
 import express from "express";
 import fetch from "node-fetch";
-import { fileURLToPath } from "url";
 import nodemailer from "nodemailer";
 
 // --- Инициализация приложения ---
 const app = express();
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
-// --- Путь к папке dist ---
-const distPath = path.join(__dirname, "dist");
 console.log("🗂 Serving static from:", distPath);
 
 // --- Разрешаем JSON для body ---
