@@ -17,22 +17,6 @@ console.log("🗂 Serving static from:", distPath);
 
 // --- Разрешаем JSON для body ---
 app.use(express.json());
-app.use((req, res, next) => {
-  const oldHost = "subsdata.vercel.app";
-  const newDomain = "https://subsdata.vercel.app";
-
-  if (req.headers.host?.startsWith(oldHost)) {
-    // Получаем полный путь, включая параметры запроса
-    const fullUrl = newDomain + req.originalUrl;
-
-    // Выполняем 301 редирект (Moved Permanently)
-    console.log(`➡️ 301 Redirecting ${req.originalUrl} to ${fullUrl}`);
-    return res.redirect(301, fullUrl);
-  }
-
-  // Если хост не старый домен, продолжаем обработку как обычно
-  next();
-});
 
 const allowedOrigins = [
   // 1. Локальная разработка (если порт 5173)
