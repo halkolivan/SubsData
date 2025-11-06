@@ -19,6 +19,7 @@
       "methods": ["POST"],
       "dest": "server.js"
     },
+    { "source": "/(.*)", "destination": "/" },
 
     {
       "src": "/auth/(.*)",

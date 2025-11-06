@@ -34,9 +34,8 @@ app.use(
 
 // --- CORS настройка ---
 const FRONT_ORIGIN =
-  process.env.FRONT_ORIGIN || "https://subsdata.onrender.com";
-"http://localhost:5173", // Локальная разработка
-  "https://subsdata-api.onrender.com", // Иногда API должен разрешать сам себя
+  process.env.FRONT_ORIGIN || "https://subsdata.vercel.app";
+"http://localhost:5173", // Локальная разработка  
   app.use(
     cors({
       origin: (origin, callback) => {
