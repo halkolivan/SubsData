@@ -6,8 +6,6 @@ import nodemailer from "nodemailer";
 // --- Инициализация приложения ---
 const app = express();
 
-console.log("🗂 Serving static from:", distPath);
-
 // --- Разрешаем JSON для body ---
 app.use(express.json());
 
@@ -40,118 +38,6 @@ const FRONT_ORIGIN = process.env.FRONT_ORIGIN || "https://subsdata.vercel.app";
       allowedHeaders: ["Content-Type", "Authorization"],
     })
   );
-
-// --- Пример (если когда-то понадобится ставить куку) ---
-// res.cookie("sid", sessionId, {
-//   httpOnly: true,
-//   secure: true,
-//   sameSite: "None",
-// });
-
-// --- Service Worker ---
-app.get("/sw.js", (req, res) => {
-  const swFile = path.join(distPath, "sw.js");
-  res.setHeader("Content-Type", "application/javascript");
-  // 👇 запрещаем кэширование
-  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  res.setHeader("Pragma", "no-cache");
-  res.setHeader("Expires", "0");
-
-  if (fs.existsSync(swFile)) {
-    res.sendFile(swFile);
-  } else {
-    res.send(
-      "// noop service worker\n" +
-        "self.addEventListener('install',()=>self.skipWaiting());\n" +
-        "self.addEventListener('activate',()=>self.clients.claim());\n"
-    );
-  }
-});
-
-// --- Иконки ---
-app.get(/^\/icons\/.*/, (req, res) => {
-  const rel = req.path.replace(/^\//, "");
-  const fileOnDisk = path.join(distPath, rel);
-  if (fs.existsSync(fileOnDisk)) return res.sendFile(fileOnDisk);
-  return res.status(404).send("Not found");
-});
-
-// --- Локализации ---
-app.get(/^\/locales\/.*/, (req, res) => {
-  const rel = req.path.replace(/^\//, "");
-  const fileOnDisk = path.join(distPath, rel);
-  if (fs.existsSync(fileOnDisk)) return res.sendFile(fileOnDisk);
-  return res.status(404).send("Not found");
-});
-
-// --- Диагностика ---
-app.get("/__assets", (req, res) => {
-  try {
-    const listDir = (p) => {
-      const full = path.join(distPath, p);
-      if (!fs.existsSync(full)) return null;
-      return fs.readdirSync(full);
-    };
-    res.json({
-      assets: listDir("assets"),
-      icons: listDir("icons"),
-      locales: listDir("locales"),
-    });
-  } catch (err) {
-    console.error("Error listing dist folders", err);
-    res.status(500).json({ error: "failed to list" });
-  }
-});
-
-// --- GitHub авторизация ---
-app.post("/auth/github", async (req, res) => {
-  const { code } = req.body || {};
-  if (!code) return res.status(400).json({ error: "missing_code" });
-
-  const { GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET } = process.env;
-  if (!GITHUB_CLIENT_ID || !GITHUB_CLIENT_SECRET)
-    return res.status(500).json({ error: "missing_github_client_env" });
-
-  try {
-    // Обмен кода на токен
-    const tokenResp = await fetch(
-      "https://github.com/login/oauth/access_token",
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          client_id: GITHUB_CLIENT_ID,
-          client_secret: GITHUB_CLIENT_SECRET,
-          code,
-        }),
-      }
-    );
-    const tokenJson = await tokenResp.json();
-    if (tokenJson.error)
-      return res.status(500).json({
-        error: tokenJson.error_description || tokenJson.error,
-      });
-
-    const access_token = tokenJson.access_token;
-
-    // Получение профиля пользователя
-    const userResp = await fetch("https://api.github.com/user", {
-      headers: {
-        Authorization: `token ${access_token}`,
-        Accept: "application/vnd.github.v3+json",
-      },
-    });
-    const user = await userResp.json();
-
-    res.json({ user, token: access_token });
-  } catch (err) {
-    console.error("GitHub exchange error", err);
-    res.status(500).json({ error: "github_exchange_failed" });
-  }
-});
 
 // --- Проверка Google access_token ---
 async function authMiddleware(req, res, next) {
@@ -240,24 +126,6 @@ app.post("/api/send-subs-email", authMiddleware, async (req, res) => {
     console.error("❌ Ошибка Nodemailer (SendGrid):", error);
     res.status(500).json({ error: "Ошибка при отправке письма через сервер." });
   }
-});
-// --- Лог отсутствующих ассетов (только для диагностики) ---
-app.use((req, res, next) => {
-  const urlPath = req.path || req.url || "";
-  const staticExt = /\.(js|css|png|jpg|jpeg|svg|webmanifest|ico|json)$/i;
-
-  // если путь похож на статик-файл, но его нет — просто логируем
-  if (
-    staticExt.test(urlPath) ||
-    urlPath.startsWith("/assets/") ||
-    urlPath.startsWith("/icons/")
-  ) {
-    const fileOnDisk = path.join(distPath, urlPath.replace(/^\//, ""));
-    if (!fs.existsSync(fileOnDisk)) {
-      console.warn(`⚠️ 404 static asset not found: ${req.method} ${req.url}`);
-    }
-  }
-  next();
 });
 
 // --- Раздача статики ---
