@@ -1,7 +1,6 @@
 import { lazy } from "react";
 import Template from "./Template";
 import AuthCallback from "@/pages/AuthCallback";
-import GitHubCallback from "@/pages/GitHubCallback";
 import ProtectedRoute from "@/context/ProtectedRoute";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 
@@ -44,8 +43,7 @@ export default function Router() {
         },
       ],
     },
-    { path: "/auth/callback", element: <AuthCallback /> },
-    { path: "/gh-callback", element: <GitHubCallback /> },
+    { path: "/auth/callback", element: <AuthCallback /> },    
   ]);
   return <RouterProvider router={router} />;
 }
