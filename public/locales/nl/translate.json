@@ -10,6 +10,7 @@
   "NextPayment": "Volg.betaling",
   "Status": "Status",
   "Currency": "Valuta",
+  "CurrencySave": "De valuta-instellingen zijn opgeslagen",
   "StatusTable": "Actief",
   "DefaultCurrency": "Standaardvaluta",
   "AccountingCurrency": "Boekhoudvaluta",

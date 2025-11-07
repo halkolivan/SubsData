@@ -11,6 +11,7 @@
   "Status": "Statut",
   "StatusTable": "Activ",
   "Currency": "Monedă",
+  "CurrencySave": "Setările valutei au fost salvate",
   "DefaultCurrency": "Moneda implicită",
   "AccountingCurrency": "Monedă de evidență",
   "AddCurrenc": "Adaugă o monedă personalizată (opțional)",

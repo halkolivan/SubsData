@@ -11,6 +11,7 @@
   "Status": "Статус",
   "StatusTable": "Активный",
   "Currency": "Валюта",
+  "CurrencySave": "Настройки валюты сохранены",
   "DefaultCurrency": "Валюта по умолчанию",
   "AccountingCurrency": "Валюта учёта",
   "AddCurrenc": "Добавить пользовательскую валюту (опционально)",

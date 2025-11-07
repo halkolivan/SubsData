@@ -11,6 +11,7 @@
   "Status": "Estado",
   "StatusTable": "Activo",
   "Currency": "Moneda",
+  "CurrencySave": "La configuración de la moneda se ha guardado",
   "DefaultCurrency": "Moneda predeterminada",
   "AccountingCurrency": "Moneda contable",
   "AddCurrenc": "Agregar moneda personalizada (opcional)",
