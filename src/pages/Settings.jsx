@@ -81,7 +81,7 @@ export default function Settings() {
     }
 
     // здесь можно отправлять настройки на бэкенд
-    setCurrencyMsg("Настройки валюты сохранены");
+    setCurrencyMsg(t("CurrencySave"));
   }
 
   // --- Формат даты ---
