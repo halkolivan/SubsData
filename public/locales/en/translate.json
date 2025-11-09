@@ -98,5 +98,6 @@
   "Active": "Active",
   "Canceled": "Canceled",
   "Actions": "Actions",
-  "Edit": "Edit"
+  "Edit": "Edit",
+  "SendEmail": "Send to email"
 }

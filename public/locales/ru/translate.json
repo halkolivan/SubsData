@@ -98,5 +98,6 @@
   "Active": "Активные",
   "Canceled": "Отменённые",
   "Actions": "Действия",
-  "Edit": "Ред."
+  "Edit": "Ред.",
+  "SendEmail": "Отправить на email"
 }
