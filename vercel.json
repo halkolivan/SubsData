@@ -22,5 +22,12 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
+  ],
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "destination": "https://subsdata.top/$1",
+      "permanent": true
+    }
   ]
 }
