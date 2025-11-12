@@ -29,13 +29,13 @@ export default function Footer() {
           <a href="https://paypal.me/RTomayli" target="_blank">
             <img src={pp} alt="paypal" className="max-h-[40px] w-auto" />
           </a>
-          <a
+          {/* <a
             href="https://github.com/halkolivan?tab=repositories"
             target="_blank"
             className="!text-black hover:!text-blue-600 sm:border-r-2 pr-2"
           >
             GitHub
-          </a>
+          </a> */}
         </div>
       </div>
 

@@ -15,7 +15,7 @@ import { useAuth } from "@/context/auth-context-export";
 import { useGoogleLogin } from "@react-oauth/google";
 import SaveButton from "@/components/SaveButton";
 
-const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
+// const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
 
 export default function Header() {
   const { t, i18n } = useTranslation();
