@@ -1,9 +1,6 @@
-import "./i18n";
-import i18n from "./i18n";
 import Router from "./Router";
 import "@assets/styles/App.css";
 import "@assets/styles/fonts.css";
-import { I18nextProvider } from "react-i18next";
 import { registerSW } from "virtual:pwa-register";
 import React, { Suspense, useEffect } from "react";
 import { AuthProvider } from "@/context/AuthContext";
@@ -27,21 +24,19 @@ function App() {
   return (
     <GoogleOAuthProvider clientId={clientId}>
       <AuthProvider>
-        <I18nextProvider i18n={i18n}>
-          <Suspense
-            fallback={
-              <div className="flex h-screen justify-center items-center">
-                <img
-                  src={Loader}
-                  alt="Loading..."
-                  className="w-32 h-32 animate-pulse"
-                />
-              </div>
-            }
-          >
-            <Router />
-          </Suspense>
-        </I18nextProvider>
+        <Suspense
+          fallback={
+            <div className="flex h-screen justify-center items-center">
+              <img
+                src={Loader}
+                alt="Loading..."
+                className="w-32 h-32 animate-pulse"
+              />
+            </div>
+          }
+        >
+          <Router />
+        </Suspense>
       </AuthProvider>
     </GoogleOAuthProvider>
   );
