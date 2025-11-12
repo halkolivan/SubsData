@@ -5,7 +5,7 @@ import "@assets/styles/fonts.css";
 import { registerSW } from "virtual:pwa-register";
 import React, { Suspense, useEffect } from "react";
 import { AuthProvider } from "@/context/AuthContext";
-import Loader from "@assets/loaders/loaderBlack.svg";
+import Loader from "@assets/loaders/loader.svg";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID ||

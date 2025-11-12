@@ -413,7 +413,7 @@ export default function Header() {
               ✖
             </button>
             <h2 className="text-xl font-bold mb-4">{t("SignIn")}</h2>
-            <p className="text-gray-600 mb-4">{t("ChooseAuthMethod")}</p>
+            {/* <p className="text-gray-600 mb-4">{t("ChooseAuthMethod")}</p> */}
 
             {/* Google Auth */}
             <button
@@ -424,7 +424,7 @@ export default function Header() {
             </button>
 
             {/* GitHub Auth */}
-            <button
+            {/* <button
               onClick={() => {
                 const redirectUri = `${window.location.origin}/auth/callback`;
                 const url = `https://github.com/login/oauth/authorize?client_id=${clientId}&scope=user&redirect_uri=${encodeURIComponent(
@@ -436,7 +436,7 @@ export default function Header() {
               className="w-full px-4 py-2 !bg-gray-800 hover:!bg-gray-700 text-white !rounded-sm mt-3 border-1 !border-gray-400"
             >
               {t("SignInWithGitHub")}
-            </button>
+            </button> */}
           </div>
         </div>
       )}
