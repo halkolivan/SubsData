@@ -3,7 +3,7 @@ import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/context/auth-context-export";
 import { formatDate, formatPrice } from "@/utils/formatUtils";
-import SendByEmailButton from "@components/SendByEmailButton";
+// import SendByEmailButton from "@components/SendByEmailButton";
 
 export default function MySubscriptions() {
   const { subscriptions, setIsAddModalOpen, setSubscriptions, settings } =
@@ -149,7 +149,7 @@ export default function MySubscriptions() {
           </div>
         ) : (
           <>
-            <SendByEmailButton subscriptions={subscriptions} />
+            {/* <SendByEmailButton subscriptions={subscriptions} /> */}
             <div className="overflow-x-auto flex flex-col w-full justify-center">
               <table className="w-full">
                 <thead className="border-b-2">
