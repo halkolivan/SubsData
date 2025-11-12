@@ -11,7 +11,6 @@
   "Status": "Status",
   "StatusTable": "Active",
   "Currency": "Currency",
-  "CurrencySave": "Currency settings have been saved",
   "DefaultCurrency": "Default currency",
   "AccountingCurrency": "Accounting currency",
   "AddCurrenc": "Add a custom currency (optional)",
@@ -98,6 +97,5 @@
   "Active": "Active",
   "Canceled": "Canceled",
   "Actions": "Actions",
-  "Edit": "Edit",
-  "SendEmail": "Send to email"
+  "Edit": "Edit"
 }

@@ -1,12 +1,10 @@
-import { Mail } from "lucide-react";
 import { useAuth } from "@/context/auth-context-export";
-import { useTranslation } from "react";
+import { Mail } from "lucide-react";
 
 // Импортируем VITE_API_URL, который указывает на ваш бэкенд на Render
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function SendByEmailButton({ subscriptions }) {
-  const { t } = useTranslation();
   // Получаем токен, userEmail и функцию обновления токена
   // ✅ refreshAccessToken — это Promise-функция, возвращающая новый токен
   const { user, token, refreshAccessToken } = useAuth();
@@ -117,7 +115,7 @@ export default function SendByEmailButton({ subscriptions }) {
       }`}
     >
       <Mail size={20} />
-      <span>{t("SendEmail")}</span>
+      <span>Отправить на email</span>
     </button>
   );
 }

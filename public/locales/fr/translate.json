@@ -11,7 +11,6 @@
   "Status": "Statut",
   "StatusTable": "Actif",
   "Currency": "Devise",
-  "CurrencySave": "Les paramètres de la devise ont été enregistrés",
   "DefaultCurrency": "Devise par défaut",
   "AccountingCurrency": "Devise comptable",
   "AddCurrenc": "Ajouter une devise personnalisée (optionnel)",
@@ -98,6 +97,5 @@
   "Active": "Actives",
   "Canceled": "Annulées",
   "Actions": "Actions",
-  "Edit": "Modifier",
-  "SendEmail": "Envoyer par e-mail"
+  "Edit": "Modifier"
 }

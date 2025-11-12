@@ -14,13 +14,15 @@ const allowedOrigins = [
   // 1. Локальная разработка (если порт 5173)
   "http://localhost:5173",
   // 2. Основной домен Vercel (через переменную окружения или новый Vercel-домен)
-  process.env.FRONT_ORIGIN || "https://subsdata.top",
+  process.env.FRONT_ORIGIN || "https://subsdata.vercel.app",
   // 3. Старый домен (если нужно для обратной совместимости)
-  "https://subsdata.top", 
+  "https://subsdata.vercel.app",
+  // 4. Дополнительный API (Render)
+  "https://subsdata-api.vercel.app",
 ];
 
 // --- CORS настройка ---
-const FRONT_ORIGIN = process.env.FRONT_ORIGIN || "https://subsdata.top";
+const FRONT_ORIGIN = process.env.FRONT_ORIGIN || "https://subsdata.vercel.app";
 "http://localhost:5173", // Локальная разработка
   app.use(
     cors({

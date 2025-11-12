@@ -38,7 +38,7 @@ export default defineConfig({
         orientation: "portrait",
         start_url: "/",
         scope: "/",
-        lang: "en",
+        lang: "ru",
         icons: [
           { src: "/icons/PWA192.png", sizes: "192x192", type: "image/png" },
           { src: "/icons/PWA512.png", sizes: "512x512", type: "image/png" },

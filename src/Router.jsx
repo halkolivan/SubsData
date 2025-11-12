@@ -10,7 +10,6 @@ const Privacy = lazy(() => import("@pages/Privacy.jsx"))
 const Terms = lazy(() => import("./pages/Terms.jsx"))
 const Settings = lazy(() => import("./pages/Settings"));
 const MySubscriptions = lazy(() => import("./pages/MySubscriptions"));
-
 export default function Router() {
   const router = createBrowserRouter([
     {

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://subsdata.top/sitemap.xml
+Sitemap: https://subsdata.vercel.app/sitemap.xml

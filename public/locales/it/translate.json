@@ -11,7 +11,6 @@
   "Status": "Stato",
   "StatusTable": "Attivo",
   "Currency": "Valuta",
-  "CurrencySave": "Le impostazioni della valuta sono state salvate",
   "DefaultCurrency": "Valuta predefinita",
   "AccountingCurrency": "Valuta contabile",
   "AddCurrenc": "Aggiungi valuta personalizzata (opzionale)",
@@ -98,6 +97,5 @@
   "Active": "Attive",
   "Canceled": "Annullate",
   "Actions": "Azioni",
-  "Edit": "Modifica",
-  "SendEmail": "Invia per e-mail"
+  "Edit": "Modifica"
 }

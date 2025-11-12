@@ -11,7 +11,6 @@
   "Status": "Статус",
   "StatusTable": "Активный",
   "Currency": "Валюта",
-  "CurrencySave": "Настройки валюты сохранены",
   "DefaultCurrency": "Валюта по умолчанию",
   "AccountingCurrency": "Валюта учёта",
   "AddCurrenc": "Добавить пользовательскую валюту (опционально)",
@@ -98,6 +97,5 @@
   "Active": "Активные",
   "Canceled": "Отменённые",
   "Actions": "Действия",
-  "Edit": "Ред.",
-  "SendEmail": "Отправить на email"
+  "Edit": "Ред."
 }

@@ -10,7 +10,6 @@
   "NextPayment": "Volg.betaling",
   "Status": "Status",
   "Currency": "Valuta",
-  "CurrencySave": "De valuta-instellingen zijn opgeslagen",
   "StatusTable": "Actief",
   "DefaultCurrency": "Standaardvaluta",
   "AccountingCurrency": "Boekhoudvaluta",
@@ -98,6 +97,5 @@
   "Active": "Actief",
   "Canceled": "Geannuleerd",
   "Actions": "Acties",
-  "Edit": "Bewerken",
-  "SendEmail": "Per e-mail verzenden"
+  "Edit": "Bewerken"
 }

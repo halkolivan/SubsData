@@ -421,7 +421,22 @@ export default function Header() {
               className="w-full px-4 py-2 !bg-gray-800 hover:!bg-gray-700 text-white rounded-sm mt-3 border !border-gray-400"
             >
               {t("SignInWithGoogle")}
-            </button>            
+            </button>
+
+            {/* GitHub Auth */}
+            <button
+              onClick={() => {
+                const redirectUri = `${window.location.origin}/auth/callback`;
+                const url = `https://github.com/login/oauth/authorize?client_id=${clientId}&scope=user&redirect_uri=${encodeURIComponent(
+                  redirectUri
+                )}`;
+                setIsModalOpen(false);
+                window.location.href = url;
+              }}
+              className="w-full px-4 py-2 !bg-gray-800 hover:!bg-gray-700 text-white !rounded-sm mt-3 border-1 !border-gray-400"
+            >
+              {t("SignInWithGitHub")}
+            </button>
           </div>
         </div>
       )}

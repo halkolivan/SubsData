@@ -5,7 +5,7 @@ import pp from "@assets/images/pp.png";
 
 export default function Footer() {
   return (
-    <footer className="flex flex-col mt-auto sm:flex-row sticky bottom-0 z-10 bg-gray-300 justify-between items-center  bg-gradient-to-b from-gray-800 via-gray-300 to-gray-600">
+    <footer className="flex flex-col sm:flex-row sticky bottom-0 z-10 bg-gray-300 justify-between items-center  bg-gradient-to-b from-gray-800 via-gray-300 to-gray-600">
       <div className="flex flex-row w-full justify-between items-center border-b-1 border-gray-500 gap-2">
         <div className="flex flex-1 flex-col sm:flex-row w-full justify-start items-center text-black pl-3">
           <span className="whitespace-nowrap">Copyright © | </span>

@@ -11,7 +11,7 @@ export default function Settings() {
   const { settings, updateSettings } = useAuth();
 
   // список пунктов меню
-  const menuItems = [
+  const menuItems = [    
     { key: "currency", label: t("Currency") },
     { key: "dateformat", label: t("DateFormat") },
   ];
@@ -56,10 +56,10 @@ export default function Settings() {
         rates,
       },
     });
-    setCurrencyMsg(t("CurrencySave"));
+    setCurrencyMsg("Настройки валюты сохранены");
 
     if (!defaultCurrency) {
-      setCurrencyMsg(t("DefaultCurrency"));
+      setCurrencyMsg("Выберите валюту по умолчанию");
       return;
     }
 
@@ -81,7 +81,7 @@ export default function Settings() {
     }
 
     // здесь можно отправлять настройки на бэкенд
-    setCurrencyMsg(t("CurrencySave"));
+    setCurrencyMsg("Настройки валюты сохранены (симуляция)");
   }
 
   // --- Формат даты ---
@@ -135,7 +135,7 @@ export default function Settings() {
         />
       </Helmet>
       <div
-        className="flex flex-col w-full h-full bg-gray-800 pt-4 pb-4"
+        className="flex flex-col w-full h-full bg-gray-800 bg-gray-200 pt-4 pb-4"
         key={i18n.language}
       >
         <div className="flex w-full justify-center mb-4">
@@ -175,7 +175,7 @@ export default function Settings() {
                     {t("DefaultCurrency")}
                   </label>
                   <select
-                    value={defaultCurrency ?? "USD"}
+                    value={defaultCurrency}
                     onChange={(e) => setDefaultCurrency(e.target.value)}
                     className="w-48 p-2 rounded-md border border-gray-300 dark:border-gray-600 bg-gray-500"
                   >
