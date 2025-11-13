@@ -11,6 +11,12 @@ process.on("uncaughtException", (err) => {
   console.error("UNCAUGHT EXCEPTION:", err);
 });
 
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const distPath = path.join(__dirname, "dist");
+
 // --- Инициализация приложения ---
 const app = express();
 
@@ -186,7 +192,7 @@ app.post("/api/save-subscriptions", authMiddleware, async (req, res) => {
       : "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart";
     const method = existingFile ? "PATCH" : "POST";
 
-    // --- загрузка на Drive ---
+    // ---------- загрузка ----------
     const driveRes = await fetch(uploadUrl, {
       method,
       headers: {
@@ -196,23 +202,24 @@ app.post("/api/save-subscriptions", authMiddleware, async (req, res) => {
       body,
     });
 
+    // ❗ ЧИТАЕМ тело ОДИН РАЗ
     const driveTxt = await driveRes.text();
     console.log("📤 Drive upload response:", driveRes.status, driveTxt);
 
     if (!driveRes.ok) {
       return res
         .status(500)
-        .json({ error: "Drive API error", details: driveTxt.slice(0, 300) });
+        .json({ error: "Drive API error", details: driveTxt.slice(0, 500) });
     }
 
     let driveData = {};
     try {
       driveData = JSON.parse(driveTxt);
     } catch {
-      console.warn("⚠️ Ответ Drive не JSON:", driveTxt);
+      console.warn("⚠️ Drive ответ не JSON:", driveTxt);
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Файл сохранён в Google Drive",
       fileId: driveData.id || null,
     });
@@ -223,8 +230,8 @@ app.post("/api/save-subscriptions", authMiddleware, async (req, res) => {
       details: err.message,
     });
   }
+  console.log("✅ /api/save-subscriptions завершился без ошибок");
 });
-
 
 // --- Google site verification ---
 app.get("/googlea37d48efab48b1a5.html", (req, res) => {
