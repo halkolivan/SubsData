@@ -36,6 +36,47 @@ export const AuthProvider = ({ children }) => {
 
   // ✅ Ref для хранения объекта токен-клиента Google
   const tokenClientRef = useRef(null);
+  useEffect(() => {
+    // Проверка, что библиотека gapi загружена
+    if (window.google?.accounts?.oauth2?.initTokenClient) {
+      tokenClientRef.current = window.google.accounts.oauth2.initTokenClient({
+        client_id: GOOGLE_CLIENT_ID,
+        scope:
+          "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/drive.file",
+        callback: (resp) => {
+          // Эта функция используется для loginWithGoogle, но мы её используем для рефреша
+          // Логика обработки токена из resp
+        },
+      });
+    }
+  }, []);
+
+  const refreshGoogleToken = useCallback(() => {
+    return new Promise((resolve) => {
+      if (!tokenClientRef.current) {
+        console.error("❌ Google Token Client не инициализирован.");
+        return resolve(null);
+      }
+
+      console.log("🔄 Запрос на обновление Google access_token...");
+
+      // Используем requestAccessToken для 'silent refresh'
+      tokenClientRef.current.callback = (resp) => {
+        if (resp.access_token) {
+          console.log("✅ Обновлён Google access_token.");
+          setToken(resp.access_token);
+          localStorage.setItem("authToken", resp.access_token);
+          resolve(resp.access_token); // ВОЗВРАЩАЕМ НОВЫЙ ТОКЕН
+        } else {
+          console.error("❌ Не удалось обновить токен:", resp);
+          resolve(null);
+        }
+      };
+
+      // Принудительно запрашиваем токен
+      tokenClientRef.current.requestAccessToken({ prompt: "" });
+    });
+  }, [setToken]);
 
   // --- Login / Logout ---
   const login = (userData, authToken) => {
@@ -233,66 +274,96 @@ export const AuthProvider = ({ children }) => {
     }
   }, [justLoggedIn, subscriptions]);
 
-const saveSubscriptionsToDrive = useCallback(
-  async (subs) => {
-    if (!token) {
-      console.error("Нет токена авторизации.");
-      throw new Error("User not authenticated.");
-    }
+  const saveSubscriptionsToDrive = useCallback(
+    async (subs) => {
+      // 🔑 Вспомогательная функция для выполнения запроса
+      const performSave = async (accessToken) => {
+        if (!accessToken) {
+          throw new Error("User not authenticated.");
+        }
 
-    // 1. Вызов запроса на бэкенд
-    const apiResponse = await fetch("/api/save-subscriptions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        // Передаем токен для бэкенд-валидации
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ subscriptions: subs }),
-    });
+        const apiResponse = await fetch("/api/save-subscriptions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`, // Используем переданный токен
+          },
+          body: JSON.stringify({ subscriptions: subs }),
+        });
 
-    // 2. 🔑 Обработка ошибок (с предотвращением ошибки body stream)
-    if (!apiResponse.ok) {
-      let errorMessage = "Неизвестная ошибка сервера";
+        if (!apiResponse.ok) {
+          let errorMessage = "Неизвестная ошибка сервера";
 
-      // КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: ЧИТАЕМ ТЕЛО ОТВЕТА ОДИН РАЗ КАК ТЕКСТ
-      const responseText = await apiResponse.text();
+          // 🔑 ЧИТАЕМ ТЕЛО ОТВЕТА ОДИН РАЗ, ЧТОБЫ ИЗБЕЖАТЬ ОШИБКИ ПОТОКА
+          const responseText = await apiResponse.text();
 
-      try {
-        // ПЫТАЕМСЯ РАСПАРСИТЬ ТЕКСТ КАК JSON
-        const serverErrorData = JSON.parse(responseText);
-        errorMessage = serverErrorData.error || JSON.stringify(serverErrorData);
-      } catch (errorObject) {
-        // Если парсинг не удался (это чистый HTML 500-й ошибки), используем его
-        console.warn(
-          "Внимание: Ответ сервера не является JSON. Читаем как обычный текст."
+          try {
+            // ПЫТАЕМСЯ РАСПАРСИТЬ ТЕКСТ КАК JSON
+            const serverErrorData = JSON.parse(responseText);
+            errorMessage =
+              serverErrorData.error || JSON.stringify(serverErrorData);
+          } catch (errorObject) {
+            // Если парсинг не удался (например, HTML-страница 500-й ошибки), используем сырой текст
+            console.warn(
+              "Внимание: Ответ сервера не является JSON. Читаем как обычный текст."
+            );
+            errorMessage = responseText;
+          }
+
+          console.error(
+            "❌ Ошибка API при сохранении:",
+            apiResponse.status,
+            errorMessage
+          );
+
+          // Выбрасываем ошибку для обработки на фронтенде
+          throw new Error(
+            `Ошибка сохранения данных: ${errorMessage.substring(0, 100)}`
+          );
+        }
+
+        // 3. Успешный ответ
+        const driveData = await apiResponse.json();
+        console.log(
+          "✅ Данные успешно отправлены на сервер для сохранения в Google Drive.",
+          driveData
         );
-        // Используем уже прочитанный текст HTML 500-й страницы
-        errorMessage = responseText;
+        return driveData;
+      };
+
+      // --- ЛОГИКА RETRY ---
+      try {
+        // 1. ПЕРВАЯ ПОПЫТКА: С использованием текущего токена
+        console.log("Попытка сохранения с текущим токеном.");
+        return await performSave(token);
+      } catch (e) {
+        // 2. ЕСЛИ ПЕРВАЯ ПОПЫТКА НЕ УДАЛАСЬ
+        // Если это не ошибка 500 с Vercel (что мы ожидаем исправить), а 401/403, пробуем обновить токен.
+        console.warn(
+          "Ошибка сохранения. Инициируем обновление токена и повтор."
+        );
+
+        const newToken = await refreshGoogleToken(); // Обновляем токен
+
+        if (!newToken) {
+          // Если обновление не удалось, выбрасываем оригинальную ошибку
+          console.error("❌ Не удалось обновить токен, отмена сохранения.");
+          throw e;
+        }
+
+        // 3. ВТОРАЯ ПОПЫТКА: С использованием нового токена
+        try {
+          console.log("Повторная попытка сохранения с обновленным токеном.");
+          return await performSave(newToken);
+        } catch (e2) {
+          // Если и вторая попытка не удалась, выбрасываем её
+          console.error("❌ Вторая попытка сохранения также не удалась.");
+          throw e2;
+        }
       }
-
-      console.error(
-        "❌ Ошибка API при сохранении:",
-        apiResponse.status,
-        errorMessage
-      );
-
-      // Выбрасываем ошибку для обработки на фронтенде
-      throw new Error(
-        `Ошибка сохранения данных: ${errorMessage.substring(0, 100)}`
-      );
-    }
-
-    // 3. Успешный ответ
-    const driveData = await apiResponse.json();
-    console.log(
-      "✅ Данные успешно отправлены на сервер для сохранения в Google Drive.",
-      driveData
-    );
-    // Если вам нужен ID файла, сохраните его здесь или верните.
-  },
-  [token]
-);
+    },
+    [token, refreshGoogleToken] // Зависимости: токен и функция рефреша
+  );
 
   // --- Возврат контекста ---
   return (
@@ -312,6 +383,7 @@ const saveSubscriptionsToDrive = useCallback(
         settings,
         updateSettings,
         refreshAccessToken,
+        refreshGoogleToken,
         saveSubscriptionsToDrive,
       }}
     >
