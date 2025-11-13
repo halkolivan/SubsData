@@ -3,11 +3,15 @@ import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/context/auth-context-export";
 import { formatDate, formatPrice } from "@/utils/formatUtils";
-// import SendByEmailButton from "@components/SendByEmailButton";
 
 export default function MySubscriptions() {
-  const { subscriptions, setIsAddModalOpen, setSubscriptions, settings } =
-    useAuth();
+  const {
+    subscriptions,
+    setIsAddModalOpen,
+    setSubscriptions,
+    settings,
+    saveSubscriptionsToDrive,
+  } = useAuth();
   const { t } = useTranslation();
 
   const [sortRevers, setSortRevers] = useState(true);
@@ -26,7 +30,13 @@ export default function MySubscriptions() {
 
   // --- функции удаления ---
   const deleteSubscription = (id) => {
-    setSubscriptions((prev) => prev.filter((sub) => sub.id !== id));
+    setSubscriptions((prev) => {
+      const updated = prev.filter((sub) => sub.id !== id);
+      saveSubscriptionsToDrive(updated).catch((e) => {
+        console.error("Ошибка сохранения после удаления:", e);
+      });
+      return updated;
+    });
   };
 
   const confirmDelete = () => {
@@ -53,11 +63,17 @@ export default function MySubscriptions() {
   };
 
   const saveEdit = () => {
-    setSubscriptions((prev) =>
-      prev.map((sub) => (sub.id === editData.id ? editData : sub))
-    );
+    if (!editData) return;
+    setSubscriptions((prev) => {
+      const updated = prev.map((sub) =>
+        sub.id === editData.id ? { ...sub, ...editData } : sub
+      );
+      saveSubscriptionsToDrive(updated).catch((e) => {
+        console.error("Ошибка сохранения после редактирования:", e);
+      });
+      return updated;
+    });
     setIsEditOpen(false);
-    setEditData(null);
   };
 
   // --- сортировка ---

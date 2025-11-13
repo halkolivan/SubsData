@@ -10,16 +10,8 @@ export default function SaveButton() {
 
   const handleSave = async () => {
     // ✅ ИСПОЛЬЗУЕМ: Актуальный state напрямую
-    const finalSubs = subscriptions;
-    console.log("📦 Отправляем в Drive:", finalSubs); // Для отладки
-
-    // ❌ УДАЛЕНА: Проверка на token (она теперь внутри saveSubscriptionsToDrive)
-
-    if (!finalSubs || finalSubs.length === 0) {
-      setStatus("Нет данных для сохранения");
-      return;
-    }
-
+    const finalSubs = subscriptions;    
+    console.log("📦 Отправляем в Drive:", finalSubs);
     try {
       setStatus("Сохранение...");
       // ✅ 2. ВЫЗОВ: Используем централизованный метод
@@ -30,7 +22,7 @@ export default function SaveButton() {
       // Если saveSubscriptionsToDrive выбрасывает ошибку, она будет поймана
       setStatus("❌ Ошибка при сохранении");
     }
-  };
+  }; 
 
   return (
     <button
