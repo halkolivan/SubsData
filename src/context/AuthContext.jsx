@@ -89,23 +89,46 @@ export const AuthProvider = ({ children }) => {
   };
 
   // --- Add Subscription ---
-  const addSubscription = (sub) => {
-    const newSub = {
-      ...sub,
-      id: sub.id || Date.now() + Math.random().toString(36).substring(2, 9), // Уникальный ID
-    };
+  const addSubscription = useCallback(
+    (newSub) => {
+      // Убрали флаг saveImmediately, чтобы сделать вызов сохранения частью логики добавления
+      // Проверка, что пользователь авторизован и имеет ID
+      const subToAdd = {
+        ...newSub,
+        id: Date.now(),
+        currency: newSub.currency || "USD",
+        nextPayment:
+          newSub.nextPayment || new Date().toISOString().split("T")[0],
+      };
 
-    // Получаем новый массив
-    let updatedSubs;
-    setSubscriptions((prev) => {
-      updatedSubs = [...prev, newSub];
-      return updatedSubs;
-    });
+      try {
+        // 1. 🔑 Создаем АКТУАЛЬНЫЙ массив, используя текущий стейт
+        const updatedSubscriptions = [...subscriptions, subToAdd]; 
 
-    console.log("🆕 Добавлена подписка:", newSub);    
-  };
+        // 2. 🔑 СОХРАНЕНИЕ В LOCAL STORAGE
+        const userSubKey = getUserSubscriptionKey(user?.id);
+        if (userSubKey) {
+          localStorage.setItem(
+            userSubKey,
+            JSON.stringify(updatedSubscriptions)
+          );
+        }
 
-  // 1. ✅ ИСПРАВЛЕНО: ОТДЕЛЬНЫЙ useEffect для загрузки подписок при перезагрузке.
+        saveSubscriptionsToDrive(updatedSubscriptions).catch((err) => {
+          console.error("❌ Асинхронная ошибка сохранения в Drive:", err);
+          // Тут можно добавить логику уведомления пользователя об ошибке
+        });
+
+        // 4. ✅ ОБНОВЛЕНИЕ СТЕЙТА React (асинхронно)
+        setSubscriptions(updatedSubscriptions);
+        console.log("🆕 Добавлена подписка:", subToAdd);
+      } catch (err) {
+        console.error("Ошибка при добавлении подписки:", err);
+      }
+    },    
+    [subscriptions, user, saveSubscriptionsToDrive, setSubscriptions]
+  );
+  
   // Запускается при изменении объекта user.
   useEffect(() => {
     if (user?.id) {
