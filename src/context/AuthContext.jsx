@@ -157,18 +157,17 @@ export const AuthProvider = ({ children }) => {
       }
 
       // 3. АСИНХРОННОЕ СОХРАНЕНИЕ В GOOGLE DRIVE
-      // Вызываем сохранение, передавая ГАРАНТИРОВАННО АКТУАЛЬНЫЙ массив
+      
+      setSubscriptions(updatedSubscriptions);
+      console.log("🆕 Добавлена подписка:", subscriptionToAdd);
+
+      // ⬇️ сохраняем только после обновления стейта
       saveSubscriptionsToDrive(updatedSubscriptions).catch((errorObject) => {
         console.error(
           "❌ Асинхронная ошибка сохранения в Google Drive:",
           errorObject
         );
-        // Здесь можно добавить логику уведомления пользователя об ошибке
       });
-
-      // 4. ОБНОВЛЕНИЕ СТЕЙТА React (асинхронно)
-      setSubscriptions(updatedSubscriptions);
-      console.log("🆕 Добавлена подписка:", subscriptionToAdd);
     } catch (errorObject) {
       console.error("Ошибка при добавлении подписки:", errorObject);
     }
