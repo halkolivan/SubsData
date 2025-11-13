@@ -144,22 +144,23 @@ app.post("/api/save-subscriptions", authMiddleware, async (req, res) => {
   const fileContent = JSON.stringify(subscriptions, null, 2);
 
   try {
-    // ---------- поиск файла ----------
+    // --- корректный поиск файла ---
     const query = encodeURIComponent(`name='${fileName}' and 'me' in owners`);
     const searchUrl = `https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,name)`;
+
     const searchRes = await fetch(searchUrl, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
+
     const searchTxt = await searchRes.text();
     console.log("🔍 Drive search response:", searchTxt);
-    let searchData;
+
+    let searchData = {};
     try {
       searchData = JSON.parse(searchTxt);
     } catch {
-      console.error("⚠️ searchRes не JSON:", searchTxt);
-      return res
-        .status(500)
-        .json({ error: "Некорректный ответ от Drive при поиске" });
+      console.error("⚠️ Drive ответ не JSON:", searchTxt);
+      return res.status(500).json({ error: "Некорректный ответ от Drive API" });
     }
 
     const existingFile =
@@ -167,9 +168,10 @@ app.post("/api/save-subscriptions", authMiddleware, async (req, res) => {
         ? searchData.files[0]
         : null;
 
-    // ---------- формируем multipart ----------
+    // --- формируем multipart тело ---
     const metadata = { name: fileName, mimeType: "application/json" };
     const boundary = "subsdata_boundary_" + Date.now();
+
     const body =
       `--${boundary}\r\n` +
       `Content-Type: application/json; charset=UTF-8\r\n\r\n` +
@@ -184,7 +186,7 @@ app.post("/api/save-subscriptions", authMiddleware, async (req, res) => {
       : "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart";
     const method = existingFile ? "PATCH" : "POST";
 
-    // ---------- загрузка ----------
+    // --- загрузка на Drive ---
     const driveRes = await fetch(uploadUrl, {
       method,
       headers: {
@@ -196,36 +198,33 @@ app.post("/api/save-subscriptions", authMiddleware, async (req, res) => {
 
     const driveTxt = await driveRes.text();
     console.log("📤 Drive upload response:", driveRes.status, driveTxt);
-    console.log("📤 Drive upload status:", driveRes.status);
-    console.log("📤 Drive upload body:", driveText);
 
     if (!driveRes.ok) {
       return res
         .status(500)
-        .json({ error: "Drive API error", details: driveTxt.slice(0, 500) });
+        .json({ error: "Drive API error", details: driveTxt.slice(0, 300) });
     }
 
     let driveData = {};
     try {
       driveData = JSON.parse(driveTxt);
     } catch {
-      console.warn("⚠️ Drive ответ не JSON:", driveTxt);
+      console.warn("⚠️ Ответ Drive не JSON:", driveTxt);
     }
 
-    return res.status(200).json({
+    res.status(200).json({
       message: "Файл сохранён в Google Drive",
       fileId: driveData.id || null,
     });
   } catch (err) {
     console.error("❌ Внутренняя ошибка save-subscriptions:", err);
-    return res
-      .status(500)
-      .json({
-        error: "Server crash inside save-subscriptions",
-        details: err.message,
-      });
+    res.status(500).json({
+      error: "Server crash inside save-subscriptions",
+      details: err.message,
+    });
   }
 });
+
 
 // --- Google site verification ---
 app.get("/googlea37d48efab48b1a5.html", (req, res) => {
