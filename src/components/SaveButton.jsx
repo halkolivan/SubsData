@@ -9,17 +9,18 @@ export default function SaveButton() {
   const [status, setStatus] = useState("");
 
   const handleSave = async () => {
-    // ✅ ИСПОЛЬЗУЕМ: Актуальный state напрямую
-    const finalSubs = subscriptions;    
+    const finalSubs = subscriptions;   
+    if (!finalSubs || finalSubs.length === 0) {
+      setStatus("📦 Сохранение пропущено: пустые данные.");
+      return;
+    }    
     console.log("📦 Отправляем в Drive:", finalSubs);
     try {
       setStatus("Сохранение...");
-      // ✅ 2. ВЫЗОВ: Используем централизованный метод
       await saveSubscriptionsToDrive(finalSubs);
       setStatus("✅ Успешно сохранено в Google Drive!");
     } catch (err) {
       console.error("❌ Ошибка при сохранении:", err);
-      // Если saveSubscriptionsToDrive выбрасывает ошибку, она будет поймана
       setStatus("❌ Ошибка при сохранении");
     }
   }; 
