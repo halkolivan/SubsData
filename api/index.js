@@ -4,6 +4,14 @@ import express from "express";
 import path from "path";
 import nodemailer from "nodemailer";
 
+process.on("unhandledRejection", (reason) => {
+  console.error("UNHANDLED REJECTION:", reason);
+});
+process.on("uncaughtException", (err) => {
+  console.error("UNCAUGHT EXCEPTION:", err);
+});
+
+
 // --- Инициализация приложения ---
 const app = express();
 
@@ -194,6 +202,11 @@ app.post("/api/save-subscriptions", authMiddleware, async (req, res) => {
 
     const driveTxt = await driveRes.text();
     console.log("📤 Drive upload response:", driveRes.status, driveTxt);
+
+    console.log("📤 Drive upload status:", driveRes.status);
+    const driveText = await driveRes.text();
+    console.log("📤 Drive upload body:", driveText);
+
 
     if (!driveRes.ok) {
       return res
