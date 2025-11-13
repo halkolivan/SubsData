@@ -207,7 +207,7 @@ export const AuthProvider = ({ children }) => {
     // Инициализируем объект и сохраняем его в Ref
     tokenClientRef.current = window.google.accounts.oauth2.initTokenClient({
       client_id: GOOGLE_CLIENT_ID,
-      scope: "email profile",
+      scope: "email profile openid https://www.googleapis.com/auth/drive.file",
       callback: (resp) => {
         if (resp?.access_token) {
           console.log("🔄 Автоматически обновлён Google access_token (Авто)");
