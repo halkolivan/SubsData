@@ -233,71 +233,66 @@ export const AuthProvider = ({ children }) => {
     }
   }, [justLoggedIn, subscriptions]);
 
-  const saveSubscriptionsToDrive = useCallback(
-    async (subscriptionsData) => {
-      // Используем полное имя: token -> accessToken
-      const accessToken = token;
+const saveSubscriptionsToDrive = useCallback(
+  async (subs) => {
+    if (!token) {
+      console.error("Нет токена авторизации.");
+      throw new Error("User not authenticated.");
+    }
 
-      // Проверка, что токен доступа существует
-      if (!accessToken) {
-        console.error("Нет токена доступа (access token).");
-        throw new Error(
-          "Пользователь не авторизован (User not authenticated)."
+    // 1. Вызов запроса на бэкенд
+    const apiResponse = await fetch("/api/save-subscriptions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        // Передаем токен для бэкенд-валидации
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ subscriptions: subs }),
+    });
+
+    // 2. 🔑 Обработка ошибок (с предотвращением ошибки body stream)
+    if (!apiResponse.ok) {
+      let errorMessage = "Неизвестная ошибка сервера";
+
+      // КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: ЧИТАЕМ ТЕЛО ОТВЕТА ОДИН РАЗ КАК ТЕКСТ
+      const responseText = await apiResponse.text();
+
+      try {
+        // ПЫТАЕМСЯ РАСПАРСИТЬ ТЕКСТ КАК JSON
+        const serverErrorData = JSON.parse(responseText);
+        errorMessage = serverErrorData.error || JSON.stringify(serverErrorData);
+      } catch (errorObject) {
+        // Если парсинг не удался (это чистый HTML 500-й ошибки), используем его
+        console.warn(
+          "Внимание: Ответ сервера не является JSON. Читаем как обычный текст."
         );
+        // Используем уже прочитанный текст HTML 500-й страницы
+        errorMessage = responseText;
       }
 
-      // ✅ 1. Вызов запроса на бэкенд
-      // response -> apiResponse
-      const apiResponse = await fetch("/api/save-subscriptions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          // Передаем токен для бэкенд-валидации
-          Authorization: `Bearer ${accessToken}`,
-        },
-        // subs -> subscriptionsData
-        body: JSON.stringify({ subscriptions: subscriptionsData }),
-      });
-
-      // Проверка статуса ответа
-      if (!apiResponse.ok) {
-        let errorMessage = "Неизвестная ошибка сервера";
-
-        // 🔑 ЧИТАЕМ ТЕЛО ОТВЕТА ОДИН РАЗ, ЧТОБЫ ИЗБЕЖАТЬ ОШИБКИ ПОТОКА
-        const responseText = await apiResponse.text();
-
-        try {
-          // ПЫТАЕМСЯ РАСПАРСИТЬ ТЕКСТ КАК JSON
-          const serverErrorData = JSON.parse(responseText);
-          errorMessage =
-            serverErrorData.error || JSON.stringify(serverErrorData);
-        } catch (errorObject) {
-          // Если парсинг не удался (это чистый HTML 500-й ошибки), используем его
-          console.warn(
-            "Внимание: Ответ сервера не является JSON. Читаем как обычный текст."
-          );
-          errorMessage = responseText; // Используем уже прочитанный текст
-        }
-
-        // ... (остальной код)
-
-        // ❌ Ошибка API при сохранении: 500 <!DOCTYPE html> ...
-        console.error(
-          "❌ Ошибка API при сохранении:",
-          apiResponse.status,
-          errorMessage
-        );
-        throw new Error(
-          `Ошибка сохранения данных: ${errorMessage.substring(0, 100)}`
-        );
-      }
-
-      console.log(
-        "✅ Данные успешно отправлены на сервер для сохранения в Google Drive."
+      console.error(
+        "❌ Ошибка API при сохранении:",
+        apiResponse.status,
+        errorMessage
       );
-    },
-    [token]
-  );
+
+      // Выбрасываем ошибку для обработки на фронтенде
+      throw new Error(
+        `Ошибка сохранения данных: ${errorMessage.substring(0, 100)}`
+      );
+    }
+
+    // 3. Успешный ответ
+    const driveData = await apiResponse.json();
+    console.log(
+      "✅ Данные успешно отправлены на сервер для сохранения в Google Drive.",
+      driveData
+    );
+    // Если вам нужен ID файла, сохраните его здесь или верните.
+  },
+  [token]
+);
 
   // --- Возврат контекста ---
   return (
