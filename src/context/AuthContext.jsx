@@ -124,9 +124,6 @@ export const AuthProvider = ({ children }) => {
     setSubscriptions([]);
     localStorage.removeItem("user");
     localStorage.removeItem("authToken");
-    // ✅ Данные подписок остаются, привязанные к ID.
-
-    // Отзыв токена Google
     if (tokenClientRef.current && window.google?.accounts?.oauth2?.revoke) {
       window.google.accounts.oauth2.revoke(token, () =>
         console.log("Google токен отозван.")
@@ -135,47 +132,37 @@ export const AuthProvider = ({ children }) => {
   };
 
   // --- Add Subscription ---
-  const addSubscription = (newSubscriptionData) => {
-    // Создаем объект новой подписки, включая уникальный ID
+  const addSubscription = (newSubscriptionData) => {   
     const subscriptionToAdd = {
       ...newSubscriptionData,
-      id: Date.now(), // Используем метку времени для уникального ID
+      id: Date.now(), 
       currency: newSubscriptionData.currency || "USD",
       nextPayment:
         newSubscriptionData.nextPayment ||
         new Date().toISOString().split("T")[0],
     };
 
-    try {
-      // 1. Создаем АКТУАЛЬНЫЙ массив, используя текущий стейт 'subscriptions'
-      // ⚠️ ВАЖНО: Мы полагаемся на то, что 'subscriptions' здесь актуален
-      const updatedSubscriptions = [...subscriptions, subscriptionToAdd];
+    setSubscriptions((prevSubs) => {
+      
+      const updatedSubscriptions = [...prevSubs, subscriptionToAdd];
 
-      // 2. СОХРАНЕНИЕ В LOCAL STORAGE
       const userSubscriptionKey = getUserSubscriptionKey(user?.id);
 
       if (userSubscriptionKey) {
         localStorage.setItem(
           userSubscriptionKey,
-          JSON.stringify(updatedSubscriptions)
+          JSON.stringify(updatedSubscriptions) // Используем АКТУАЛЬНЫЙ массив
         );
       }
-
-      // 3. АСИНХРОННОЕ СОХРАНЕНИЕ В GOOGLE DRIVE
-
-      setSubscriptions(updatedSubscriptions);
-      console.log("🆕 Добавлена подписка:", subscriptionToAdd);
-
-      // ⬇️ сохраняем только после обновления стейта
       saveSubscriptionsToDrive(updatedSubscriptions).catch((errorObject) => {
         console.error(
           "❌ Асинхронная ошибка сохранения в Google Drive:",
           errorObject
         );
       });
-    } catch (errorObject) {
-      console.error("Ошибка при добавлении подписки:", errorObject);
-    }
+      console.log("🆕 Добавлена подписка:", subscriptionToAdd);      
+      return updatedSubscriptions;
+    });    
   };
 
   // 1. ✅ ИСПРАВЛЕНО: ОТДЕЛЬНЫЙ useEffect для загрузки подписок при перезагрузке.
