@@ -238,9 +238,26 @@ export const AuthProvider = ({ children }) => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error("Ошибка API при сохранении:", errorData);
-      throw new Error(errorData.error || "Failed to save to Drive via server.");
+      let errorInfo = "Неизвестная ошибка сервера";
+      try {
+        // 🚀 ПОПЫТКА 1: Читаем как JSON (если бэкенд отправил правильный JSON с ошибкой)
+        const errorData = await response.json();
+        errorInfo = errorData.error || JSON.stringify(errorData);
+      } catch (e) {
+        // 🛑 ПОПЫТКА 2: Если не JSON (например, HTML-страница ошибки), читаем как текст
+        console.warn(
+          "Ошибка: Ответ сервера не является JSON. Читаем как текст."
+        );
+        errorInfo = await response.text();
+      }
+
+      console.error(
+        "❌ Ошибка API при сохранении:",
+        response.status,
+        errorInfo
+      );
+      // Выбрасываем ошибку, которую поймает SaveButton.jsx
+      throw new Error(`Ошибка сохранения: ${errorInfo.substring(0, 100)}`);
     }
 
     console.log("✅ Данные отправлены на сервер для сохранения в Drive.");
