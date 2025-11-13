@@ -9,12 +9,16 @@ export default function SaveButton() {
   const [status, setStatus] = useState("");
 
   const handleSave = async () => {
-    const finalSubs = subscriptions;   
+    const finalSubs = subscriptions;
+
+    // ✅ Оставляем проверку ТОЛЬКО ЗДЕСЬ
     if (!finalSubs || finalSubs.length === 0) {
       setStatus("📦 Сохранение пропущено: пустые данные.");
       return;
-    }    
+    }
+
     console.log("📦 Отправляем в Drive:", finalSubs);
+
     try {
       setStatus("Сохранение...");
       await saveSubscriptionsToDrive(finalSubs);
@@ -23,8 +27,9 @@ export default function SaveButton() {
       console.error("❌ Ошибка при сохранении:", err);
       setStatus("❌ Ошибка при сохранении");
     }
-  }; 
+  };
 
+  // ❌ Здесь нет if/return! Только JSX-разметка.
   return (
     <button
       onClick={handleSave}

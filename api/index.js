@@ -25,27 +25,31 @@ app.use(express.json());
 
 const allowedOrigins = [
   "http://localhost:5173",
-  process.env.FRONT_ORIGIN || "https://subsdata.top",
-];
+  "https://subsdata.top",
+  "https://www.subsdata.top",
+  process.env.FRONT_ORIGIN,
+].filter(Boolean);
 
 // --- CORS настройка ---
 const FRONT_ORIGIN = process.env.FRONT_ORIGIN || "https://subsdata.top";
-"http://localhost:5173", // Локальная разработка
-  app.use(
-    cors({
-      origin: (origin, callback) => {
-        // Разрешаем запросы без 'origin' (например, с localhost)
-        if (!origin || allowedOrigins.includes(origin)) {
-          callback(null, true);
-        } else {
-          callback(new Error("Not allowed by CORS"));
-        }
-      },
-      credentials: true, // чтобы работали куки / авторизация
-      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-      allowedHeaders: ["Content-Type", "Authorization"],
-    })
-  );
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Разрешаем запросы без 'origin' (например, с localhost или curl)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        // Добавляем дополнительный лог для отладки, если что-то пойдет не так
+        console.error(
+          `❌ CORS Error: Origin ${origin} is not allowed. Check allowedOrigins array.`
+        );
+        callback(new Error("Not allowed by CORS at origin"), false);
+      }
+    },
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    credentials: true,
+  })
+);
 
 // --- Проверка Google access_token ---
 async function authMiddleware(req, res, next) {
