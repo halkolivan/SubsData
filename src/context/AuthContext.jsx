@@ -89,46 +89,51 @@ export const AuthProvider = ({ children }) => {
   };
 
   // --- Add Subscription ---
-  const addSubscription = useCallback(
-    (newSub) => {
-      // Убрали флаг saveImmediately, чтобы сделать вызов сохранения частью логики добавления
-      // Проверка, что пользователь авторизован и имеет ID
-      const subToAdd = {
-        ...newSub,
-        id: Date.now(),
-        currency: newSub.currency || "USD",
-        nextPayment:
-          newSub.nextPayment || new Date().toISOString().split("T")[0],
-      };
+  const addSubscription = (newSubscriptionData) => {
+    // Создаем объект новой подписки, включая уникальный ID
+    const subscriptionToAdd = {
+      ...newSubscriptionData,
+      id: Date.now(), // Используем метку времени для уникального ID
+      currency: newSubscriptionData.currency || "USD",
+      nextPayment:
+        newSubscriptionData.nextPayment ||
+        new Date().toISOString().split("T")[0],
+    };
 
-      try {
-        // 1. 🔑 Создаем АКТУАЛЬНЫЙ массив, используя текущий стейт
-        const updatedSubscriptions = [...subscriptions, subToAdd]; 
+    try {
+      // 1. Создаем АКТУАЛЬНЫЙ массив, используя текущий стейт 'subscriptions'
+      // ⚠️ ВАЖНО: Мы полагаемся на то, что 'subscriptions' здесь актуален
+      const updatedSubscriptions = [...subscriptions, subscriptionToAdd];
 
-        // 2. 🔑 СОХРАНЕНИЕ В LOCAL STORAGE
-        const userSubKey = getUserSubscriptionKey(user?.id);
-        if (userSubKey) {
-          localStorage.setItem(
-            userSubKey,
-            JSON.stringify(updatedSubscriptions)
-          );
-        }
+      // 2. СОХРАНЕНИЕ В LOCAL STORAGE
+      const userSubscriptionKey = getUserSubscriptionKey(user?.id);
 
-        saveSubscriptionsToDrive(updatedSubscriptions).catch((err) => {
-          console.error("❌ Асинхронная ошибка сохранения в Drive:", err);
-          // Тут можно добавить логику уведомления пользователя об ошибке
-        });
-
-        // 4. ✅ ОБНОВЛЕНИЕ СТЕЙТА React (асинхронно)
-        setSubscriptions(updatedSubscriptions);
-        console.log("🆕 Добавлена подписка:", subToAdd);
-      } catch (err) {
-        console.error("Ошибка при добавлении подписки:", err);
+      if (userSubscriptionKey) {
+        localStorage.setItem(
+          userSubscriptionKey,
+          JSON.stringify(updatedSubscriptions)
+        );
       }
-    },    
-    [subscriptions, user, saveSubscriptionsToDrive, setSubscriptions]
-  );
-  
+
+      // 3. АСИНХРОННОЕ СОХРАНЕНИЕ В GOOGLE DRIVE
+      // Вызываем сохранение, передавая ГАРАНТИРОВАННО АКТУАЛЬНЫЙ массив
+      saveSubscriptionsToDrive(updatedSubscriptions).catch((errorObject) => {
+        console.error(
+          "❌ Асинхронная ошибка сохранения в Google Drive:",
+          errorObject
+        );
+        // Здесь можно добавить логику уведомления пользователя об ошибке
+      });
+
+      // 4. ОБНОВЛЕНИЕ СТЕЙТА React (асинхронно)
+      setSubscriptions(updatedSubscriptions);
+      console.log("🆕 Добавлена подписка:", subscriptionToAdd);
+    } catch (errorObject) {
+      console.error("Ошибка при добавлении подписки:", errorObject);
+    }
+  };
+
+  // 1. ✅ ИСПРАВЛЕНО: ОТДЕЛЬНЫЙ useEffect для загрузки подписок при перезагрузке.
   // Запускается при изменении объекта user.
   useEffect(() => {
     if (user?.id) {
