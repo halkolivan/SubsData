@@ -142,7 +142,14 @@ app.post("/api/save-subscriptions", authMiddleware, async (req, res) => {
   const accessToken = req.token;
   const { subscriptions } = req.body;
 
+  console.log("🚀 /api/save-subscriptions START");
+  console.log(
+    "📦 Получено подписок:",
+    Array.isArray(subscriptions) ? subscriptions.length : "нет"
+  );
+
   if (!subscriptions) {
+    console.log("❌ Нет данных подписок");
     return res.status(400).json({ error: "Нет данных подписок" });
   }
 
@@ -150,22 +157,27 @@ app.post("/api/save-subscriptions", authMiddleware, async (req, res) => {
   const fileContent = JSON.stringify(subscriptions, null, 2);
 
   try {
-    // --- корректный поиск файла ---
+    // --- Поиск файла ---
     const query = encodeURIComponent(`name='${fileName}' and 'me' in owners`);
     const searchUrl = `https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,name)`;
 
+    console.log("🔍 Ищем существующий файл в Drive...");
     const searchRes = await fetch(searchUrl, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
 
     const searchTxt = await searchRes.text();
-    console.log("🔍 Drive search response:", searchTxt);
+    console.log(
+      "🔍 Ответ Drive (поиск):",
+      searchRes.status,
+      searchTxt.slice(0, 200)
+    );
 
     let searchData = {};
     try {
       searchData = JSON.parse(searchTxt);
-    } catch {
-      console.error("⚠️ Drive ответ не JSON:", searchTxt);
+    } catch (err) {
+      console.error("⚠️ Ошибка парсинга searchTxt:", err.message);
       return res.status(500).json({ error: "Некорректный ответ от Drive API" });
     }
 
@@ -174,7 +186,12 @@ app.post("/api/save-subscriptions", authMiddleware, async (req, res) => {
         ? searchData.files[0]
         : null;
 
-    // --- формируем multipart тело ---
+    console.log(
+      "📁 Найден файл:",
+      existingFile ? existingFile.name : "нет, создаём новый"
+    );
+
+    // --- multipart тело ---
     const metadata = { name: fileName, mimeType: "application/json" };
     const boundary = "subsdata_boundary_" + Date.now();
 
@@ -192,7 +209,7 @@ app.post("/api/save-subscriptions", authMiddleware, async (req, res) => {
       : "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart";
     const method = existingFile ? "PATCH" : "POST";
 
-    // ---------- загрузка ----------
+    console.log("📤 Отправляем в Drive:", method, uploadUrl);
     const driveRes = await fetch(uploadUrl, {
       method,
       headers: {
@@ -202,36 +219,44 @@ app.post("/api/save-subscriptions", authMiddleware, async (req, res) => {
       body,
     });
 
-    // ❗ ЧИТАЕМ тело ОДИН РАЗ
     const driveTxt = await driveRes.text();
-    console.log("📤 Drive upload response:", driveRes.status, driveTxt);
+    console.log(
+      "📤 Ответ Drive (upload):",
+      driveRes.status,
+      driveTxt.slice(0, 300)
+    );
 
     if (!driveRes.ok) {
+      console.error("❌ Ошибка Drive API:", driveTxt.slice(0, 300));
       return res
         .status(500)
-        .json({ error: "Drive API error", details: driveTxt.slice(0, 500) });
+        .json({ error: "Drive API error", details: driveTxt.slice(0, 300) });
     }
 
     let driveData = {};
     try {
       driveData = JSON.parse(driveTxt);
-    } catch {
-      console.warn("⚠️ Drive ответ не JSON:", driveTxt);
+    } catch (err) {
+      console.warn("⚠️ Ответ Drive не JSON:", err.message);
     }
 
-    return res.status(200).json({
+    console.log(
+      "✅ Drive завершил загрузку успешно:",
+      driveData.id || "без ID"
+    );
+    res.status(200).json({
       message: "Файл сохранён в Google Drive",
       fileId: driveData.id || null,
     });
   } catch (err) {
-    console.error("❌ Внутренняя ошибка save-subscriptions:", err);
+    console.error("🔥 Критическая ошибка save-subscriptions:", err);
     res.status(500).json({
       error: "Server crash inside save-subscriptions",
       details: err.message,
     });
   }
-  console.log("✅ /api/save-subscriptions завершился без ошибок");
 });
+
 
 // --- Google site verification ---
 app.get("/googlea37d48efab48b1a5.html", (req, res) => {
