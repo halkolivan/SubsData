@@ -139,76 +139,79 @@ app.post("/api/save-subscriptions", authMiddleware, async (req, res) => {
   }
 
   const fileContent = JSON.stringify(subscriptions, null, 2);
-  const contentLength = Buffer.byteLength(fileContent, "utf8");
+  const fileName = "subsdata-subscriptions.json";
 
   try {
-    // 🧠 Безопасный поиск файла
-    const searchUrl = `https://www.googleapis.com/drive/v3/files?q=name='subsdata-subscriptions.json'+and+'me'+in+owners&fields=files(id,name)`;
-    const searchRes = await fetch(searchUrl, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
+    // 1. Проверяем, есть ли уже файл в Google Drive
+    const searchRes = await fetch(
+      `https://www.googleapis.com/drive/v3/files?q=name='${fileName}'+and+'me'+in+owners&fields=files(id)`,
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+    const searchData = await searchRes.json();
+    const existingFile =
+      Array.isArray(searchData.files) && searchData.files.length > 0
+        ? searchData.files[0]
+        : null;
 
-    const searchText = await searchRes.text();
-    let searchData;
-    try {
-      searchData = JSON.parse(searchText);
-    } catch {
-      console.error("Ошибка парсинга ответа поиска Drive:", searchText);
-      return res.status(500).json({ error: "Некорректный ответ от Google Drive API." });
-    }
+    // 2. Формируем multipart-запрос
+    const metadata = {
+      name: fileName,
+      mimeType: "application/json",
+    };
 
-    const existingFile = Array.isArray(searchData.files) && searchData.files.length > 0
-      ? searchData.files[0]
-      : null;
+    const boundary = "subsdata_boundary_" + Date.now();
+    const multipartBody =
+      `--${boundary}\r\n` +
+      `Content-Type: application/json; charset=UTF-8\r\n\r\n` +
+      JSON.stringify(metadata) +
+      `\r\n--${boundary}\r\n` +
+      `Content-Type: application/json; charset=UTF-8\r\n\r\n` +
+      fileContent +
+      `\r\n--${boundary}--`;
 
-    let url, method;
+    let uploadUrl;
+    let method;
 
     if (existingFile) {
-      console.log(`Обновление существующего файла: ${existingFile.id}`);
-      url = `https://www.googleapis.com/upload/drive/v3/files/${existingFile.id}?uploadType=media`;
-      method = "PATCH"; // ✅ PATCH лучше подходит для обновления
+      console.log(`Обновляем файл ${existingFile.id} в Google Drive...`);
+      uploadUrl = `https://www.googleapis.com/upload/drive/v3/files/${existingFile.id}?uploadType=multipart`;
+      method = "PATCH";
     } else {
-      console.log("Создание нового файла.");
-      url = "https://www.googleapis.com/upload/drive/v3/files?uploadType=media";
+      console.log("Создаём новый файл в Google Drive...");
+      uploadUrl = "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart";
       method = "POST";
     }
 
-    const driveRes = await fetch(url, {
+    // 3. Отправляем multipart-запрос в Google Drive
+    const driveRes = await fetch(uploadUrl, {
       method,
       headers: {
-        "Content-Type": "application/json; charset=UTF-8",
-        "Content-Length": contentLength,
         Authorization: `Bearer ${accessToken}`,
+        "Content-Type": `multipart/related; boundary=${boundary}`,
       },
-      body: fileContent,
+      body: multipartBody,
     });
 
-    const driveText = await driveRes.text();
+    const text = await driveRes.text();
     if (!driveRes.ok) {
-      console.error("Google Drive API Failed:", driveText);
-      return res.status(500).json({
-        error: `Ошибка Drive API: ${driveRes.status}`,
-        details: driveText.slice(0, 300),
-      });
+      console.error("Google Drive API error:", text);
+      return res
+        .status(500)
+        .json({ error: "Не удалось сохранить файл в Google Drive.", details: text });
     }
 
-    let driveData = {};
-    try {
-      driveData = JSON.parse(driveText);
-    } catch {
-      console.warn("Drive ответ не JSON:", driveText);
-    }
-
+    const driveData = JSON.parse(text);
     console.log("✅ Сохранено в Google Drive:", driveData);
     res.status(200).json({
       message: "Данные успешно сохранены в Google Drive.",
-      fileId: driveData.id || null,
+      fileId: driveData.id,
     });
-  } catch (error) {
-    console.error("❌ Ошибка при работе с Google Drive API:", error);
-    res.status(500).json({ error: "Внутренняя ошибка сервера при работе с Drive." });
+  } catch (err) {
+    console.error("❌ Ошибка при сохранении в Google Drive:", err);
+    res.status(500).json({ error: "Внутренняя ошибка сервера при сохранении в Drive." });
   }
 });
+
 
 
 // --- Google site verification ---
