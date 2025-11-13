@@ -1,7 +1,8 @@
 import "dotenv/config";
 import cors from "cors";
 import express from "express";
-import fetch from "node-fetch";
+// import fetch from "node-fetch";
+import path from "path";
 import nodemailer from "nodemailer";
 
 // --- Инициализация приложения ---

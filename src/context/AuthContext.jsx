@@ -261,21 +261,23 @@ export const AuthProvider = ({ children }) => {
 
       // Проверка статуса ответа
       if (!apiResponse.ok) {
-        // errorInfo -> errorMessage
         let errorMessage = "Неизвестная ошибка сервера";
 
+        // 🔑 КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: ЧИТАЕМ ТЕЛО ОТВЕТА ОДИН РАЗ КАК ТЕКСТ
+        // Это предотвращает ошибку 'body stream already read'
+        const responseText = await apiResponse.text();
+
         try {
-          // errorData -> serverErrorData
-          const serverErrorData = await apiResponse.json();
+          // ПЫТАЕМСЯ РАСПАРСИТЬ ТЕКСТ КАК JSON
+          const serverErrorData = JSON.parse(responseText);
           errorMessage =
             serverErrorData.error || JSON.stringify(serverErrorData);
         } catch (errorObject) {
-          // e -> errorObject
-          // Если ответ не JSON (например, HTML-страница ошибки 500), читаем как текст
+          // Если парсинг не удался (это чистый HTML/текст 500-й ошибки), используем его
           console.warn(
             "Внимание: Ответ сервера не является JSON. Читаем как обычный текст."
           );
-          errorMessage = await apiResponse.text();
+          errorMessage = responseText; // Используем уже прочитанный текст
         }
 
         console.error(
@@ -283,7 +285,6 @@ export const AuthProvider = ({ children }) => {
           apiResponse.status,
           errorMessage
         );
-        // Выбрасываем ошибку для обработки на фронтенде
         throw new Error(
           `Ошибка сохранения данных: ${errorMessage.substring(0, 100)}`
         );
