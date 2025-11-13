@@ -72,6 +72,16 @@ export const AuthProvider = ({ children }) => {
           resolve(null);
         }
       };
+      tokenClientRef.current.requestAccessToken({
+        prompt: "",
+        callback: (resp) => {
+          if (resp.error === "interaction_required") {
+            console.warn("⚠️ Требуется повторная авторизация Google");
+            tokenClientRef.current.requestAccessToken({ prompt: "consent" });
+            return resolve(null);
+          }
+        },
+      });
 
       // Принудительно запрашиваем токен
       tokenClientRef.current.requestAccessToken({ prompt: "" });
@@ -157,7 +167,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       // 3. АСИНХРОННОЕ СОХРАНЕНИЕ В GOOGLE DRIVE
-      
+
       setSubscriptions(updatedSubscriptions);
       console.log("🆕 Добавлена подписка:", subscriptionToAdd);
 
@@ -275,6 +285,16 @@ export const AuthProvider = ({ children }) => {
 
   const saveSubscriptionsToDrive = useCallback(
     async (subs) => {
+      // Перед performSave
+      if (!token) {
+        console.warn("⚠️ Токен отсутствует, пробуем обновить перед отправкой.");
+        const refreshed = await refreshGoogleToken();
+        if (refreshed) {
+          console.log("🔑 Получен новый access_token перед сохранением");
+          return await performSave(refreshed);
+        }
+      }
+
       // 🔑 Вспомогательная функция для выполнения запроса
       const performSave = async (accessToken) => {
         if (!accessToken) {

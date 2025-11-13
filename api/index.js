@@ -167,6 +167,14 @@ app.post("/api/save-subscriptions", authMiddleware, async (req, res) => {
     });
 
     const searchTxt = await searchRes.text();
+    if (searchTxt.startsWith("<!DOCTYPE")) {
+      console.error(
+        "⚠️ Google вернул HTML — токен недействителен или требует повторного входа."
+      );
+      return res
+        .status(401)
+        .json({ error: "drive_auth_failed", html: searchTxt.slice(0, 200) });
+    }
     console.log(
       "🔍 Ответ Drive (поиск):",
       searchRes.status,
@@ -256,7 +264,6 @@ app.post("/api/save-subscriptions", authMiddleware, async (req, res) => {
     });
   }
 });
-
 
 // --- Google site verification ---
 app.get("/googlea37d48efab48b1a5.html", (req, res) => {
