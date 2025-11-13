@@ -89,35 +89,21 @@ export const AuthProvider = ({ children }) => {
   };
 
   // --- Add Subscription ---
-  const addSubscription = useCallback(
-    (newSub) => {
-      // Проверка, что пользователь авторизован и имеет ID      
-      const subToAdd = {
-        ...newSub,
-        id: Date.now(),
-        currency: newSub.currency || "USD",
-        nextPayment:
-          newSub.nextPayment || new Date().toISOString().split("T")[0],
-      };
+  const addSubscription = (sub) => {
+    const newSub = {
+      ...sub,
+      id: sub.id || Date.now() + Math.random().toString(36).substring(2, 9), // Уникальный ID
+    };
 
-      try {
-        const updated = [...subscriptions, subToAdd];
+    // Получаем новый массив
+    let updatedSubs;
+    setSubscriptions((prev) => {
+      updatedSubs = [...prev, newSub];
+      return updatedSubs;
+    });
 
-        // 🔑 СОХРАНЕНИЕ ПО УНИКАЛЬНОМУ КЛЮЧУ
-        const userSubKey = getUserSubscriptionKey(user.id);
-
-        if (userSubKey) {
-          localStorage.setItem(userSubKey, JSON.stringify(updated));
-        }
-
-        setSubscriptions(updated);
-        console.log("🆕 Добавлена подписка:", subToAdd);
-      } catch (err) {
-        console.error("Ошибка при добавлении подписки:", err);
-      }
-    },
-    [subscriptions, user]
-  );
+    console.log("🆕 Добавлена подписка:", newSub);    
+  };
 
   // 1. ✅ ИСПРАВЛЕНО: ОТДЕЛЬНЫЙ useEffect для загрузки подписок при перезагрузке.
   // Запускается при изменении объекта user.
