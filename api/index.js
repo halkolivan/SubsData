@@ -11,7 +11,6 @@ process.on("uncaughtException", (err) => {
   console.error("UNCAUGHT EXCEPTION:", err);
 });
 
-
 // --- Инициализация приложения ---
 const app = express();
 
@@ -19,14 +18,8 @@ const app = express();
 app.use(express.json());
 
 const allowedOrigins = [
-  // 1. Локальная разработка (если порт 5173)
   "http://localhost:5173",
-  // 2. Основной домен Vercel (через переменную окружения или новый Vercel-домен)
   process.env.FRONT_ORIGIN || "https://subsdata.top",
-  // 3. Старый домен (если нужно для обратной совместимости)
-  "https://subsdata.top",
-  // 4. Дополнительный API (Render)
-  "https://subsdata.top",
 ];
 
 // --- CORS настройка ---
@@ -152,7 +145,8 @@ app.post("/api/save-subscriptions", authMiddleware, async (req, res) => {
 
   try {
     // ---------- поиск файла ----------
-    const searchUrl = `https://www.googleapis.com/drive/v3/files?q=name='${fileName}'+and+'me'+in+owners&fields=files(id,name)`;
+    const query = encodeURIComponent(`name='${fileName}' and 'me' in owners`);
+    const searchUrl = `https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,name)`;
     const searchRes = await fetch(searchUrl, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
@@ -202,11 +196,8 @@ app.post("/api/save-subscriptions", authMiddleware, async (req, res) => {
 
     const driveTxt = await driveRes.text();
     console.log("📤 Drive upload response:", driveRes.status, driveTxt);
-
     console.log("📤 Drive upload status:", driveRes.status);
-    const driveText = await driveRes.text();
     console.log("📤 Drive upload body:", driveText);
-
 
     if (!driveRes.ok) {
       return res
@@ -229,12 +220,12 @@ app.post("/api/save-subscriptions", authMiddleware, async (req, res) => {
     console.error("❌ Внутренняя ошибка save-subscriptions:", err);
     return res
       .status(500)
-      .json({ error: "Server crash inside save-subscriptions", details: err.message });
+      .json({
+        error: "Server crash inside save-subscriptions",
+        details: err.message,
+      });
   }
 });
-
-
-
 
 // --- Google site verification ---
 app.get("/googlea37d48efab48b1a5.html", (req, res) => {
