@@ -60,33 +60,29 @@ export const AuthProvider = ({ children }) => {
 
       console.log("🔄 Запрос на обновление Google access_token...");
 
-      // Используем requestAccessToken для 'silent refresh'
       tokenClientRef.current.callback = (resp) => {
+        if (resp.error === "interaction_required") {
+          console.warn("⚠️ Требуется взаимодействие. Запрашиваем с consent...");
+          tokenClientRef.current.requestAccessToken({ prompt: "consent" });
+          return resolve(null);
+        }
+
         if (resp.access_token) {
-          console.log("✅ Обновлён Google access_token.");
+          console.log("✅ Google access_token обновлён.");
           setToken(resp.access_token);
           localStorage.setItem("authToken", resp.access_token);
-          resolve(resp.access_token); // ВОЗВРАЩАЕМ НОВЫЙ ТОКЕН
+          resolve(resp.access_token);
         } else {
           console.error("❌ Не удалось обновить токен:", resp);
           resolve(null);
         }
       };
-      tokenClientRef.current.requestAccessToken({
-        prompt: "",
-        callback: (resp) => {
-          if (resp.error === "interaction_required") {
-            console.warn("⚠️ Требуется повторная авторизация Google");
-            tokenClientRef.current.requestAccessToken({ prompt: "consent" });
-            return resolve(null);
-          }
-        },
-      });
 
-      // Принудительно запрашиваем токен
+      // Сначала пробуем без prompt
       tokenClientRef.current.requestAccessToken({ prompt: "" });
     });
-  }, [setToken]);
+  }, []);
+
 
   // --- Login / Logout ---
   const login = (userData, authToken) => {
@@ -282,6 +278,7 @@ export const AuthProvider = ({ children }) => {
       setJustLoggedIn(false);
     }
   }, [justLoggedIn, subscriptions]);
+  
 
   const saveSubscriptionsToDrive = useCallback(
     async (subs) => {

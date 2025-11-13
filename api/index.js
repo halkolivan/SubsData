@@ -168,9 +168,7 @@ app.post("/api/save-subscriptions", authMiddleware, async (req, res) => {
 
     const searchTxt = await searchRes.text();
     if (searchTxt.startsWith("<!DOCTYPE")) {
-      console.error(
-        "⚠️ Google вернул HTML — токен недействителен или требует повторного входа."
-      );
+      console.error(console.log("🚨 ACCESS TOKEN:", token));
       return res
         .status(401)
         .json({ error: "drive_auth_failed", html: searchTxt.slice(0, 200) });
