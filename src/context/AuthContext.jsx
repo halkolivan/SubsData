@@ -205,49 +205,68 @@ export const AuthProvider = ({ children }) => {
     }
   }, [justLoggedIn, subscriptions]);
 
-  const saveSubscriptionsToDrive = async (subs) => {
-    if (!token) {
-      // Этого не должно случиться, если кнопка заблокирована для неавторизованных
-      console.error("Нет токена авторизации.");
-      throw new Error("User not authenticated.");
-    }
+  const saveSubscriptionsToDrive = useCallback(
+    async (subscriptionsData) => {
+      // Используем полное имя: token -> accessToken
+      const accessToken = token;
 
-    // ✅ 1. Вызов запроса на бэкенд
-    const response = await fetch("/api/save-subscriptions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        // Передаем токен для бэкенд-валидации (authMiddleware)
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ subscriptions: subs }),
-    });
-
-    if (!response.ok) {
-      let errorInfo = "Неизвестная ошибка сервера";
-      try {
-        // 🚀 ПОПЫТКА 1: Читаем как JSON (если бэкенд отправил правильный JSON с ошибкой)
-        const errorData = await response.json();
-        errorInfo = errorData.error || JSON.stringify(errorData);
-      } catch (e) {
-        // 🛑 ПОПЫТКА 2: Если не JSON (например, HTML-страница ошибки), читаем как текст
-        console.warn(
-          "Ошибка: Ответ сервера не является JSON. Читаем как текст."
+      // Проверка, что токен доступа существует
+      if (!accessToken) {
+        console.error("Нет токена доступа (access token).");
+        throw new Error(
+          "Пользователь не авторизован (User not authenticated)."
         );
-        errorInfo = await response.text();
       }
 
-      console.error(
-        "❌ Ошибка API при сохранении:",
-        response.status,
-        errorInfo
-      );
-      // Выбрасываем ошибку, которую поймает SaveButton.jsx
-      throw new Error(`Ошибка сохранения: ${errorInfo.substring(0, 100)}`);
-    }
+      // ✅ 1. Вызов запроса на бэкенд
+      // response -> apiResponse
+      const apiResponse = await fetch("/api/save-subscriptions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // Передаем токен для бэкенд-валидации
+          Authorization: `Bearer ${accessToken}`,
+        },
+        // subs -> subscriptionsData
+        body: JSON.stringify({ subscriptions: subscriptionsData }),
+      });
 
-    console.log("✅ Данные отправлены на сервер для сохранения в Drive.");
-  };
+      // Проверка статуса ответа
+      if (!apiResponse.ok) {
+        // errorInfo -> errorMessage
+        let errorMessage = "Неизвестная ошибка сервера";
+
+        try {
+          // errorData -> serverErrorData
+          const serverErrorData = await apiResponse.json();
+          errorMessage =
+            serverErrorData.error || JSON.stringify(serverErrorData);
+        } catch (errorObject) {
+          // e -> errorObject
+          // Если ответ не JSON (например, HTML-страница ошибки 500), читаем как текст
+          console.warn(
+            "Внимание: Ответ сервера не является JSON. Читаем как обычный текст."
+          );
+          errorMessage = await apiResponse.text();
+        }
+
+        console.error(
+          "❌ Ошибка API при сохранении:",
+          apiResponse.status,
+          errorMessage
+        );
+        // Выбрасываем ошибку для обработки на фронтенде
+        throw new Error(
+          `Ошибка сохранения данных: ${errorMessage.substring(0, 100)}`
+        );
+      }
+
+      console.log(
+        "✅ Данные успешно отправлены на сервер для сохранения в Google Drive."
+      );
+    },
+    [token]
+  );
 
   // --- Возврат контекста ---
   return (
