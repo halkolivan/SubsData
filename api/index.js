@@ -129,6 +129,85 @@ app.post("/api/send-subs-email", authMiddleware, async (req, res) => {
   }
 });
 
+// --- Новый маршрут для сохранения подписок в Google Drive ---
+app.post("/api/save-subscriptions", authMiddleware, async (req, res) => {
+  // authMiddleware гарантирует наличие req.token и req.user
+  const accessToken = req.token;
+  const { subscriptions } = req.body;
+  const fileName = "subsdata-subscriptions.json";
+
+  if (!subscriptions) {
+    return res.status(400).json({ error: "Отсутствуют данные подписок." });
+  }
+
+  // Данные для файла
+  const fileContent = JSON.stringify(subscriptions, null, 2);
+  // Определяем размер тела
+  const contentLength = Buffer.byteLength(fileContent, "utf8");
+
+  try {
+    // 1. Поиск существующего файла (по имени)
+    const searchRes = await fetch(
+      "https://www.googleapis.com/drive/v3/files?q=name%3D'subsdata-subscriptions.json'+and+'me'+in+owners&fields=files(id)",
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
+    );
+    const searchData = await searchRes.json();
+    const existingFile =
+      searchData.files.length > 0 ? searchData.files[0] : null;
+
+    let driveRes;
+    let url;
+    let method;
+
+    if (existingFile) {
+      // 2. Если файл существует, обновляем его (PUT)
+      console.log(`Обновление существующего файла: ${existingFile.id}`);
+      url = `https://www.googleapis.com/upload/drive/v3/files/${existingFile.id}?uploadType=media`;
+      method = "PUT";
+    } else {
+      // 3. Если файла нет, создаем новый (POST)
+      console.log("Создание нового файла.");
+      url = "https://www.googleapis.com/upload/drive/v3/files?uploadType=media";
+      method = "POST";
+    }
+
+    // 4. Загрузка/Обновление файла
+    driveRes = await fetch(url, {
+      method: method,
+      headers: {
+        "Content-Type": "application/json; charset=UTF-8",
+        "Content-Length": contentLength,
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: fileContent,
+    });
+
+    if (!driveRes.ok) {
+      const errorText = await driveRes.text();
+      console.error("Google Drive API Failed:", errorText);
+      return res
+        .status(500)
+        .json({ error: "Не удалось сохранить файл на Google Drive." });
+    }
+
+    const driveData = await driveRes.json();
+    console.log("Успешное сохранение/обновление в Google Drive:", driveData);
+    res
+      .status(200)
+      .json({
+        message: "Данные успешно сохранены в Google Drive.",
+        fileId: driveData.id,
+      });
+  } catch (error) {
+    console.error("❌ Ошибка при работе с Google Drive API:", error);
+    res
+      .status(500)
+      .json({ error: "Внутренняя ошибка сервера при работе с Drive." });
+  }
+});
+
 // --- Google site verification ---
 app.get("/googlea37d48efab48b1a5.html", (req, res) => {
   res.sendFile(path.join(__dirname, "dist", "googlea37d48efab48b1a5.html"));

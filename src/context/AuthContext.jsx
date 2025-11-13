@@ -219,6 +219,33 @@ export const AuthProvider = ({ children }) => {
     }
   }, [justLoggedIn, subscriptions]);
 
+  const saveSubscriptionsToDrive = async (subs) => {
+    if (!token) {
+      // Этого не должно случиться, если кнопка заблокирована для неавторизованных
+      console.error("Нет токена авторизации.");
+      throw new Error("User not authenticated.");
+    }
+
+    // ✅ 1. Вызов запроса на бэкенд
+    const response = await fetch("/api/save-subscriptions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        // Передаем токен для бэкенд-валидации (authMiddleware)
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ subscriptions: subs }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Ошибка API при сохранении:", errorData);
+      throw new Error(errorData.error || "Failed to save to Drive via server.");
+    }
+
+    console.log("✅ Данные отправлены на сервер для сохранения в Drive.");
+  };
+
   // --- Возврат контекста ---
   return (
     <AuthContext.Provider
@@ -237,6 +264,7 @@ export const AuthProvider = ({ children }) => {
         settings,
         updateSettings,
         refreshAccessToken,
+        saveSubscriptionsToDrive,
       }}
     >
       {children}
