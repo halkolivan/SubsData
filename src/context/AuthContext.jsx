@@ -34,6 +34,8 @@ export const AuthProvider = ({ children }) => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [justLoggedIn, setJustLoggedIn] = useState(false);
 
+  const tokenClientRef = useRef(null);
+
   const refreshGoogleToken = useCallback(() => {
     return new Promise((resolve) => {
       if (!tokenClientRef.current) {
