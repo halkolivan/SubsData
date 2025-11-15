@@ -159,6 +159,14 @@ app.post("/api/save-subscriptions", authMiddleware, async (req, res) => {
 
   const fileName = "subsdata-subscriptions.json";
   const fileContent = JSON.stringify(subscriptions, null, 2);
+  res.set(
+    "Cache-Control",
+    "no-store, no-cache, must-revalidate, proxy-revalidate"
+  );
+  res.set("Pragma", "no-cache");
+  res.set("Expires", "0");
+
+  res.status(200).json({ subscriptions: fileContent });
 
   try {
     // --- Поиск файла ---
