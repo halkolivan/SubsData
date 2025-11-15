@@ -267,10 +267,77 @@ app.post("/api/save-subscriptions", authMiddleware, async (req, res) => {
   }
 });
 
+app.get("/api/load-subscriptions", async (req, res) => {
+  try {
+    // 1. Проверяем наличие токена (используем authMiddleware для чистоты)
+    const accessToken = req.headers.authorization?.split(" ")[1];
+    if (!accessToken) {
+      return res.status(401).json({ error: "Missing access token" });
+    }
+
+    // 2. Ищем файл в Общем Drive (где его сохраняет /api/save-subscriptions)
+    // Используем 'me' in owners и правильное имя файла.
+    const query = encodeURIComponent(
+      `name='${SUBS_FILE_NAME}' and 'me' in owners`
+    );
+    const searchUrl = `https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,name)`;
+
+    console.log("🔍 Ищем существующий файл в Drive...");
+    const searchRes = await fetch(searchUrl, {
+      // 💡 ИЗМЕНЕН URL И QUERY
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    const searchData = await searchRes.json();
+    const file = searchData.files?.[0]; // Берем первый найденный файл
+
+    if (!file) {
+      console.log(
+        `Файл ${SUBS_FILE_NAME} не найден. Возвращаем пустой массив.`
+      );
+      // Файл не найден, возвращаем пустой массив
+      return res.status(200).json({ subscriptions: [] });
+    }
+
+    // 3. Скачиваем контент файла по его ID
+    const fileRes = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    if (!fileRes.ok) {
+      console.error(
+        "❌ Ошибка при скачивании файла Drive:",
+        await fileRes.text()
+      );
+      return res.status(500).json({ error: "Drive download error" });
+    }
+
+    // 💡 Drive API возвращает raw-контент, который уже является JSON
+    const fileContent = await fileRes.json();
+    console.log("✅ Подписки успешно загружены из Drive.");
+
+    res.status(200).json({ subscriptions: fileContent });
+  } catch (err) {
+    console.error("🔥 Критическая ошибка load-subscriptions:", err);
+    res.status(500).json({ error: "Server crash inside load-subscriptions" });
+  }
+});
+
 // --- Google site verification ---
 app.get("/googlea37d48efab48b1a5.html", (req, res) => {
   res.sendFile(path.join(__dirname, "dist", "googlea37d48efab48b1a5.html"));
 });
+
+// --- Добавьте этот маршрут после app.post("/api/save-subscriptions", ...) ---
+const SUBS_FILE_NAME = "subsdata-subscriptions.json";
+
 
 app.get(/.*/, (req, res) => {
   // Игнорируем только API

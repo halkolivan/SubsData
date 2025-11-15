@@ -34,23 +34,6 @@ export const AuthProvider = ({ children }) => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [justLoggedIn, setJustLoggedIn] = useState(false);
 
-  // ✅ Ref для хранения объекта токен-клиента Google
-  const tokenClientRef = useRef(null);
-  useEffect(() => {
-    // Проверка, что библиотека gapi загружена
-    if (window.google?.accounts?.oauth2?.initTokenClient) {
-      tokenClientRef.current = window.google.accounts.oauth2.initTokenClient({
-        client_id: GOOGLE_CLIENT_ID,
-        scope:
-          "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/drive.file",
-        callback: (resp) => {
-          // Эта функция используется для loginWithGoogle, но мы её используем для рефреша
-          // Логика обработки токена из resp
-        },
-      });
-    }
-  }, []);
-
   const refreshGoogleToken = useCallback(() => {
     return new Promise((resolve) => {
       if (!tokenClientRef.current) {
@@ -131,11 +114,89 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // --- Функция для загрузки данных из Drive ---
+  const loadSubscriptionsFromDrive = useCallback(async () => {
+    if (!token) return;
+
+    // Используем VITE_API_URL, который сейчас, вероятно, установлен на HTTPS-адрес.
+    const API_URL = import.meta.env.VITE_API_URL || window.location.origin;
+
+    console.log("📦 Инициируем загрузку подписок из Google Drive...");
+
+    try {
+      const response = await fetch(`${API_URL}/api/load-subscriptions`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        // Если статус не 200, пытаемся прочитать текст ошибки
+        const errorText = await response.text();
+
+        // Эта проверка помогает отловить ошибку "Unexpected token '<'"
+        if (errorText.startsWith("<!DOCTYPE")) {
+          console.error(
+            "❌ Сервер вернул HTML вместо JSON. Проверьте развертывание или VITE_API_URL."
+          );
+          setSubscriptions([]);
+          return;
+        }
+
+        console.error(
+          `❌ Ошибка сервера (Статус ${response.status}):`,
+          errorText.slice(0, 300)
+        );
+
+        if (response.status === 401 || response.status === 403) {
+          console.warn(
+            "⚠️ Ошибка авторизации при загрузке. Пробуем обновить токен."
+          );
+          const newToken = await refreshGoogleToken();
+          if (newToken) {
+            // В рабочем приложении тут должен быть повторный вызов loadSubscriptionsFromDrive с новым токеном.
+          }
+        }
+        setSubscriptions([]);
+        throw new Error(`Server error: ${response.status}`);
+      }
+
+      // Ответ OK, парсим JSON
+      const data = await response.json();
+
+      if (data.subscriptions) {
+        setSubscriptions(data.subscriptions);
+        console.log(`✅ Загружено ${data.subscriptions.length} подписок.`);
+      } else {
+        // Если сервер вернул пустой массив, но статус 200
+        setSubscriptions([]);
+        console.log("No subscriptions file found in Drive. Starting fresh.");
+      }
+    } catch (e) {
+      console.error("❌ Ошибка при загрузке подписок из Drive:", e);
+      setSubscriptions([]);
+    }
+  }, [token, setSubscriptions, refreshGoogleToken]);
+
+  useEffect(() => {
+    // Выполняется при изменении user или token
+    if (user && token) {
+      // Когда пользователь и токен доступны, начинаем загрузку
+      loadSubscriptionsFromDrive();
+
+      // ВАЖНО: Если у вас есть логика для проверки уведомлений
+      // она также должна быть здесь или в отдельном useEffect, зависящем от подписок.
+    } else {
+      // Очистка данных при логауте
+      setSubscriptions([]);
+    }
+  }, [user, token, loadSubscriptionsFromDrive, setSubscriptions]);  
+
   // --- Add Subscription ---
-  const addSubscription = (newSubscriptionData) => {   
+  const addSubscription = (newSubscriptionData) => {
     const subscriptionToAdd = {
       ...newSubscriptionData,
-      id: Date.now(), 
+      id: Date.now(),
       currency: newSubscriptionData.currency || "USD",
       nextPayment:
         newSubscriptionData.nextPayment ||
@@ -143,7 +204,6 @@ export const AuthProvider = ({ children }) => {
     };
 
     setSubscriptions((prevSubs) => {
-      
       const updatedSubscriptions = [...prevSubs, subscriptionToAdd];
 
       const userSubscriptionKey = getUserSubscriptionKey(user?.id);
@@ -160,9 +220,9 @@ export const AuthProvider = ({ children }) => {
           errorObject
         );
       });
-      console.log("🆕 Добавлена подписка:", subscriptionToAdd);      
+      console.log("🆕 Добавлена подписка:", subscriptionToAdd);
       return updatedSubscriptions;
-    });    
+    });
   };
 
   // 1. ✅ ИСПРАВЛЕНО: ОТДЕЛЬНЫЙ useEffect для загрузки подписок при перезагрузке.
