@@ -369,6 +369,11 @@ export const AuthProvider = ({ children }) => {
             errorMessage = responseText;
           }
 
+          if (driveData.fileId) {
+            // ✅ СОХРАНЯЕМ ID В ЛОКАЛЬНОЕ ХРАНИЛИЩЕ
+            localStorage.setItem("driveFileId", driveData.fileId);
+          }
+
           console.error(
             "❌ Ошибка API при сохранении:",
             apiResponse.status,

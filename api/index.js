@@ -170,7 +170,9 @@ app.post("/api/save-subscriptions", authMiddleware, async (req, res) => {
 
   try {
     // --- Поиск файла ---
-    const query = encodeURIComponent(`name='${fileName}' and 'me' in owners`);
+    const query = encodeURIComponent(
+      `name='subsdata-subscriptions.json' and 'me' in owners and trashed=false`
+    );
     const searchUrl = `https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,name)`;
 
     console.log("🔍 Ищем существующий файл в Drive...");
@@ -273,6 +275,10 @@ app.post("/api/save-subscriptions", authMiddleware, async (req, res) => {
       details: err.message,
     });
   }
+  res.status(200).json({
+    message: "Файл сохранён в Google Drive",
+    fileId: driveData.id || null, // Убедитесь, что driveData.id отправляется!
+  });
 });
 
 app.get("/api/load-subscriptions", async (req, res) => {
