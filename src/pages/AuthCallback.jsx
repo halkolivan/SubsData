@@ -38,7 +38,8 @@ export default function AuthCallback() {
             },
             data.token
           );
-          navigate("/");
+          window.location.replace("/");
+          // navigate("/");
         } else {
           navigate("/");
         }
