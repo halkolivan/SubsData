@@ -283,12 +283,14 @@ app.get("/api/load-subscriptions", async (req, res) => {
       return res.status(401).json({ error: "Missing access token" });
     }
 
+    const cacheBuster = Date.now();
+
     // 2. Ищем файл в Общем Drive (где его сохраняет /api/save-subscriptions)
     // Используем 'me' in owners и правильное имя файла.
     const query = encodeURIComponent(
       `name='${SUBS_FILE_NAME}' and 'me' in owners`
     );
-    const searchUrl = `https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,name)`;
+    const searchUrl = `https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,name)&v=${cacheBuster}`;
 
     console.log("🔍 Ищем существующий файл в Drive...");
     const searchRes = await fetch(searchUrl, {
