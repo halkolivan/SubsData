@@ -4,7 +4,7 @@ import LanguageDetector from "i18next-browser-languagedetector";
 import { initReactI18next } from "react-i18next";
 
 const languageDetectorOptions = {
-  order: ["localStorage", "cookie", "navigator"],
+  order: ["localStorage", "cookie", "navigator", "htmlTag"],
   caches: ["localStorage", "cookie"],
   lookupLocalStorage: "i18nextLng",
   lookupCookie: "i18nextLng",
