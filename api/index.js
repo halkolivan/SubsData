@@ -164,9 +164,9 @@ app.post("/api/save-subscriptions", authMiddleware, async (req, res) => {
     "no-store, no-cache, must-revalidate, proxy-revalidate"
   );
   res.set("Pragma", "no-cache");
-  res.set("Expires", "0");
+  // res.set("Expires", "0");
 
-  res.status(200).json({ subscriptions: fileContent });
+  // res.status(200).json({ subscriptions: fileContent });
 
   try {
     // --- Поиск файла ---
