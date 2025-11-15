@@ -38,6 +38,9 @@ export default function AuthCallback() {
             },
             data.token
           );
+          setTimeout(() => {
+            navigate("/"); // Переходим на главную ТОЛЬКО ПОСЛЕ паузы
+          }, 100);
           navigate("/");
         } else {
           navigate("/");

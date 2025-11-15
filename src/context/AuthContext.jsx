@@ -183,14 +183,12 @@ export const AuthProvider = ({ children }) => {
     } catch (e) {
       console.error("❌ Ошибка при загрузке подписок из Drive:", e);
       setSubscriptions([]);
-    } finally {
-      // 2. КОНЕЦ ЗАГРУЗКИ: Гарантированно запускаем второй рендеринг
+    } finally {      
       setIsLoading(false);
     }
   }, [token, setSubscriptions, refreshGoogleToken]);
 
-  useEffect(() => {
-    // Выполняется при изменении user или token
+  useEffect(() => {    
     if (user && token) {
       loadSubscriptionsFromDrive();
     } else {
@@ -232,8 +230,6 @@ export const AuthProvider = ({ children }) => {
     });
   };
 
-  // 1. ✅ ИСПРАВЛЕНО: ОТДЕЛЬНЫЙ useEffect для загрузки подписок при перезагрузке.
-  // Запускается при изменении объекта user.
   useEffect(() => {
     if (user?.id) {
       const userSubKey = getUserSubscriptionKey(user.id);
@@ -257,7 +253,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, [user]);
 
-  // 2. ✅ ИСПРАВЛЕНО: ОТДЕЛЬНЫЙ useEffect для инициализации Google-клиента.
+  
   useEffect(() => {
     // Выполняется один раз при монтировании компонента.
     if (!window.google?.accounts?.oauth2 || !GOOGLE_CLIENT_ID) return;
@@ -283,9 +279,8 @@ export const AuthProvider = ({ children }) => {
     }, 50 * 60 * 1000);
 
     return () => clearInterval(interval);
-  }, []); // Зависимости нет, работает как componentDidMount
-
-  // ✅ АСИНХРОННАЯ ФУНКЦИЯ ОБНОВЛЕНИЯ ТОКЕНА
+  }, []); 
+  
   const refreshAccessToken = useCallback(() => {
     if (!tokenClientRef.current) {
       console.error("Google Token Client не инициализирован.");
