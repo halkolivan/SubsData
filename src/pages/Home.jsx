@@ -228,16 +228,7 @@ export default function Home() {
     }
   }, [subscriptions]);
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-screen-main">
-        {/* Здесь должен быть виден текст, спиннер или ваш основной цвет */}
-        <h2 className="text-xl">
-          {user ? "Loading your subscriptions..." : "Loading..."}
-        </h2>
-      </div>
-    );
-  }
+  
 
   return (
     <main className="flex h-auto w-full">
