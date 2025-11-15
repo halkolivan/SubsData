@@ -130,6 +130,7 @@ export const AuthProvider = ({ children }) => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        cache: "no-cache",
       });
 
       if (!response.ok) {
