@@ -33,7 +33,6 @@ export const AuthProvider = ({ children }) => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [justLoggedIn, setJustLoggedIn] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
   const tokenClientRef = useRef(null);
 
@@ -119,11 +118,7 @@ export const AuthProvider = ({ children }) => {
 
   // --- Функция для загрузки данных из Drive ---
   const loadSubscriptionsFromDrive = useCallback(async () => {
-    setIsLoading(true);
-    if (!token) {
-      setIsLoading(false);
-      return;
-    }
+    if (!token) return;
 
     // Используем VITE_API_URL, который сейчас, вероятно, установлен на HTTPS-адрес.
     const API_URL = import.meta.env.VITE_API_URL || window.location.origin;
@@ -183,19 +178,22 @@ export const AuthProvider = ({ children }) => {
     } catch (e) {
       console.error("❌ Ошибка при загрузке подписок из Drive:", e);
       setSubscriptions([]);
-    } finally {      
-      setIsLoading(false);
     }
   }, [token, setSubscriptions, refreshGoogleToken]);
 
-  useEffect(() => {    
+  useEffect(() => {
+    // Выполняется при изменении user или token
     if (user && token) {
+      // Когда пользователь и токен доступны, начинаем загрузку
       loadSubscriptionsFromDrive();
+
+      // ВАЖНО: Если у вас есть логика для проверки уведомлений
+      // она также должна быть здесь или в отдельном useEffect, зависящем от подписок.
     } else {
+      // Очистка данных при логауте
       setSubscriptions([]);
-      setIsLoading(false);
     }
-  }, [user, token, loadSubscriptionsFromDrive, setSubscriptions]);
+  }, [user, token, loadSubscriptionsFromDrive, setSubscriptions]);  
 
   // --- Add Subscription ---
   const addSubscription = (newSubscriptionData) => {
@@ -230,6 +228,8 @@ export const AuthProvider = ({ children }) => {
     });
   };
 
+  // 1. ✅ ИСПРАВЛЕНО: ОТДЕЛЬНЫЙ useEffect для загрузки подписок при перезагрузке.
+  // Запускается при изменении объекта user.
   useEffect(() => {
     if (user?.id) {
       const userSubKey = getUserSubscriptionKey(user.id);
@@ -253,7 +253,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, [user]);
 
-  
+  // 2. ✅ ИСПРАВЛЕНО: ОТДЕЛЬНЫЙ useEffect для инициализации Google-клиента.
   useEffect(() => {
     // Выполняется один раз при монтировании компонента.
     if (!window.google?.accounts?.oauth2 || !GOOGLE_CLIENT_ID) return;
@@ -279,8 +279,9 @@ export const AuthProvider = ({ children }) => {
     }, 50 * 60 * 1000);
 
     return () => clearInterval(interval);
-  }, []); 
-  
+  }, []); // Зависимости нет, работает как componentDidMount
+
+  // ✅ АСИНХРОННАЯ ФУНКЦИЯ ОБНОВЛЕНИЯ ТОКЕНА
   const refreshAccessToken = useCallback(() => {
     if (!tokenClientRef.current) {
       console.error("Google Token Client не инициализирован.");
@@ -478,7 +479,6 @@ export const AuthProvider = ({ children }) => {
         subscriptions,
         setSubscriptions,
         settings,
-        isLoading,
         updateSettings,
         refreshAccessToken,
         refreshGoogleToken,

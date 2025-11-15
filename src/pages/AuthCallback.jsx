@@ -38,9 +38,6 @@ export default function AuthCallback() {
             },
             data.token
           );
-          setTimeout(() => {
-            window.location.replace("/"); // <-- ЗДЕСЬ ИЗМЕНЕНИЕ
-          }, 100);
           navigate("/");
         } else {
           navigate("/");
