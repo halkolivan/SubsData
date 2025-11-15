@@ -33,6 +33,7 @@ export const AuthProvider = ({ children }) => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [justLoggedIn, setJustLoggedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const tokenClientRef = useRef(null);
 
@@ -479,6 +480,7 @@ export const AuthProvider = ({ children }) => {
         subscriptions,
         setSubscriptions,
         settings,
+        isLoading,
         updateSettings,
         refreshAccessToken,
         refreshGoogleToken,

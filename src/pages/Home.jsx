@@ -9,7 +9,7 @@ import { formatDate, formatPrice } from "@/utils/formatUtils";
 
 export default function Home() {
   const { t } = useTranslation();
-  const { subscriptions, settings } = useAuth();
+  const { subscriptions, settings, isLoading } = useAuth();
   const sourceSubs = subscriptions.length ? subscriptions : mockSubs;  
   const totalSubs = sourceSubs.length;
   const subSum = sourceSubs.reduce(
@@ -227,6 +227,17 @@ export default function Home() {
       setShowDemoNotice(true);
     }
   }, [subscriptions]);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen-main">
+        {/* Здесь должен быть виден текст, спиннер или ваш основной цвет */}
+        <h2 className="text-xl">
+          {user ? "Loading your subscriptions..." : "Loading..."}
+        </h2>
+      </div>
+    );
+  }
 
   return (
     <main className="flex h-auto w-full">
