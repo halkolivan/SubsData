@@ -119,7 +119,11 @@ export const AuthProvider = ({ children }) => {
 
   // --- Функция для загрузки данных из Drive ---
   const loadSubscriptionsFromDrive = useCallback(async () => {
-    if (!token) return;
+    setIsLoading(true);
+    if (!token) {
+      setIsLoading(false);
+      return;
+    }
 
     // Используем VITE_API_URL, который сейчас, вероятно, установлен на HTTPS-адрес.
     const API_URL = import.meta.env.VITE_API_URL || window.location.origin;
@@ -179,22 +183,21 @@ export const AuthProvider = ({ children }) => {
     } catch (e) {
       console.error("❌ Ошибка при загрузке подписок из Drive:", e);
       setSubscriptions([]);
+    } finally {
+      // 2. КОНЕЦ ЗАГРУЗКИ: Гарантированно запускаем второй рендеринг
+      setIsLoading(false);
     }
   }, [token, setSubscriptions, refreshGoogleToken]);
 
   useEffect(() => {
     // Выполняется при изменении user или token
     if (user && token) {
-      // Когда пользователь и токен доступны, начинаем загрузку
       loadSubscriptionsFromDrive();
-
-      // ВАЖНО: Если у вас есть логика для проверки уведомлений
-      // она также должна быть здесь или в отдельном useEffect, зависящем от подписок.
     } else {
-      // Очистка данных при логауте
       setSubscriptions([]);
+      setIsLoading(false);
     }
-  }, [user, token, loadSubscriptionsFromDrive, setSubscriptions]);  
+  }, [user, token, loadSubscriptionsFromDrive, setSubscriptions]);
 
   // --- Add Subscription ---
   const addSubscription = (newSubscriptionData) => {
